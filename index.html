@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>不良たちの日本語講座！ - 視覺小說聽力冒險</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- 橫向 16:9 視覺小說舞台主容器 -->
+    <div id="vn-stage">
+
+        <!-- 頂部極簡 HUD -->
+        <div id="vn-hud" class="hidden">
+            <div class="hud-left">
+                <span id="hud-chapter-title" class="hud-chapter">第一章：誰把我們的班級交給這兩個人了？</span>
+            </div>
+            <div class="hud-right">
+                <div id="trust-bar">
+                    <span class="trust-item">蓮: <b id="trust-ren">0</b></span>
+                    <span class="trust-item">透: <b id="trust-toru">0</b></span>
+                    <span class="trust-item">佐藤: <b id="trust-sato">0</b></span>
+                </div>
+                <button id="hud-config-btn" class="hud-config-btn">設定</button>
+                <button id="btn-game-exit" class="hud-config-btn" style="color: #e84118; border-color: #fab1a0;">返回標題</button>
+            </div>
+        </div>
+
+        <!-- 1. 開場標題畫面 -->
+        <div id="screen-title" class="vn-screen active">
+            <div class="title-overlay">
+                <h1 class="game-title-main">不良たちの日本語講座！</h1>
+                <p class="game-title-sub">～校園文化祭大作戰與日語聽力冒險～</p>
+                <div class="title-btn-group">
+                    <button id="btn-continue" class="vn-btn primary hidden">繼續遊戲</button>
+                    <button id="btn-start" class="vn-btn primary">開始遊戲</button>
+                    <button id="btn-how-to-play" class="vn-btn secondary">遊戲說明</button>
+                    <button id="btn-title-config" class="vn-btn secondary">設定</button>
+                    <button id="btn-review" class="vn-btn secondary hidden">聽力回顧</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. 遊戲進行畫面 (VN Gameplay Screen) -->
+        <div id="screen-gameplay" class="vn-screen">
+            <!-- 背景圖層 -->
+            <div id="vn-background" class="vn-bg-layer">
+                <div id="bg-name-tag" class="bg-placeholder-text">【背景：2年B班 教室 (早晨)】</div>
+            </div>
+
+            <!-- CG 圖層 (隱藏) -->
+            <div id="vn-cg-layer" class="vn-cg-layer hidden">
+                <div class="cg-frame">
+                    <span class="cg-tag">SPECIAL CG</span>
+                    <h3 id="cg-title" style="margin-top: 10px; color: #2f3640;">特別回憶插畫</h3>
+                </div>
+            </div>
+
+            <!-- 角色立繪圖層 -->
+            <div class="vn-sprite-layer">
+                <div id="sprite-left" class="sprite-container hidden">
+                    <div id="sprite-left-body" class="sprite-body">
+                        <div class="sprite-name-badge">鬼塚 蓮</div>
+                        <div class="sprite-expression-badge">怒吼衝動</div>
+                    </div>
+                </div>
+                <div id="sprite-center" class="sprite-container hidden">
+                    <div id="sprite-center-body" class="sprite-body">
+                        <div class="sprite-name-badge">轉學生</div>
+                        <div class="sprite-expression-badge">標準</div>
+                    </div>
+                </div>
+                <div id="sprite-right" class="sprite-container hidden">
+                    <div id="sprite-right-body" class="sprite-body">
+                        <div class="sprite-name-badge">白石 透</div>
+                        <div class="sprite-expression-badge">冷漠推眼鏡</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 底部對話框 -->
+            <div id="vn-dialogue-box" class="vn-dialogue-box">
+                <div id="vn-nameplate" class="vn-nameplate">
+                    <span id="speaker-name">鬼塚 蓮</span>
+                    <span id="speaker-title" class="speaker-sub">嘴硬行動派</span>
+                </div>
+                <div class="vn-text-content">
+                    <div id="dialogue-jp" class="dialogue-jp-text">おい、俺のプリン知らねえ？</div>
+                    <div id="dialogue-zh" class="dialogue-zh-text">喂，你有沒有看到我的布丁？</div>
+                </div>
+                <div class="vn-dialogue-controls">
+                    <button id="btn-audio-play" class="vn-ctrl-btn">🔊 語音重聽</button>
+                    <span class="click-prompt">▼ 點擊繼續</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. 聽力任務檢定 Overlay -->
+        <div id="vn-quiz-overlay" class="vn-quiz-overlay hidden">
+            <div class="quiz-card">
+                <div class="quiz-header">
+                    <span id="quiz-type-badge" class="quiz-type">聽力理解任務</span>
+                    <span id="quiz-number-tag" class="quiz-num">任務檢定 Q1</span>
+                </div>
+                <h3 id="quiz-question" class="quiz-q-text">蓮が驚いたのは、なぜですか。</h3>
+                <div id="quiz-options" class="quiz-options-grid">
+                    <!-- 動態生成選項 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. 劇情抉擇分歧 Overlay -->
+        <div id="vn-choice-overlay" class="vn-choice-overlay hidden">
+            <div class="choice-container">
+                <h3 id="choice-title" class="choice-title">請做出您的抉擇：</h3>
+                <div id="choice-buttons-grid" class="choice-buttons-grid">
+                    <!-- 動態生成抉擇按鈕 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. 答題回饋 Modal -->
+        <div id="feedback-modal" class="vn-modal-overlay hidden">
+            <div class="vn-modal-card">
+                <div class="modal-header">
+                    <span id="feedback-icon" style="font-size: 1.4rem;">✅</span>
+                    <h3 id="feedback-title" style="color: #27ae60;">正解！ (B)</h3>
+                </div>
+                
+                <div id="player-choice-box" class="player-choice-box">
+                    您的選擇：<b id="player-choice-text">選項內容</b>
+                    <div id="correct-answer-row" style="margin-top: 4px; font-size: 0.82rem; color: #27ae60;">
+                        正確答案：<b id="correct-choice-text">正確選項</b>
+                    </div>
+                </div>
+
+                <p id="feedback-story" style="font-size: 0.95rem; margin-bottom: 12px; line-height: 1.5;">回饋說明文字</p>
+                
+                <div id="feedback-parsing-container" class="parsing-section">
+                    <div id="feedback-jp-original" style="font-weight: bold; margin-bottom: 4px;">原句：</div>
+                    <div id="feedback-zh-trans" style="color: #718093; margin-bottom: 6px;">翻譯：</div>
+                    <div id="feedback-words" style="color: #e84118; font-weight: bold; margin-bottom: 4px;">單字：</div>
+                    <div id="feedback-explanation" style="font-size: 0.85rem; color: #2f3640;">解析：</div>
+                </div>
+
+                <div class="modal-footer">
+                    <button id="btn-retry-quiz" class="vn-btn secondary hidden">重新挑戰</button>
+                    <button id="btnCloseFeedback" class="vn-btn primary">繼續故事 ➔</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. 遊戲說明畫面 -->
+        <div id="screen-instructions" class="vn-screen">
+            <div class="instructions-modal">
+                <h2>📖 遊戲說明與玩法指南</h2>
+                <div class="instruction-content">
+                    <p><b>1. 沉浸式視覺小說：</b> 本作結合了精采的校園日常與日語聽力學習。對話皆附帶真實聲優語音與日中雙語情境。</p>
+                    <p><b>2. 盲聽挑戰與任務檢定：</b> 每一小節對話結束後將迎來「聽力理解任務」。第一次聆聽時日中字幕將會隱藏，考驗您的真實日語耳力！</p>
+                    <p><b>3. 重聽與對照機制：</b> 答題或檢定時可隨時點擊「開字幕重聽一次」逐句回顧並對照中日文翻譯與重點單字解析。</p>
+                    <p><b>4. 角色好感度系統：</b> 您的選擇與答題表現將影響鬼塚蓮、白石透及佐藤老師對您的信任度與劇情發展。</p>
+                </div>
+                <button id="btn-back-to-title" class="vn-btn primary">返回標題</button>
+            </div>
+        </div>
+
+        <!-- 7. 遊戲結局畫面 -->
+        <div id="screen-ending" class="vn-screen">
+            <div class="ending-modal">
+                <span id="ending-badge-tag" class="ending-badge">CHAPTER 1 CLEAR</span>
+                <h2 id="ending-title">第一章完結：不良たちの日本語講座！</h2>
+                <p id="ending-eval-text" class="ending-desc">評語與統計資料載入中……</p>
+                <div class="ending-stats">
+                    獲得分數：<b id="final-score" style="color: #e84118;">0</b> / <span id="total-quizzes">5</span> 題 |
+                    好感度狀態：<span id="trust-summary-text" style="color: #0097e6;">載入中...</span>
+                </div>
+                <div class="ending-btn-group">
+                    <button id="vn-btn-review" class="vn-btn secondary">聽力回顧</button>
+                    <button id="btn-restart" class="vn-btn primary">返回標題畫面</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 8. 聽力回顧畫面 -->
+        <div id="screen-review" class="vn-screen">
+            <div class="instructions-modal" style="max-width: 720px;">
+                <h2>🎧 第一章重點日語台詞回顧</h2>
+                <div id="review-list-content" class="review-scroll-box">
+                    <!-- 動態生成回顧列表 -->
+                </div>
+                <button id="btn-close-review" class="vn-btn primary">返回標題</button>
+            </div>
+        </div>
+
+        <!-- 9. 玩家名稱設定與稱呼 Modal -->
+        <div id="name-setup-modal" class="vn-modal-overlay hidden">
+            <div class="vn-modal-card name-setup-card">
+                <div class="modal-header">
+                    <span style="font-size: 1.4rem;">✍️</span>
+                    <h3 style="color: #e84118;">轉學生檔案登記</h3>
+                </div>
+                <div id="name-setup-body">
+                    <!-- 步驟動態渲染 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 10. CONFIG 系統設定畫面 -->
+        <div id="screen-config" class="vn-screen">
+            <div class="config-modal">
+                <div class="config-header">
+                    <h2>⚙️ 遊戲設定 (CONFIG)</h2>
+                    <span class="config-subtitle">SYSTEM SETTINGS &amp; PREFERENCES</span>
+                </div>
+                <div class="config-content">
+                    <!-- 音量設定群組 -->
+                    <div class="config-group">
+                        <div class="config-group-title">音量調整 (VOLUME)</div>
+                        <!-- BGM -->
+                        <div class="config-row">
+                            <div class="config-label-box">
+                                <span class="config-label">背景音樂 (BGM)</span>
+                            </div>
+                            <div class="config-control-wrapper">
+                                <div class="config-control-box">
+                                    <input type="range" id="cfg-bgm-slider" class="vn-slider" min="0" max="100" value="50">
+                                </div>
+                                <div id="egg-bubble-bgm" class="egg-bubble hidden">
+                                    <span class="egg-char-name toru">透</span>
+                                    <span id="egg-text-bgm" class="egg-text">……静かだな。</span>
+                                </div>
+                            </div>
+                            <span id="cfg-bgm-val" class="config-val-text">50%</span>
+                        </div>
+                        <!-- SE -->
+                        <div class="config-row">
+                            <div class="config-label-box">
+                                <span class="config-label">音效 (SE)</span>
+                            </div>
+                            <div class="config-control-wrapper">
+                                <div class="config-control-box">
+                                    <input type="range" id="cfg-se-slider" class="vn-slider" min="0" max="100" value="50">
+                                </div>
+                                <div id="egg-bubble-se" class="egg-bubble hidden">
+                                    <span class="egg-char-name toru">透</span>
+                                    <span id="egg-text-se" class="egg-text">うるせえっ！</span>
+                                </div>
+                            </div>
+                            <span id="cfg-se-val" class="config-val-text">50%</span>
+                        </div>
+                        <!-- VOICE -->
+                        <div class="config-row">
+                            <div class="config-label-box">
+                                <span class="config-label">語音 (VOICE)</span>
+                            </div>
+                            <div class="config-control-wrapper">
+                                <div class="config-control-box">
+                                    <input type="range" id="cfg-voice-slider" class="vn-slider" min="0" max="100" value="50">
+                                </div>
+                                <div id="egg-bubble-voice" class="egg-bubble hidden">
+                                    <span class="egg-char-name ren">蓮</span>
+                                    <span id="egg-text-voice" class="egg-text">えっ、私の声いらないの！？</span>
+                                </div>
+                            </div>
+                            <span id="cfg-voice-val" class="config-val-text">50%</span>
+                        </div>
+                    </div>
+
+                    <!-- 遊戲偏好設定群組 -->
+                    <div class="config-group">
+                        <div class="config-group-title">遊戲偏好 (PREFERENCES)</div>
+                        <!-- 文字顯示速度 -->
+                        <div class="config-row">
+                            <div class="config-label-box">
+                                <span class="config-label">文字顯示速度</span>
+                            </div>
+                            <div class="config-control-wrapper">
+                                <div class="config-btn-selector" id="cfg-text-speed-group">
+                                    <button class="vn-btn-select" data-speed="slow">慢速</button>
+                                    <button class="vn-btn-select active" data-speed="normal">標準</button>
+                                    <button class="vn-btn-select" data-speed="fast">快速</button>
+                                    <button class="vn-btn-select" data-speed="instant">瞬間顯示</button>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 中文字幕顯示 -->
+                        <div class="config-row">
+                            <div class="config-label-box">
+                                <span class="config-label">重聽中文字幕</span>
+                            </div>
+                            <div class="config-control-wrapper">
+                                <div class="config-btn-selector" id="cfg-subtitle-group">
+                                    <button class="vn-btn-select active" data-sub="on">開啟 (ON)</button>
+                                    <button class="vn-btn-select" data-sub="off">關閉 (OFF)</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 玩家檔案設定群組 -->
+                    <div class="config-group">
+                        <div class="config-group-title">轉學生檔案 (PLAYER PROFILE)</div>
+                        <div class="config-row">
+                            <div class="config-label-box">
+                                <span class="config-label">當前玩家名稱</span>
+                            </div>
+                            <div class="config-profile-display">
+                                <span id="cfg-player-name-text" class="profile-value">千夏</span>
+                                <button id="btn-cfg-change-name" class="vn-btn secondary small">更改名字</button>
+                            </div>
+                        </div>
+                        <div class="config-row">
+                            <div class="config-label-box">
+                                <span class="config-label">稱呼方式</span>
+                            </div>
+                            <div class="config-profile-display">
+                                <span id="cfg-player-honorific-text" class="profile-value">千夏ちゃん</span>
+                                <button id="btn-cfg-change-honorific" class="vn-btn secondary small">更改稱呼</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 危險操作群組 -->
+                    <div class="config-group danger-zone">
+                        <div class="config-group-title danger">進階管理 (DATA MANAGEMENT)</div>
+                        <div class="config-row">
+                            <div class="config-label-box">
+                                <span class="config-label danger-text">清除遊戲存檔</span>
+                            </div>
+                            <div>
+                                <button id="btn-cfg-reset-data" class="vn-btn danger-btn small">重置所有進度</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="config-footer">
+                    <button id="btn-config-back" class="vn-btn primary large">儲存並返回</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 11. 章節切換全螢幕黑幕 Banner -->
+        <div id="chapter-banner" class="vn-chapter-banner">
+            <div id="banner-subtitle" class="banner-subtitle">INTRODUCTION</div>
+            <div id="banner-title" class="banner-title">第一章：誰把我們的班級交給這兩個人了？</div>
+        </div>
+
+        <!-- 12. 刪除存檔確認 Modal -->
+        <div id="danger-confirm-modal" class="vn-modal-overlay hidden">
+            <div class="vn-modal-card" style="max-width: 420px; text-align: center;">
+                <h3 style="color: #e84118; margin-bottom: 12px;">⚠️ 確定要重置所有進度嗎？</h3>
+                <p style="font-size: 0.92rem; color: #718093; margin-bottom: 20px;">此操作將會永久清除您的遊戲存檔、好感度與答題分數，且無法復原。</p>
+                <div class="modal-footer">
+                    <button id="btn-cancel-reset" class="vn-btn secondary">取消</button>
+                    <button id="btn-confirm-reset" class="vn-btn danger-btn">確認重置</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 13. 返回標題確認 Modal -->
+        <div id="exit-confirm-modal" class="vn-modal-overlay hidden">
+            <div class="vn-modal-card" style="max-width: 420px; text-align: center;">
+                <h3 style="color: #e84118; margin-bottom: 12px;">🚪 返回標題確認</h3>
+                <p style="font-size: 0.92rem; color: #718093; margin-bottom: 20px;">目前的遊戲進度已自動儲存。確定要返回標題畫面嗎？</p>
+                <div class="modal-footer">
+                    <button id="btn-cancel-exit" class="vn-btn secondary">取消</button>
+                    <button id="btn-confirm-exit" class="vn-btn primary">確定返回</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 14. 無存檔提示 Modal -->
+        <div id="no-save-modal" class="vn-modal-overlay hidden">
+            <div class="vn-modal-card" style="max-width: 400px; text-align: center;">
+                <h3 style="color: #e84118; margin-bottom: 12px;">📂 找不到有效存檔</h3>
+                <p style="font-size: 0.92rem; color: #718093; margin-bottom: 20px;">目前尚無任何進行中的遊戲紀錄，請點擊「開始遊戲」展開冒險！</p>
+                <div class="modal-footer">
+                    <button id="btn-no-save-ok" class="vn-btn primary" style="width: 100%;">確定</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
