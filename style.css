@@ -971,9 +971,9 @@ html, body {
 }
 
 /* ==========================================================================
-   0B. PHONE LANDSCAPE ORIENTATION NOTICE ACTIVE RULE (手機橫向顯示提示)
+   0B. PHONE LANDSCAPE ROTATE NOTICE ACTIVE RULE (手機橫向顯示提示)
    ========================================================================== */
-@media screen and (max-width: 920px) and (max-height: 600px) and (orientation: landscape) {
+@media screen and (max-height: 600px) and (orientation: landscape) {
   #phone-landscape-rotate-notice {
     display: flex !important;
   }
