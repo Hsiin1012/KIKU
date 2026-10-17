@@ -47,7 +47,7 @@ html, body {
 }
 
 /* ==========================================================================
-   0. PHONE LANDSCAPE ROTATE NOTICE (手機橫向旋轉提示)
+   0. PHONE LANDSCAPE ROTATE NOTICE (手機橫向旋轉提示 - 頁面級別視窗級覆蓋)
    ========================================================================== */
 #phone-landscape-rotate-notice {
   display: none;
@@ -973,7 +973,7 @@ html, body {
 /* ==========================================================================
    0B. PHONE LANDSCAPE ROTATE NOTICE ACTIVE RULE (手機橫向顯示提示)
    ========================================================================== */
-@media screen and (max-height: 600px) and (orientation: landscape) {
+@media screen and (max-width: 920px) and (max-height: 600px) and (orientation: landscape) {
   #phone-landscape-rotate-notice {
     display: flex !important;
   }
