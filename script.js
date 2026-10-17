@@ -25,60 +25,60 @@ const CHARACTERS = {
 
 /* 背景對應表 */
 const BACKGROUND_MAP = {
-  "2年B班 教室 (早晨)": "assets/backgrounds/bg_classroom_moring.png",
-  "2年B班 教室 (課堂)": "assets/backgrounds/bg_classroom_day.png",
-  "2年B班 教室 (放學後)": "assets/backgrounds/bg_classroom_evening.png",
-  "校園走廊 (文化祭準備中)": "assets/backgrounds/bg_corridor_day.png",
-  "校園走廊 (熱鬧混亂)": "assets/backgrounds/bg_corridor_evening.png",
-  "放學後的屋頂 (夕陽風吹)": "assets/backgrounds/bg_rooftop.png",
-  "校園中庭 (交流會後夕陽微風)": "assets/backgrounds/bg_eventspace_evening.png",
-  "龍神高中 (校園全景黃昏)": "assets/backgrounds/bg_office.png"
+  "2年B班 教室 (早晨)": "assets/backgrounds/bg_classroom_moring.webp",
+  "2年B班 教室 (課堂)": "assets/backgrounds/bg_classroom_day.webp",
+  "2年B班 教室 (放學後)": "assets/backgrounds/bg_classroom_evening.webp",
+  "校園走廊 (文化祭準備中)": "assets/backgrounds/bg_corridor_day.webp",
+  "校園走廊 (熱鬧混亂)": "assets/backgrounds/bg_corridor_evening.webp",
+  "放學後的屋頂 (夕陽風吹)": "assets/backgrounds/bg_rooftop.webp",
+  "校園中庭 (交流會後夕陽微風)": "assets/backgrounds/bg_eventspace_evening.webp",
+  "龍神高中 (校園全景黃昏)": "assets/backgrounds/bg_office.webp"
 };
 
 /* 角色立繪對應表 */
 const CHARACTER_SPRITE_MAP = {
   "ren": {
-    "怒吼衝動": "assets/characters/ren/ren_angry.PNG",
-    "困惑反差": "assets/characters/ren/ren_surprised.PNG",
-    "衝動慌張": "assets/characters/ren/ren_embarrased.PNG",
-    "熱血提議": "assets/characters/ren/ren_smile.PNG",
-    "標準": "assets/characters/ren/ren_normal.PNG",
-    "suspect": "assets/characters/ren/ren_suspect.PNG",
-    "surprised": "assets/characters/ren/ren_surprised.PNG",
-    "roast": "assets/characters/ren/ren_normal.PNG",
-    "sigh": "assets/characters/ren/ren_normal.PNG",
-    "throwshade": "assets/characters/ren/ren_throwshade.PNG",
-    "scarysmile": "assets/characters/ren/ren_normal.PNG",
-    "smirk": "assets/characters/ren/ren_smile.PNG",
-    "angry": "assets/characters/ren/ren_angry.PNG",
-    "normal": "assets/characters/ren/ren_normal.PNG",
-    "embarrased": "assets/characters/ren/ren_embarrased.PNG",
-    "smile": "assets/characters/ren/ren_smile.PNG"
+    "怒吼衝動": "assets/characters/ren/ren_angry.webp",
+    "困惑反差": "assets/characters/ren/ren_surprised.webp",
+    "衝動慌張": "assets/characters/ren/ren_embarrased.webp",
+    "熱血提議": "assets/characters/ren/ren_smile.webp",
+    "標準": "assets/characters/ren/ren_normal.webp",
+    "suspect": "assets/characters/ren/ren_suspect.webp",
+    "surprised": "assets/characters/ren/ren_surprised.webp",
+    "roast": "assets/characters/ren/ren_normal.webp",
+    "sigh": "assets/characters/ren/ren_normal.webp",
+    "throwshade": "assets/characters/ren/ren_throwshade.webp",
+    "scarysmile": "assets/characters/ren/ren_normal.webp",
+    "smirk": "assets/characters/ren/ren_smile.webp",
+    "angry": "assets/characters/ren/ren_angry.webp",
+    "normal": "assets/characters/ren/ren_normal.webp",
+    "embarrased": "assets/characters/ren/ren_embarrased.webp",
+    "smile": "assets/characters/ren/ren_smile.webp"
   },
   "toru": {
-    "冷漠推眼鏡": "assets/characters/toru/toru_smile.PNG",
-    "溫和微笑": "assets/characters/toru/toru_smile.PNG",
-    "標準": "assets/characters/toru/toru_normal.PNG",
-    "normal": "assets/characters/toru/toru_normal.PNG",
-    "roast": "assets/characters/toru/toru_roast.PNG",
-    "sigh": "assets/characters/toru/toru_sigh.PNG",
-    "smirk": "assets/characters/toru/toru_smirk.PNG",
-    "serious": "assets/characters/toru/toru_serious.PNG",
-    "smile": "assets/characters/toru/toru_smile.PNG"
+    "冷漠推眼鏡": "assets/characters/toru/toru_smile.webp",
+    "溫和微笑": "assets/characters/toru/toru_smile.webp",
+    "標準": "assets/characters/toru/toru_normal.webp",
+    "normal": "assets/characters/toru/toru_normal.webp",
+    "roast": "assets/characters/toru/toru_roast.webp",
+    "sigh": "assets/characters/toru/toru_sigh.webp",
+    "smirk": "assets/characters/toru/toru_smirk.webp",
+    "serious": "assets/characters/toru/toru_serious.webp",
+    "smile": "assets/characters/toru/toru_smile.webp"
   },
   "sato": {
-    "溫和微笑": "assets/characters/sato/sato_smile.PNG",
-    "黑臉微笑": "assets/characters/sato/sato_scarysmile.PNG",
-    "標準": "assets/characters/sato/sato_normal.PNG",
-    "normal": "assets/characters/sato/sato_normal.PNG",
-    "scarysmile": "assets/characters/sato/sato_scarysmile.PNG",
-    "smile": "assets/characters/sato/sato_smile.PNG"
+    "溫和微笑": "assets/characters/sato/sato_smile.webp",
+    "黑臉微笑": "assets/characters/sato/sato_scarysmile.webp",
+    "標準": "assets/characters/sato/sato_normal.webp",
+    "normal": "assets/characters/sato/sato_normal.webp",
+    "scarysmile": "assets/characters/sato/sato_scarysmile.webp",
+    "smile": "assets/characters/sato/sato_smile.webp"
   },
   "misaki": {
-    "活潑得意": "assets/characters/misaki/misaki_excited.PNG",
-    "標準": "assets/characters/misaki/misaki_normal.PNG",
-    "excited": "assets/characters/misaki/misaki_excited.PNG",
-    "normal": "assets/characters/misaki/misaki_normal.PNG"
+    "活潑得意": "assets/characters/misaki/misaki_excited.webp",
+    "標準": "assets/characters/misaki/misaki_normal.webp",
+    "excited": "assets/characters/misaki/misaki_excited.webp",
+    "normal": "assets/characters/misaki/misaki_normal.webp"
   },
   "player": {
     "溫和微笑": "",
@@ -683,7 +683,7 @@ function renderDialogueStep(stepData) {
 
   if (elements.bgNameTag) elements.bgNameTag.innerText = `【背景：${stepData.bg}】`;
   
-  const bgUrl = BACKGROUND_MAP[stepData.bg] || "assets/backgrounds/bg_classroom_day.png";
+  const bgUrl = BACKGROUND_MAP[stepData.bg] || "assets/backgrounds/bg_classroom_day.webp";
   if (elements.bgLayer) {
     elements.bgLayer.style.backgroundImage = `url('${bgUrl}')`;
     elements.bgLayer.style.backgroundSize = "cover";
@@ -1004,7 +1004,7 @@ function renderReplayStepManual(index) {
   stopActiveAudio("renderReplayStepManual", stepData.id);
   
   if (elements.bgNameTag) elements.bgNameTag.innerText = `【背景：${stepData.bg}】`;
-  const bgUrl = BACKGROUND_MAP[stepData.bg] || "assets/backgrounds/bg_classroom_day.png";
+  const bgUrl = BACKGROUND_MAP[stepData.bg] || "assets/backgrounds/bg_classroom_day.webp";
   if (elements.bgLayer) {
     elements.bgLayer.style.backgroundImage = `url('${bgUrl}')`;
     elements.bgLayer.style.backgroundSize = "cover";
