@@ -725,6 +725,27 @@ html, body {
     width: 35%;
     height: 75%;
   }
+
+  /* Tablet landscape / general tablet panel centering & width expansion */
+  @media (orientation: landscape) {
+    .quiz-card-container,
+    .feedback-modal-card,
+    .name-modal-card,
+    .confirm-modal-card,
+    .config-container,
+    .review-container,
+    .instruction-container,
+    .ending-container {
+      max-width: 820px;
+      margin: 0 auto;
+      max-height: 85vh;
+    }
+    
+    .config-container {
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+  }
 }
 
 /* Phone Portrait (Max width 768px and orientation portrait) */
@@ -735,6 +756,7 @@ html, body {
     gap: 6px;
     padding: 6px 10px;
     background: rgba(15, 23, 42, 0.95);
+    padding-bottom: max(6px, env(safe-area-inset-bottom));
   }
   
   .hud-right-group {
@@ -770,17 +792,17 @@ html, body {
   .vn-sprite-container {
     padding: 0 2%;
     top: 55px;
-    bottom: 150px;
+    bottom: 140px;
   }
 
   .vn-sprite-slot {
     width: 45%;
-    height: 55%;
+    height: 52%;
   }
 
   .vn-dialogue-box {
     width: 96%;
-    bottom: 8px;
+    bottom: max(8px, env(safe-area-inset-bottom));
     padding: 12px 14px;
   }
 
@@ -832,73 +854,94 @@ html, body {
   }
 
   .vn-hud-bar {
-    padding: 4px 10px;
+    padding: 4px 12px;
     background: rgba(15, 23, 42, 0.95);
+    height: 38px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .hud-left-group {
+    max-width: 45%;
   }
 
   .hud-chap-badge {
-    font-size: 0.7rem;
-    padding: 2px 8px;
+    font-size: 0.68rem;
+    padding: 2px 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .hud-right-group {
+    gap: 6px;
+    flex-wrap: nowrap;
+  }
+
+  .hud-trust-badges {
+    gap: 4px;
   }
 
   .trust-pill {
-    font-size: 0.68rem;
-    padding: 2px 5px;
+    font-size: 0.65rem;
+    padding: 2px 4px;
   }
 
   .vn-ctrl-btn {
     padding: 2px 6px;
-    font-size: 0.72rem;
+    font-size: 0.68rem;
   }
 
   .vn-sprite-container {
-    top: 40px;
-    bottom: 110px;
+    top: 38px;
+    bottom: 95px;
     padding: 0 5%;
   }
 
   .vn-sprite-slot {
-    width: 25%;
-    height: 60%;
+    width: 28% !important;
+    height: 70% !important;
   }
 
   .vn-dialogue-box {
     width: 96%;
-    bottom: 6px;
-    padding: 8px 14px;
-    max-height: 115px;
+    bottom: max(4px, env(safe-area-inset-bottom));
+    padding: 6px 12px;
+    max-height: 90px;
     overflow-y: auto;
   }
 
   .vn-nameplate {
-    top: -12px;
-    left: 12px;
-    font-size: 0.78rem;
-    padding: 2px 8px;
+    top: -10px;
+    left: 10px;
+    font-size: 0.72rem;
+    padding: 1px 6px;
   }
 
   .vn-text-area {
-    margin-top: 2px;
-    min-height: 36px;
-    gap: 2px;
+    margin-top: 1px;
+    min-height: 28px;
+    gap: 1px;
   }
 
   .dialogue-jp-text {
-    font-size: clamp(0.85rem, 1.8vw, 1rem);
-    line-height: 1.3;
-  }
-
-  .dialogue-zh-text {
-    font-size: clamp(0.75rem, 1.5vw, 0.88rem);
+    font-size: clamp(0.8rem, 1.6vw, 0.92rem);
     line-height: 1.2;
   }
 
+  .dialogue-zh-text {
+    font-size: clamp(0.7rem, 1.3vw, 0.8rem);
+    line-height: 1.1;
+  }
+
   .vn-dialogue-controls {
-    margin-top: 2px;
+    margin-top: 1px;
   }
 
   .click-prompt-hint {
-    font-size: 0.65rem;
+    font-size: 0.6rem;
   }
 
   /* Modals compact sizing for small landscape height */
@@ -910,17 +953,17 @@ html, body {
   .review-container,
   .instruction-container,
   .ending-container {
-    padding: 12px 16px;
+    padding: 10px 14px;
     max-height: 94vh;
   }
 
   .quiz-question-text {
-    font-size: 1rem;
-    margin-bottom: 10px;
+    font-size: 0.92rem;
+    margin-bottom: 8px;
   }
 
   .quiz-opt-btn {
-    padding: 8px 12px;
-    font-size: 0.88rem;
+    padding: 6px 10px;
+    font-size: 0.82rem;
   }
 }
