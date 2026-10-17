@@ -46,6 +46,61 @@ html, body {
   box-shadow: none;
 }
 
+/* ==========================================================================
+   0. PHONE LANDSCAPE ROTATE NOTICE (手機橫向旋轉提示)
+   ========================================================================== */
+#phone-landscape-rotate-notice {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  background: #0f172a;
+  z-index: 99999;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  pointer-events: auto;
+}
+
+.rotate-notice-card {
+  background: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  padding: 30px;
+  max-width: 420px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.8);
+  color: #f8fafc;
+}
+
+.rotate-icon {
+  font-size: 3rem;
+  margin-bottom: 12px;
+  animation: rotatePhoneAnim 2s infinite ease-in-out;
+}
+
+@keyframes rotatePhoneAnim {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-90deg); }
+}
+
+.rotate-title {
+  font-size: 1.4rem;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #f8fafc;
+}
+
+.rotate-subtitle {
+  font-size: 0.95rem;
+  color: #94a3b8;
+  line-height: 1.5;
+}
+
 /* 畫面共用基礎 */
 .vn-screen {
   position: absolute;
@@ -912,6 +967,15 @@ html, body {
   .config-row input[type="range"] {
     width: 100%;
     max-width: 100%;
+  }
+}
+
+/* ==========================================================================
+   0B. PHONE LANDSCAPE ORIENTATION NOTICE ACTIVE RULE (手機橫向顯示提示)
+   ========================================================================== */
+@media screen and (max-width: 920px) and (max-height: 600px) and (orientation: landscape) {
+  #phone-landscape-rotate-notice {
+    display: flex !important;
   }
 }
 
