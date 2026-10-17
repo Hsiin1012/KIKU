@@ -455,8 +455,18 @@ function playVoiceAudio(audioPath, dialogueId = "unknown", onEndedCallback) {
     audio.volume = currentVol;
     activeAudioInstance = audio;
 
-    audio.play().then(() => {}).catch(err => {
+    audio.play().then(() => {
+      // Successful playback - ensure any recovery prompt is removed if present
+      removeFirstVoiceRecoveryPrompt();
+    }).catch(err => {
       console.warn("[iOS Audio Autoplay Blocked / NotAllowedError]", err);
+      if (err.name === 'NotAllowedError') {
+        // Narrowly handle Chapter 1 automatic transition first voice autoplay block
+        if (gameState.currentChapter === 1 && gameState.currentStepIndex === 0 && dialogueId === "ch1_s01_001_ren") {
+          showFirstVoiceRecoveryPrompt(audioPath, dialogueId, thisToken, onEndedCallback);
+          return;
+        }
+      }
       if (currentPlaybackToken === thisToken && onEndedCallback) {
         onEndedCallback();
       }
@@ -467,6 +477,7 @@ function playVoiceAudio(audioPath, dialogueId = "unknown", onEndedCallback) {
       if (activeAudioInstance === audio) {
         activeAudioInstance = null;
       }
+      removeFirstVoiceRecoveryPrompt();
       if (onEndedCallback) onEndedCallback();
     };
   } catch (e) {
@@ -476,7 +487,42 @@ function playVoiceAudio(audioPath, dialogueId = "unknown", onEndedCallback) {
   }
 }
 
+function showFirstVoiceRecoveryPrompt(audioPath, dialogueId, targetToken, onEndedCallback) {
+  let promptEl = document.getElementById('first-voice-recovery-prompt');
+  const controlsContainer = document.querySelector('.vn-dialogue-controls');
+  if (!promptEl && controlsContainer) {
+    promptEl = document.createElement('button');
+    promptEl.id = 'first-voice-recovery-prompt';
+    promptEl.className = 'vn-ctrl-btn';
+    promptEl.style.backgroundColor = '#e84118';
+    promptEl.style.color = 'white';
+    promptEl.style.fontWeight = 'bold';
+    controlsContainer.insertBefore(promptEl, controlsContainer.firstChild);
+  }
+
+  if (promptEl) {
+    promptEl.classList.remove('hidden');
+    promptEl.innerText = "▶ 點一下開始語音";
+    promptEl.onclick = (e) => {
+      e.stopPropagation();
+      unlockAudioContextIOS();
+      if (currentPlaybackToken !== targetToken) return;
+      removeFirstVoiceRecoveryPrompt();
+      playVoiceAudio(audioPath, dialogueId, onEndedCallback);
+    };
+  }
+}
+
+function removeFirstVoiceRecoveryPrompt() {
+  const promptEl = document.getElementById('first-voice-recovery-prompt');
+  if (promptEl) {
+    promptEl.onclick = null;
+    promptEl.remove();
+  }
+}
+
 function removeReplayAudioButton(reason = "cleanup") {
+  removeFirstVoiceRecoveryPrompt();
   const replayBtn = document.getElementById('btn-audio-play');
   if (replayBtn) {
     replayBtn.onclick = null;
