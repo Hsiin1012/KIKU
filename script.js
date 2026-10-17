@@ -568,6 +568,77 @@ function updateTitleScreenButtons() {
   }
 }
 
+/* ==========================================================================
+   FULLSCREEN MANAGEMENT (全螢幕管理 - 強化版 runtime capability 偵測與容錯)
+   ========================================================================== */
+function checkFullscreenSupport() {
+    const elem = document.getElementById('game-container');
+    if (!elem) return false;
+    return typeof elem.requestFullscreen === 'function' || typeof elem.webkitRequestFullscreen === 'function';
+}
+
+function toggleFullscreen() {
+    const elem = document.getElementById('game-container');
+    if (!elem) return;
+
+    if (!checkFullscreenSupport()) {
+        console.warn("此裝置 / 瀏覽器不支援 Element Fullscreen API。");
+        return;
+    }
+
+    const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+
+    if (!isFs) {
+        let requestPromise = null;
+        if (elem.requestFullscreen) {
+            requestPromise = elem.requestFullscreen();
+        } else if (elem.webkitRequestFullscreen) {
+            requestPromise = elem.webkitRequestFullscreen();
+        }
+
+        if (requestPromise && typeof requestPromise.then === 'function') {
+            requestPromise.catch(err => {
+                console.error("全螢幕請求失敗 (Fullscreen request rejected):", err);
+            });
+        }
+    } else {
+        let exitPromise = null;
+        if (document.exitFullscreen) {
+            exitPromise = document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+            exitPromise = document.webkitExitFullscreen();
+        }
+
+        if (exitPromise && typeof exitPromise.then === 'function') {
+            exitPromise.catch(err => {
+                console.error("退出全螢幕失敗 (Exit fullscreen rejected):", err);
+            });
+        }
+    }
+}
+
+function updateFullscreenButtonState() {
+    if (!elements.btnModeFullscreen || !elements.btnModeWindow) return;
+
+    if (!checkFullscreenSupport()) {
+        elements.btnModeFullscreen.textContent = '此裝置不支援全螢幕';
+        elements.btnModeFullscreen.disabled = true;
+        elements.btnModeFullscreen.style.opacity = '0.6';
+        elements.btnModeFullscreen.style.cursor = 'not-allowed';
+        elements.btnModeWindow.classList.add('active');
+        elements.btnModeFullscreen.classList.remove('active');
+        return;
+    }
+
+    const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+    elements.btnModeWindow.classList.toggle('active', !isFs);
+    elements.btnModeFullscreen.classList.toggle('active', isFs);
+    elements.btnModeFullscreen.textContent = isFs ? '視窗模式' : '全螢幕';
+    elements.btnModeFullscreen.disabled = false;
+    elements.btnModeFullscreen.style.opacity = '1';
+    elements.btnModeFullscreen.style.cursor = 'pointer';
+}
+
 function syncConfigUI() {
   if (!elements.cfgBgmSlider) return;
   elements.cfgBgmSlider.value = gameSettings.bgmVolume;
@@ -591,12 +662,7 @@ function syncConfigUI() {
     });
   }
 
-  /* 同步全螢幕按鈕狀態 */
-  const isFs = !!document.fullscreenElement;
-  if (elements.btnModeWindow && elements.btnModeFullscreen) {
-    elements.btnModeWindow.classList.toggle('active', !isFs);
-    elements.btnModeFullscreen.classList.toggle('active', isFs);
-  }
+  updateFullscreenButtonState();
 
   const pName = gameState.playerName || "転校生";
   if(elements.cfgPlayerNameText) elements.cfgPlayerNameText.innerText = pName;
@@ -1596,13 +1662,23 @@ function initEventListeners() {
     });
   }
 
-  /* 視窗 ↔ 全螢幕切換按鈕綁定 */
+  /* 視窗 ↔ 全螢幕切換按鈕綁定 (強化 Promise 錯誤捕捉與 capability 偵測) */
   if (elements.btnModeWindow) {
     elements.btnModeWindow.onclick = (e) => {
       e.stopPropagation();
       unlockAudioContextIOS();
-      if (document.fullscreenElement) {
-        document.exitFullscreen().catch(() => {});
+      if (document.fullscreenElement || document.webkitFullscreenElement) {
+        let exitPromise = null;
+        if (document.exitFullscreen) {
+          exitPromise = document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+          exitPromise = document.webkitExitFullscreen();
+        }
+        if (exitPromise && typeof exitPromise.then === 'function') {
+          exitPromise.catch(err => {
+            console.error("退出全螢幕失敗 (Exit fullscreen rejected):", err);
+          });
+        }
       }
       syncConfigUI();
     };
@@ -1612,20 +1688,16 @@ function initEventListeners() {
     elements.btnModeFullscreen.onclick = (e) => {
       e.stopPropagation();
       unlockAudioContextIOS();
-      const docEl = document.documentElement;
-      if (!document.fullscreenElement) {
-        if (docEl.requestFullscreen) {
-          docEl.requestFullscreen().catch(err => {
-            console.warn("[Fullscreen API Error]", err);
-          });
-        }
-      }
+      toggleFullscreen();
       syncConfigUI();
     };
   }
 
   /* 監聽全螢幕狀態改變 (同步 ESC 或系統操作) */
   document.addEventListener("fullscreenchange", () => {
+    syncConfigUI();
+  });
+  document.addEventListener("webkitfullscreenchange", () => {
     syncConfigUI();
   });
 
