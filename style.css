@@ -129,7 +129,7 @@ html, body {
   justify-content: flex-start;
   align-items: flex-start;
   text-align: left;
-  padding: clamp(80px, 14vh, 140px) clamp(30px, 6vw, 70px);
+  padding: clamp(120px, 20vh, 190px) clamp(30px, 6vw, 70px);
 }
 
 .title-bg-layer {
@@ -523,7 +523,7 @@ html, body {
   display: none;
   justify-content: flex-start;
   align-items: flex-start;
-  padding: clamp(80px, 14vh, 140px) clamp(30px, 6vw, 70px);
+  padding: clamp(120px, 20vh, 190px) clamp(30px, 6vw, 70px);
   overflow-y: auto;
 }
 
