@@ -1,7 +1,7 @@
 /* ==========================================================================
-   [BUILD] Visual Novel Core Engine (Responsive, Fullscreen & iOS Voice Fix)
+   [BUILD] Visual Novel Core Engine (Responsive, Fullscreen & Manual Transition Fix)
    ========================================================================== */
-console.log("[BUILD] Visual Novel Core Engine (Responsive, Fullscreen & iOS Voice Fix)");
+console.log("[BUILD] Visual Novel Core Engine (Responsive, Fullscreen & Manual Transition Fix)");
 
 /* ==========================================================================
    1. 角色視覺設定與素材對應映射 (Asset Mapping / Sprite & Background Registry)
@@ -455,18 +455,8 @@ function playVoiceAudio(audioPath, dialogueId = "unknown", onEndedCallback) {
     audio.volume = currentVol;
     activeAudioInstance = audio;
 
-    audio.play().then(() => {
-      // Successful playback - ensure any recovery prompt is removed if present
-      removeFirstVoiceRecoveryPrompt();
-    }).catch(err => {
+    audio.play().then(() => {}).catch(err => {
       console.warn("[iOS Audio Autoplay Blocked / NotAllowedError]", err);
-      if (err.name === 'NotAllowedError') {
-        // Narrowly handle Chapter 1 automatic transition first voice autoplay block
-        if (gameState.currentChapter === 1 && gameState.currentStepIndex === 0 && dialogueId === "ch1_s01_001_ren") {
-          showFirstVoiceRecoveryPrompt(audioPath, dialogueId, thisToken, onEndedCallback);
-          return;
-        }
-      }
       if (currentPlaybackToken === thisToken && onEndedCallback) {
         onEndedCallback();
       }
@@ -477,7 +467,6 @@ function playVoiceAudio(audioPath, dialogueId = "unknown", onEndedCallback) {
       if (activeAudioInstance === audio) {
         activeAudioInstance = null;
       }
-      removeFirstVoiceRecoveryPrompt();
       if (onEndedCallback) onEndedCallback();
     };
   } catch (e) {
@@ -487,42 +476,7 @@ function playVoiceAudio(audioPath, dialogueId = "unknown", onEndedCallback) {
   }
 }
 
-function showFirstVoiceRecoveryPrompt(audioPath, dialogueId, targetToken, onEndedCallback) {
-  let promptEl = document.getElementById('first-voice-recovery-prompt');
-  const controlsContainer = document.querySelector('.vn-dialogue-controls');
-  if (!promptEl && controlsContainer) {
-    promptEl = document.createElement('button');
-    promptEl.id = 'first-voice-recovery-prompt';
-    promptEl.className = 'vn-ctrl-btn';
-    promptEl.style.backgroundColor = '#e84118';
-    promptEl.style.color = 'white';
-    promptEl.style.fontWeight = 'bold';
-    controlsContainer.insertBefore(promptEl, controlsContainer.firstChild);
-  }
-
-  if (promptEl) {
-    promptEl.classList.remove('hidden');
-    promptEl.innerText = "▶ 點一下開始語音";
-    promptEl.onclick = (e) => {
-      e.stopPropagation();
-      unlockAudioContextIOS();
-      if (currentPlaybackToken !== targetToken) return;
-      removeFirstVoiceRecoveryPrompt();
-      playVoiceAudio(audioPath, dialogueId, onEndedCallback);
-    };
-  }
-}
-
-function removeFirstVoiceRecoveryPrompt() {
-  const promptEl = document.getElementById('first-voice-recovery-prompt');
-  if (promptEl) {
-    promptEl.onclick = null;
-    promptEl.remove();
-  }
-}
-
 function removeReplayAudioButton(reason = "cleanup") {
-  removeFirstVoiceRecoveryPrompt();
   const replayBtn = document.getElementById('btn-audio-play');
   if (replayBtn) {
     replayBtn.onclick = null;
@@ -977,6 +931,16 @@ function playChapterTransition(nextChapter, callback) {
   if (elements.chapterBanner && elements.bannerSubtitle && elements.bannerTitle) {
     elements.bannerSubtitle.innerText = nextChapter === 1 ? "INTRODUCTION" : `CHAPTER ${nextChapter - 1} CLEAR`;
     elements.bannerTitle.innerText = CHAPTER_DATA[nextChapter].title;
+    
+    // Ensure "點擊開始" instruction hint is present on the banner
+    let bannerHint = elements.chapterBanner.querySelector('.banner-hint');
+    if (!bannerHint) {
+      bannerHint = document.createElement('p');
+      bannerHint.className = 'banner-hint';
+      elements.chapterBanner.querySelector('div').appendChild(bannerHint);
+    }
+    bannerHint.innerText = "點擊開始";
+
     elements.chapterBanner.classList.add('active');
 
     let hasCompleted = false;
@@ -1003,14 +967,9 @@ function playChapterTransition(nextChapter, callback) {
 
     elements.chapterBanner.onclick = (e) => {
       e.stopPropagation();
+      unlockAudioContextIOS();
       proceedTransition();
     };
-
-    setTimeout(() => {
-      if (!hasCompleted) {
-        proceedTransition();
-      }
-    }, 2200);
   } else {
     isTransitionExecuting = false;
     gameState.currentChapter = nextChapter;
@@ -1500,7 +1459,7 @@ function initEventListeners() {
     feedbackWords: document.getElementById('feedback-words'),
     feedbackExplanation: document.getElementById('feedback-explanation'),
     btnRetryQuiz: document.getElementById('btn-retry-quiz'),
-    btnCloseFeedback: document.getElementById('btn-close-feedback'),
+    btnCloseFeedback: document.getElementById('btnCloseFeedback'),
     finalScore: document.getElementById('final-score'),
     totalQuizzes: document.getElementById('total-quizzes'),
     trustSummaryText: document.getElementById('trust-summary-text'),
