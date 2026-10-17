@@ -710,7 +710,7 @@ html, body {
 }
 
 /* ==========================================================================
-   5. RESPONSIVE MEDIA QUERIES (TABLET & PHONE PORTRAIT)
+   5. RESPONSIVE MEDIA QUERIES (TABLET & PHONE PORTRAIT / LANDSCAPE)
    ========================================================================== */
 
 /* Tablet / iPad (Max width 1024px) */
@@ -727,13 +727,13 @@ html, body {
   }
 }
 
-/* Phone Portrait (Max width 768px) */
-@media screen and (max-width: 768px) {
+/* Phone Portrait (Max width 768px and orientation portrait) */
+@media screen and (max-width: 768px) and (orientation: portrait) {
   .vn-hud-bar {
     flex-direction: column;
     align-items: flex-start;
-    gap: 8px;
-    padding: 8px 12px;
+    gap: 6px;
+    padding: 6px 10px;
     background: rgba(15, 23, 42, 0.95);
   }
   
@@ -741,45 +741,62 @@ html, body {
     width: 100%;
     justify-content: space-between;
     flex-wrap: wrap;
+    gap: 4px;
   }
 
   .hud-chap-badge {
-    font-size: 0.75rem;
-    padding: 4px 8px;
+    font-size: 0.72rem;
+    padding: 3px 8px;
     max-width: 100%;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
+  .hud-trust-badges {
+    gap: 4px;
+  }
+
+  .trust-pill {
+    font-size: 0.72rem;
+    padding: 2px 6px;
+  }
+
+  .vn-ctrl-btn {
+    padding: 4px 8px;
+    font-size: 0.75rem;
+  }
+
   .vn-sprite-container {
     padding: 0 2%;
+    top: 55px;
+    bottom: 150px;
   }
 
   .vn-sprite-slot {
     width: 45%;
-    height: 65%;
+    height: 55%;
   }
 
   .vn-dialogue-box {
     width: 96%;
-    bottom: 10px;
-    padding: 14px 16px;
+    bottom: 8px;
+    padding: 12px 14px;
   }
 
   .vn-nameplate {
     top: -14px;
-    left: 16px;
-    font-size: 0.85rem;
+    left: 14px;
+    font-size: 0.82rem;
     padding: 2px 10px;
   }
 
   .dialogue-jp-text {
-    font-size: 1.05rem;
+    font-size: 0.98rem;
   }
 
   .dialogue-zh-text {
-    font-size: 0.85rem;
+    font-size: 0.82rem;
   }
 
   /* Modals full width adaptation on small screens */
@@ -791,8 +808,8 @@ html, body {
   .review-container,
   .instruction-container,
   .ending-container {
-    padding: 18px;
-    max-height: 95vh;
+    padding: 16px;
+    max-height: 92vh;
   }
 
   .config-row {
@@ -803,5 +820,107 @@ html, body {
   .config-row input[type="range"] {
     width: 100%;
     max-width: 100%;
+  }
+}
+
+/* Small-Height Phone Landscape (Max height 600px and orientation landscape) */
+@media screen and (max-height: 600px) and (orientation: landscape) {
+  #game-container {
+    max-width: 100% !important;
+    max-height: 100dvh !important;
+    height: 100dvh !important;
+  }
+
+  .vn-hud-bar {
+    padding: 4px 10px;
+    background: rgba(15, 23, 42, 0.95);
+  }
+
+  .hud-chap-badge {
+    font-size: 0.7rem;
+    padding: 2px 8px;
+  }
+
+  .trust-pill {
+    font-size: 0.68rem;
+    padding: 2px 5px;
+  }
+
+  .vn-ctrl-btn {
+    padding: 2px 6px;
+    font-size: 0.72rem;
+  }
+
+  .vn-sprite-container {
+    top: 40px;
+    bottom: 110px;
+    padding: 0 5%;
+  }
+
+  .vn-sprite-slot {
+    width: 25%;
+    height: 60%;
+  }
+
+  .vn-dialogue-box {
+    width: 96%;
+    bottom: 6px;
+    padding: 8px 14px;
+    max-height: 115px;
+    overflow-y: auto;
+  }
+
+  .vn-nameplate {
+    top: -12px;
+    left: 12px;
+    font-size: 0.78rem;
+    padding: 2px 8px;
+  }
+
+  .vn-text-area {
+    margin-top: 2px;
+    min-height: 36px;
+    gap: 2px;
+  }
+
+  .dialogue-jp-text {
+    font-size: clamp(0.85rem, 1.8vw, 1rem);
+    line-height: 1.3;
+  }
+
+  .dialogue-zh-text {
+    font-size: clamp(0.75rem, 1.5vw, 0.88rem);
+    line-height: 1.2;
+  }
+
+  .vn-dialogue-controls {
+    margin-top: 2px;
+  }
+
+  .click-prompt-hint {
+    font-size: 0.65rem;
+  }
+
+  /* Modals compact sizing for small landscape height */
+  .quiz-card-container,
+  .feedback-modal-card,
+  .name-modal-card,
+  .confirm-modal-card,
+  .config-container,
+  .review-container,
+  .instruction-container,
+  .ending-container {
+    padding: 12px 16px;
+    max-height: 94vh;
+  }
+
+  .quiz-question-text {
+    font-size: 1rem;
+    margin-bottom: 10px;
+  }
+
+  .quiz-opt-btn {
+    padding: 8px 12px;
+    font-size: 0.88rem;
   }
 }
