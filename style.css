@@ -126,10 +126,10 @@ html, body {
    ========================================================================== */
 #screen-title {
   background: #f8fafc;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: flex-start;
   text-align: left;
-  padding: 40px clamp(20px, 5vw, 60px);
+  padding: clamp(80px, 14vh, 140px) clamp(30px, 6vw, 70px);
 }
 
 .title-bg-layer {
@@ -143,13 +143,13 @@ html, body {
 .title-content-box {
   position: relative;
   z-index: 2;
-  width: clamp(220px, 24vw, 300px);
+  width: clamp(380px, 28vw, 440px);
   padding: 0;
   background: transparent;
   border: none;
   box-shadow: none;
-  margin-top: auto;
-  margin-bottom: 40px;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 
 .title-badge {
@@ -167,7 +167,7 @@ html, body {
 .title-menu-buttons {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 13px;
   width: 100%;
 }
 
@@ -231,9 +231,9 @@ html, body {
   color: #1e293b;
   border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 10px;
-  font-size: 0.95rem;
+  font-size: clamp(1rem, 1.2vw, 1.1rem);
   font-weight: 700;
-  padding: 12px 18px;
+  padding: 18px 24px;
   text-align: center;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   backdrop-filter: blur(6px);
@@ -521,9 +521,9 @@ html, body {
 
 #screen-title {
   display: none;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: flex-start;
-  padding: 40px clamp(20px, 5vw, 60px);
+  padding: clamp(80px, 14vh, 140px) clamp(30px, 6vw, 70px);
   overflow-y: auto;
 }
 
@@ -895,6 +895,11 @@ html, body {
     max-width: 320px;
     margin-top: auto;
     margin-bottom: 20px;
+  }
+
+  #screen-title .title-menu-buttons .vn-btn {
+    font-size: 1rem;
+    padding: 12px 18px;
   }
 
   #screen-config,
