@@ -915,7 +915,7 @@ html, body {
   }
 }
 
-/* Phone Landscape Low-Height (Max height 600px AND Max width 920px and orientation landscape) */
+/* Phone Landscape Low-Height (Max height 600px AND Max width 920px and orientation landscape) - Harmonized Typography Hierarchy */
 @media screen and (max-width: 920px) and (max-height: 600px) and (orientation: landscape) {
   #screen-config,
   #screen-instructions,
@@ -959,8 +959,8 @@ html, body {
   }
 
   .hud-chap-badge {
-    font-size: 0.68rem;
-    padding: 2px 6px;
+    font-size: 0.75rem;
+    padding: 2px 8px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -980,13 +980,13 @@ html, body {
   }
 
   .trust-pill {
-    font-size: 0.65rem;
-    padding: 2px 4px;
+    font-size: 0.72rem;
+    padding: 2px 6px;
   }
 
   .vn-ctrl-btn {
-    padding: 2px 6px;
-    font-size: 0.68rem;
+    padding: 3px 8px;
+    font-size: 0.75rem;
   }
 
   #screen-gameplay {
@@ -1014,41 +1014,41 @@ html, body {
   .vn-dialogue-box {
     width: 96%;
     bottom: max(3px, env(safe-area-inset-bottom));
-    padding: 5px 10px;
-    max-height: 75px;
+    padding: 6px 12px;
+    max-height: 82px;
     overflow-y: visible;
     z-index: 30;
   }
 
   .vn-nameplate {
-    top: -9px;
-    left: 10px;
-    font-size: 0.7rem;
-    padding: 1px 6px;
+    top: -12px;
+    left: 12px;
+    font-size: 0.78rem;
+    padding: 2px 8px;
   }
 
   .vn-text-area {
-    margin-top: 1px;
-    min-height: 20px;
-    gap: 1px;
+    margin-top: 2px;
+    min-height: 22px;
+    gap: 2px;
   }
 
   .dialogue-jp-text {
-    font-size: clamp(0.75rem, 1.4vw, 0.85rem);
-    line-height: 1.12;
+    font-size: clamp(0.85rem, 1.6vw, 0.95rem);
+    line-height: 1.25;
   }
 
   .dialogue-zh-text {
-    font-size: clamp(0.65rem, 1.1vw, 0.75rem);
-    line-height: 1.02;
+    font-size: clamp(0.72rem, 1.3vw, 0.82rem);
+    line-height: 1.15;
   }
 
   .vn-dialogue-controls {
-    margin-top: 1px;
+    margin-top: 2px;
   }
 
   .click-prompt-hint {
-    font-size: 0.55rem;
+    font-size: 0.62rem;
   }
 
   .quiz-card-container,
@@ -1059,18 +1059,19 @@ html, body {
   .review-container,
   .instruction-container,
   .ending-container {
-    padding: 10px 14px;
+    padding: 12px 16px;
     max-height: none;
     margin: auto;
   }
 
   .quiz-question-text {
-    font-size: 0.92rem;
+    font-size: 0.88rem;
     margin-bottom: 8px;
+    line-height: 1.35;
   }
 
   .quiz-opt-btn {
-    padding: 6px 10px;
-    font-size: 0.82rem;
+    padding: 8px 12px;
+    font-size: 0.78rem;
   }
 }
