@@ -1,7 +1,7 @@
 /* ==========================================================================
-   [BUILD] current P0 UI recovery build loaded (Targeted Content Sync & Scoring/Continue Fix)
+   [BUILD] Visual Novel Core Engine (Responsive, Fullscreen & iOS Voice Fix)
    ========================================================================== */
-console.log("[BUILD] current P0 UI recovery build loaded (Targeted Content Sync & Scoring/Continue Fix)");
+console.log("[BUILD] Visual Novel Core Engine (Responsive, Fullscreen & iOS Voice Fix)");
 
 /* ==========================================================================
    1. 角色視覺設定與素材對應映射 (Asset Mapping / Sprite & Background Registry)
@@ -420,6 +420,19 @@ function stopActiveAudio(reason = "manual_stop", dialogueId = "unknown") {
   }
 }
 
+/* ==========================================================================
+   iOS Audio Unlock & Playback Utility
+   ========================================================================== */
+function unlockAudioContextIOS() {
+  try {
+    const silentAudio = new Audio();
+    silentAudio.src = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=";
+    silentAudio.play().catch(() => {});
+  } catch (e) {
+    // ignore
+  }
+}
+
 function playVoiceAudio(audioPath, dialogueId = "unknown", onEndedCallback) {
   stopActiveAudio("new_playback_replacement", dialogueId);
   const thisToken = currentPlaybackToken;
@@ -443,6 +456,7 @@ function playVoiceAudio(audioPath, dialogueId = "unknown", onEndedCallback) {
     activeAudioInstance = audio;
 
     audio.play().then(() => {}).catch(err => {
+      console.warn("[iOS Audio Autoplay Blocked / NotAllowedError]", err);
       if (currentPlaybackToken === thisToken && onEndedCallback) {
         onEndedCallback();
       }
@@ -575,6 +589,13 @@ function syncConfigUI() {
     elements.cfgSubtitleGroup.querySelectorAll('.vn-btn-select').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.sub === (gameSettings.chineseSubtitle || "on"));
     });
+  }
+
+  /* 同步全螢幕按鈕狀態 */
+  const isFs = !!document.fullscreenElement;
+  if (elements.btnModeWindow && elements.btnModeFullscreen) {
+    elements.btnModeWindow.classList.toggle('active', !isFs);
+    elements.btnModeFullscreen.classList.toggle('active', isFs);
   }
 
   const pName = gameState.playerName || "転校生";
@@ -937,6 +958,7 @@ let sectionReplayFrozenSection = 1;
 let isWrongReviewMode = false;
 
 function triggerSectionReplay() {
+  unlockAudioContextIOS();
   const chapterData = CHAPTER_DATA[gameState.currentChapter];
   const targetSection = gameState.activeQuestionSection || gameState.currentListeningSection;
   sectionReplayQuizIdToReturn = gameState.currentQuizId;
@@ -952,6 +974,7 @@ function triggerSectionReplay() {
 }
 
 function triggerWrongReviewReplay(sectionNumber) {
+  unlockAudioContextIOS();
   const chapterData = CHAPTER_DATA[gameState.currentChapter];
   sectionReplayQueue = chapterData.steps.filter(s => s.listeningSection === sectionNumber && s.type === "dialogue");
   if (sectionReplayQueue.length === 0) return;
@@ -1031,6 +1054,7 @@ function renderReplayStepManual(index) {
       replayBtn.innerText = "🔊 語音重聽";
       replayBtn.onclick = (e) => {
         e.stopPropagation();
+        unlockAudioContextIOS();
         playVoiceAudio(stepData.audio, stepData.id);
       };
     }
@@ -1160,6 +1184,7 @@ function renderNameStep1(onComplete) {
   if(nextBtn) {
     nextBtn.onclick = (e) => {
       e.stopPropagation();
+      unlockAudioContextIOS();
       tempName = input && input.value.trim() ? input.value.trim() : "転校生";
       renderNameStep2(onComplete);
     };
@@ -1177,10 +1202,10 @@ function renderNameStep2(onComplete) {
     </div>
     <div class="modal-footer" style="display: flex; justify-content: space-between;"><button id="btn-name-back" class="vn-btn secondary">返回</button><button id="btn-name-next2" class="vn-btn primary">下一步 ➔</button></div>
   `;
-  document.getElementById('btn-opt-chan').onclick = (e) => { e.stopPropagation(); tempHonorific = "ちゃん"; renderNameStep2(onComplete); };
-  document.getElementById('btn-opt-kun').onclick = (e) => { e.stopPropagation(); tempHonorific = "くん"; renderNameStep2(onComplete); };
+  document.getElementById('btn-opt-chan').onclick = (e) => { e.stopPropagation(); unlockAudioContextIOS(); tempHonorific = "ちゃん"; renderNameStep2(onComplete); };
+  document.getElementById('btn-opt-kun').onclick = (e) => { e.stopPropagation(); unlockAudioContextIOS(); tempHonorific = "くん"; renderNameStep2(onComplete); };
   document.getElementById('btn-name-back').onclick = (e) => { e.stopPropagation(); renderNameStep1(onComplete); };
-  document.getElementById('btn-name-next2').onclick = (e) => { e.stopPropagation(); renderNameStep3(onComplete); };
+  document.getElementById('btn-name-next2').onclick = (e) => { e.stopPropagation(); unlockAudioContextIOS(); renderNameStep3(onComplete); };
 }
 
 function renderNameStep3(onComplete) {
@@ -1194,6 +1219,7 @@ function renderNameStep3(onComplete) {
   document.getElementById('btn-name-back2').onclick = (e) => { e.stopPropagation(); renderNameStep2(onComplete); };
   document.getElementById('btn-name-confirm').onclick = (e) => {
     e.stopPropagation();
+    unlockAudioContextIOS();
     gameState.playerName = tempName;
     gameState.playerHonorific = tempHonorific;
     if (elements.nameSetupModal) elements.nameSetupModal.classList.add('hidden');
@@ -1203,6 +1229,7 @@ function renderNameStep3(onComplete) {
 }
 
 function startNewGame() {
+  unlockAudioContextIOS();
   openNameSetupFlow(() => {
     gameState.hasValidSave = true;
     gameState.currentChapter = 1;
@@ -1224,6 +1251,7 @@ function startNewGame() {
 }
 
 function continueGame() {
+  unlockAudioContextIOS();
   const loaded = loadGameData();
   if (!loaded || !gameState.hasValidSave) {
     if (elements.noSaveModal) elements.noSaveModal.classList.remove('hidden');
@@ -1265,6 +1293,7 @@ function continueGame() {
 
 function handleDialogueBoxClick(e) {
   e.stopPropagation();
+  unlockAudioContextIOS();
 
   if (elements.quizOverlay && !elements.quizOverlay.classList.contains('hidden')) return;
   if (elements.choiceOverlay && !elements.choiceOverlay.classList.contains('hidden')) return;
@@ -1305,7 +1334,7 @@ function handleDialogueBoxClick(e) {
 }
 
 /* ==========================================================================
-   DOM 安全事件綁定初始化
+   DOM 安全事件綁定初始化 (包含全螢幕切換與監聽)
    ========================================================================== */
 function initEventListeners() {
   screens.title = document.getElementById('screen-title');
@@ -1380,6 +1409,8 @@ function initEventListeners() {
     cfgVoiceVal: document.getElementById('cfg-voice-val'),
     cfgTextSpeedGroup: document.getElementById('cfg-text-speed-group'),
     cfgSubtitleGroup: document.getElementById('cfg-subtitle-group'),
+    btnModeWindow: document.getElementById('btn-mode-window'),
+    btnModeFullscreen: document.getElementById('btn-mode-fullscreen'),
     cfgPlayerNameText: document.getElementById('cfg-player-name-text'),
     cfgPlayerHonorificText: document.getElementById('cfg-player-honorific-text'),
     btnCfgChangeName: document.getElementById('btn-cfg-change-name'),
@@ -1401,6 +1432,7 @@ function initEventListeners() {
     if (el) {
       el.onclick = (e) => {
         e.stopPropagation();
+        unlockAudioContextIOS();
         try {
           handler(e);
         } catch (err) {
@@ -1537,6 +1569,7 @@ function initEventListeners() {
     elements.cfgTextSpeedGroup.querySelectorAll('.vn-btn-select').forEach(btn => {
       btn.onclick = (e) => {
         e.stopPropagation();
+        unlockAudioContextIOS();
         const speed = btn.dataset.speed;
         if (speed) {
           gameSettings.textSpeed = speed;
@@ -1551,6 +1584,7 @@ function initEventListeners() {
     elements.cfgSubtitleGroup.querySelectorAll('.vn-btn-select').forEach(btn => {
       btn.onclick = (e) => {
         e.stopPropagation();
+        unlockAudioContextIOS();
         const sub = btn.dataset.sub;
         if (sub) {
           gameSettings.chineseSubtitle = sub;
@@ -1562,9 +1596,43 @@ function initEventListeners() {
     });
   }
 
+  /* 視窗 ↔ 全螢幕切換按鈕綁定 */
+  if (elements.btnModeWindow) {
+    elements.btnModeWindow.onclick = (e) => {
+      e.stopPropagation();
+      unlockAudioContextIOS();
+      if (document.fullscreenElement) {
+        document.exitFullscreen().catch(() => {});
+      }
+      syncConfigUI();
+    };
+  }
+
+  if (elements.btnModeFullscreen) {
+    elements.btnModeFullscreen.onclick = (e) => {
+      e.stopPropagation();
+      unlockAudioContextIOS();
+      const docEl = document.documentElement;
+      if (!document.fullscreenElement) {
+        if (docEl.requestFullscreen) {
+          docEl.requestFullscreen().catch(err => {
+            console.warn("[Fullscreen API Error]", err);
+          });
+        }
+      }
+      syncConfigUI();
+    };
+  }
+
+  /* 監聽全螢幕狀態改變 (同步 ESC 或系統操作) */
+  document.addEventListener("fullscreenchange", () => {
+    syncConfigUI();
+  });
+
   if (elements.btnCfgChangeName) {
     elements.btnCfgChangeName.onclick = (e) => {
       e.stopPropagation();
+      unlockAudioContextIOS();
       openNameSetupFlow(() => {
         syncConfigUI();
         saveGameData();
@@ -1575,6 +1643,7 @@ function initEventListeners() {
   if (elements.btnCfgChangeHonorific) {
     elements.btnCfgChangeHonorific.onclick = (e) => {
       e.stopPropagation();
+      unlockAudioContextIOS();
       openNameSetupFlow(() => {
         syncConfigUI();
         saveGameData();
