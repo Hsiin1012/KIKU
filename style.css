@@ -125,11 +125,11 @@ html, body {
    1. TITLE SCREEN
    ========================================================================== */
 #screen-title {
-  background: #0f172a;
-  justify-content: flex-end;
-  align-items: center;
-  text-align: center;
-  padding: 30px 20px;
+  background: #f8fafc;
+  justify-content: center;
+  align-items: flex-start;
+  text-align: left;
+  padding: 40px clamp(20px, 5vw, 60px);
 }
 
 .title-bg-layer {
@@ -143,13 +143,13 @@ html, body {
 .title-content-box {
   position: relative;
   z-index: 2;
-  max-width: 480px;
-  width: 100%;
-  padding: 10px 0;
+  width: clamp(220px, 24vw, 300px);
+  padding: 0;
   background: transparent;
   border: none;
   box-shadow: none;
-  margin-bottom: 20px;
+  margin-top: auto;
+  margin-bottom: 40px;
 }
 
 .title-badge {
@@ -167,7 +167,8 @@ html, body {
 .title-menu-buttons {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
+  width: 100%;
 }
 
 /* ==========================================================================
@@ -197,13 +198,11 @@ html, body {
 }
 
 .vn-btn.secondary {
-  background-color: rgba(30, 41, 59, 0.85);
+  background-color: #334155;
   color: #f1f5f9;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(4px);
 }
 .vn-btn.secondary:hover {
-  background-color: rgba(51, 65, 85, 0.95);
+  background-color: #475569;
 }
 
 .vn-btn.danger {
@@ -222,6 +221,44 @@ html, body {
 .vn-btn.small {
   font-size: 0.85rem;
   padding: 6px 12px;
+}
+
+/* ==========================================================================
+   TITLE SCREEN LIGHT GLASS BUTTON OVERRIDES (SCOPED)
+   ========================================================================== */
+#screen-title .title-menu-buttons .vn-btn {
+  background: rgba(255, 255, 255, 0.76);
+  color: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  padding: 12px 18px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition: all 0.2s ease;
+}
+
+#screen-title .title-menu-buttons .vn-btn:hover {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(255, 255, 255, 1);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+#screen-title .title-menu-buttons .vn-btn.primary {
+  background: rgba(255, 255, 255, 0.82);
+  color: #1e293b;
+  border: 1.5px solid rgba(232, 65, 24, 0.45);
+  box-shadow: 0 4px 14px rgba(232, 65, 24, 0.12);
+}
+
+#screen-title .title-menu-buttons .vn-btn.primary:hover {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(232, 65, 24, 0.7);
+  box-shadow: 0 6px 18px rgba(232, 65, 24, 0.2);
 }
 
 .hidden {
@@ -484,9 +521,9 @@ html, body {
 
 #screen-title {
   display: none;
-  justify-content: flex-end;
-  align-items: center;
-  padding: 30px 20px;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 40px clamp(20px, 5vw, 60px);
   overflow-y: auto;
 }
 
@@ -845,6 +882,21 @@ html, body {
     background: url('assets/title/title_cover_phone.webp') center/cover no-repeat;
   }
 
+  #screen-title {
+    padding: 30px 16px;
+    align-items: center;
+    justify-content: flex-end;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .title-content-box {
+    width: 100%;
+    max-width: 320px;
+    margin-top: auto;
+    margin-bottom: 20px;
+  }
+
   #screen-config,
   #screen-instructions,
   #screen-ending,
@@ -855,18 +907,9 @@ html, body {
     -webkit-overflow-scrolling: touch;
   }
 
-  #screen-title {
-    padding: 20px 12px;
-    align-items: center;
-    justify-content: flex-end;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
   .config-container,
   .instruction-container,
-  .ending-container,
-  .title-content-box {
+  .ending-container {
     max-height: none;
     margin: 10px auto;
     padding-bottom: max(30px, env(safe-area-inset-bottom));
