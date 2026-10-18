@@ -906,6 +906,11 @@ html, body {
     white-space: nowrap;
   }
 
+  /* Phone Portrait 專屬：隱藏 Title Menu 按鈕中的英文副標籤 */
+  #screen-title .title-menu-buttons .vn-btn .btn-en {
+    display: none !important;
+  }
+
   .title-menu-buttons {
     gap: 8px;
     width: auto;
