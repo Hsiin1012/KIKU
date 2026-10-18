@@ -227,6 +227,10 @@ html, body {
 /* ==========================================================================
    TITLE SCREEN LIGHT GLASS BUTTON OVERRIDES (SCOPED)
    ========================================================================== */
+#screen-title .title-menu-buttons .vn-btn .btn-en {
+  display: none !important;
+}
+
 #screen-title .title-menu-buttons .vn-btn {
   background: rgba(255, 255, 255, 0.25);
   color: #4a403c;
@@ -884,7 +888,7 @@ html, body {
   }
 
   #screen-title {
-    padding: clamp(160px, 24dvh, 220px) clamp(30px, 6vw, 70px);
+    padding: 160px clamp(30px, 6vw, 70px);
   }
 
   /* Tablet Portrait 專屬：隱藏 Title Menu 按鈕中的英文副標籤 */
@@ -962,7 +966,7 @@ html, body {
   }
 
   #screen-title {
-    padding: clamp(120px, 19dvh, 175px) clamp(16px, 5vw, 24px);
+    padding: 145px clamp(16px, 5vw, 24px);
     align-items: flex-start;
     justify-content: flex-start;
     overflow-y: auto;
