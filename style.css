@@ -849,8 +849,44 @@ html, body {
   }
 }
 
+/* Tablet Portrait (Min-width 768px and max-width 1024px and orientation portrait) */
+@media screen and (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+  .title-bg-layer {
+    background: url('assets/title/title_cover_phone.webp') center/cover no-repeat;
+  }
+
+  #screen-config,
+  #screen-instructions,
+  #screen-ending,
+  #screen-review {
+    padding: 20px;
+  }
+
+  .quiz-card-container,
+  .feedback-modal-card,
+  .name-modal-card,
+  .confirm-modal-card,
+  .config-container,
+  .review-container,
+  .instruction-container,
+  .ending-container {
+    max-width: 820px;
+    margin: auto;
+    max-height: 85vh;
+  }
+  
+  .config-container {
+    max-height: 85vh;
+    overflow-y: auto;
+  }
+}
+
 /* Tablet Landscape (Min-width 769px and max-width 1024px and orientation landscape) */
 @media screen and (min-width: 769px) and (max-width: 1024px) and (orientation: landscape) {
+  .title-bg-layer {
+    background: url('assets/title/title_cover_pc.webp') center/cover no-repeat;
+  }
+
   #screen-config,
   #screen-instructions,
   #screen-ending,
