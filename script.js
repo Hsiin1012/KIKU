@@ -88,6 +88,360 @@ const CHARACTER_SPRITE_MAP = {
 };
 
 /* ==========================================================================
+   EXTRA EVENT DATA: 「幻の焼きそばラリー」
+   ========================================================================== */
+const EXTRA_EVENT_STEPS = [
+  { type: "blackout" },
+  { type: "title_card", title: "EXTRA EVENT", subtitle: "「幻の焼きそばラリー」" },
+  { type: "narrative", text: "――文化祭当日。" },
+  { type: "cg", cgKey: "cg01" },
+  { speaker: "misaki", jp: "蓮！ また十人ゴールしたよ！", zh: "蓮！又有十個人闖到終點了！", audio: "assets/voice/chapter1/extra/voice_ch1_extra_001_misaki.m4a" },
+  { speaker: "ren", jp: "十人！？", zh: "十個！？", audio: "assets/voice/chapter1/extra/voice_ch1_extra_002_ren.m4a" },
+  { speaker: "toru", jp: "待て。焼きそばが追いつかない。", zh: "等一下，炒麵根本來不及做。", audio: "assets/voice/chapter1/extra/voice_ch1_extra_003_toru.m4a" },
+  { speaker: "misaki", jp: "でも、ゴールした人には一人一つでしょ？", zh: "可是我們不是說好，每個闖到終點的人都有一份嗎？", audio: "assets/voice/chapter1/extra/voice_ch1_extra_004_misaki.m4a" },
+  { speaker: "ren", jp: "そうだけど……こんなに来ると思わねえだろ！", zh: "是沒錯啦……誰知道會來這麼多人啊！", audio: "assets/voice/chapter1/extra/voice_ch1_extra_005_ren.m4a" },
+  { speaker: "toru", jp: "お前、『絶対こっちのほうが客来る』って言ってただろ。", zh: "你之前不是還說「這樣絕對會有更多人來」嗎？", audio: "assets/voice/chapter1/extra/voice_ch1_extra_006_toru.m4a" },
+  { speaker: "ren", jp: "……来すぎなんだよ！", zh: "……也來太多了吧！", audio: "assets/voice/chapter1/extra/voice_ch1_extra_007_ren.m4a" },
+  { speaker: "misaki", jp: "あっ、またゴールした！", zh: "啊！又有人闖到終點了！", audio: "assets/voice/chapter1/extra/voice_ch1_extra_008_misaki.m4a" },
+  { speaker: "ren", jp: "白石、もっと速く焼け！", zh: "白石，再炒快一點！", audio: "assets/voice/chapter1/extra/voice_ch1_extra_009_ren.m4a" },
+  { speaker: "toru", jp: "鉄板には限界があるんだよ。", zh: "鐵板也是有極限的好嗎。", audio: "assets/voice/chapter1/extra/voice_ch1_extra_010_toru.m4a" },
+  { speaker: "ren", jp: "じゃあ俺がそっちやる！", zh: "那我來弄你那邊！", audio: "assets/voice/chapter1/extra/voice_ch1_extra_011_ren.m4a" },
+  { speaker: "toru", jp: "待て、勝手に入れるな！", zh: "等等，不要擅自加進去！", audio: "assets/voice/chapter1/extra/voice_ch1_extra_012_toru.m4a" },
+  { speaker: "ren", jp: "なんでだよ！", zh: "為什麼啊！", audio: "assets/voice/chapter1/extra/voice_ch1_extra_013_ren.m4a" },
+  { speaker: "toru", jp: "まだ焼けてない！", zh: "那邊還沒熟！", audio: "assets/voice/chapter1/extra/voice_ch1_extra_014_toru.m4a" },
+  { speaker: "ren", jp: "先に言えよ！", zh: "你早點說啊！", audio: "assets/voice/chapter1/extra/voice_ch1_extra_015_ren.m4a" },
+  { speaker: "toru", jp: "見れば分かるだろ！", zh: "看就知道了吧！", audio: "assets/voice/chapter1/extra/voice_ch1_extra_016_toru.m4a" },
+  { speaker: "misaki", jp: "二人とも！ 次、五人！", zh: "你們兩個！下一批五個人！", audio: "assets/voice/chapter1/extra/voice_ch1_extra_017_misaki.m4a" },
+  { speaker: "dual", jp: "増えた！？", zh: "又增加了！？", audio: ["assets/voice/chapter1/extra/voice_ch1_extra_018_ren.m4a", "assets/voice/chapter1/extra/voice_ch1_extra_018_toru.m4a"] },
+  { type: "time_passage", text: "【參加者的隊伍終於逐漸縮短。\n三人已經明顯筋疲力盡。】" },
+  { speaker: "misaki", jp: "……あと一人！", zh: "……只剩一個人了！", audio: "assets/voice/chapter1/extra/voice_ch1_extra_019_misaki.m4a" },
+{ speaker: "ren", jp: "ほんとか！？", zh: "真的嗎！？", audio: "assets/voice/chapter1/extra/voice_ch1_extra_020_ren.m4a" },
+{ speaker: "toru", jp: "今度こそ間違いないだろうな。", zh: "這次真的沒算錯吧。", audio: "assets/voice/chapter1/extra/voice_ch1_extra_021_toru.m4a" },
+{ speaker: "misaki", jp: "たぶん！", zh: "大概！", audio: "assets/voice/chapter1/extra/voice_ch1_extra_022_misaki.m4a" },
+{ speaker: "toru", jp: "おい。", zh: "喂。", audio: "assets/voice/chapter1/extra/voice_ch1_extra_023_toru.m4a" },
+
+{ type: "blackout" },
+{ type: "narrative", text: "文化祭終了後" },
+{ type: "cg", cgKey: "cg02" },
+
+{ speaker: "misaki", jp: "…………完売！", zh: "…………全部賣完了！", audio: "assets/voice/chapter1/extra/voice_ch1_extra_024_misaki.m4a" },
+{ speaker: "ren", jp: "っしゃあああ！", zh: "好耶啊啊啊！", audio: "assets/voice/chapter1/extra/voice_ch1_extra_025_ren.m4a" },
+{ speaker: "toru", jp: "…………終わった。", zh: "…………終於結束了。", audio: "assets/voice/chapter1/extra/voice_ch1_extra_026_toru.m4a" },
+
+{ speaker: "ren", jp: "……もう焼きそば見たくねえ。", zh: "……我已經不想再看到炒麵了。", audio: "assets/voice/chapter1/extra/voice_ch1_extra_027_ren.m4a" },
+  { speaker: "misaki", jp: "……私も。", zh: "……我也是。", audio: "assets/voice/chapter1/extra/voice_ch1_extra_028_misaki.m4a" },
+  { speaker: "toru", jp: "だから言っただろ。", zh: "所以我早就說了吧。", audio: "assets/voice/chapter1/extra/voice_ch1_extra_029_toru.m4a" },
+  { speaker: "ren", jp: "……でも、完売したぞ。", zh: "……可是，我們賣完了耶。", audio: "assets/voice/chapter1/extra/voice_ch1_extra_030_ren.m4a" },
+  { speaker: "toru", jp: "もういい。黙れ。", zh: "夠了。閉嘴。", audio: "assets/voice/chapter1/extra/voice_ch1_extra_031_toru.m4a" },
+  { type: "blackout" },
+  { type: "if_end_title", title: "IF END", subtitle: "「幻の焼きそばラリー」" },
+  { type: "if_end_text", text: "――という企画ではない。" }
+];
+
+const extraEventState = {
+  active: false,
+  stepIndex: 0,
+  currentCgKey: null
+};
+
+let parallelAudioInstances = [];
+
+function playParallelVoices(paths) {
+  stopParallelVoices();
+  const currentVol = (gameSettings.voiceVolume ?? 50) / 100;
+  if (!paths || paths.length === 0 || currentVol <= 0) return;
+
+  paths.forEach(p => {
+    let cleanPath = p.startsWith("/") ? p.slice(1) : p;
+    if (!cleanPath.startsWith("assets/")) cleanPath = "assets/" + cleanPath;
+
+    try {
+      const audio = new Audio(cleanPath);
+      audio.volume = currentVol;
+      parallelAudioInstances.push(audio);
+      audio.play().catch(err => {
+        console.warn("[Parallel Audio Blocked]", err);
+      });
+    } catch (e) {}
+  });
+}
+
+function stopParallelVoices() {
+  parallelAudioInstances.forEach(audio => {
+    try {
+      audio.pause();
+      audio.currentTime = 0;
+      audio.onended = null;
+    } catch (e) {}
+  });
+  parallelAudioInstances = [];
+}
+
+function getExtraEventCgSource(cgKey) {
+  const isLandscape = window.innerWidth >= window.innerHeight;
+  if (cgKey === "cg01") {
+    return isLandscape 
+      ? "assets/cg/chapter1/cg_ch1_extra_yakisoba_day_landscape.webp"
+      : "assets/cg/chapter1/cg_ch1_extra_yakisoba_day_portrait.webp";
+  } else if (cgKey === "cg02") {
+    return isLandscape
+      ? "assets/cg/chapter1/cg_ch1_extra_yakisoba_evening_landscape.webp"
+      : "assets/cg/chapter1/cg_ch1_extra_yakisoba_evening_portrait.webp";
+  }
+  return "";
+}
+
+function handleExtraEventResize() {
+  if (!extraEventState.active) return;
+  if (!extraEventState.currentCgKey) return;
+  const cgUrl = getExtraEventCgSource(extraEventState.currentCgKey);
+  if (elements.bgLayer && cgUrl) {
+    elements.bgLayer.style.backgroundImage = `url('${cgUrl}')`;
+    elements.bgLayer.style.backgroundSize = "cover";
+    elements.bgLayer.style.backgroundPosition = "center";
+    elements.bgLayer.style.backgroundColor = "";
+  }
+}
+
+window.addEventListener('resize', handleExtraEventResize);
+
+function startExtraEvent() {
+  extraEventState.active = true;
+  extraEventState.stepIndex = 0;
+  extraEventState.currentCgKey = null;
+
+  if (elements.quizOverlay) elements.quizOverlay.classList.add('hidden');
+  if (elements.feedbackModal) elements.feedbackModal.classList.add('hidden');
+
+  const hudConfigBtn = document.getElementById('hud-config-btn');
+  const hudGameExitBtn = document.getElementById('btn-game-exit');
+  if (hudConfigBtn) hudConfigBtn.style.display = 'none';
+  if (hudGameExitBtn) hudGameExitBtn.style.display = 'none';
+
+  renderExtraEventStep();
+}
+
+function renderExtraEventStep() {
+  stopAllTypewriters();
+  stopActiveAudio("extraEventStep", "extra");
+  stopParallelVoices();
+  removeReplayAudioButton("extraEventStep");
+
+  const step = EXTRA_EVENT_STEPS[extraEventState.stepIndex];
+  if (!step) {
+    finishExtraEvent();
+    return;
+  }
+
+  // Hide standing sprites during Extra Event
+  if (elements.spriteLeft) elements.spriteLeft.classList.add('hidden');
+  if (elements.spriteCenter) elements.spriteCenter.classList.add('hidden');
+  if (elements.spriteRight) elements.spriteRight.classList.add('hidden');
+
+  if (step.type === "cg") {
+    extraEventState.currentCgKey = step.cgKey;
+    const cgUrl = getExtraEventCgSource(step.cgKey);
+    if (elements.bgLayer) {
+      elements.bgLayer.style.backgroundImage = `url('${cgUrl}')`;
+      elements.bgLayer.style.backgroundSize = "cover";
+      elements.bgLayer.style.backgroundPosition = "center";
+      elements.bgLayer.style.backgroundColor = "";
+      elements.bgLayer.classList.remove("dimmed", "memory");
+    }
+    extraEventState.stepIndex++;
+    renderExtraEventStep();
+    return;
+  }
+
+  if (step.type === "blackout") {
+    extraEventState.currentCgKey = null;
+    if (elements.bgLayer) {
+      elements.bgLayer.style.backgroundImage = "none";
+      elements.bgLayer.style.backgroundColor = "#000000";
+    }
+    if (elements.bgNameTag) elements.bgNameTag.innerText = "";
+    if (elements.speakerName) elements.speakerName.innerText = "";
+    if (elements.speakerTitle) elements.speakerTitle.innerText = "";
+    if (elements.vnNameplate) elements.vnNameplate.style.backgroundColor = "transparent";
+    if (elements.dialogueJp) {
+      elements.dialogueJp.innerHTML = "";
+      elements.dialogueJp.style.display = "none";
+    }
+    if (elements.dialogueZh) {
+      elements.dialogueZh.innerHTML = "";
+      elements.dialogueZh.style.display = "none";
+    }
+    extraEventState.stepIndex++;
+    renderExtraEventStep();
+    return;
+  }
+
+  if (step.type === "title_card") {
+    if (elements.bgNameTag) elements.bgNameTag.innerText = "【EXTRA EVENT】";
+    if (elements.speakerName) elements.speakerName.innerText = step.title;
+    if (elements.speakerTitle) elements.speakerTitle.innerText = "特別劇本";
+    if (elements.vnNameplate) elements.vnNameplate.style.backgroundColor = "#e84118";
+
+    if (elements.dialogueJp) {
+      elements.dialogueJp.style.display = "block";
+      typeWriterText(elements.dialogueJp, step.subtitle);
+    }
+    if (elements.dialogueZh) {
+      elements.dialogueZh.innerHTML = "";
+      elements.dialogueZh.style.display = "none";
+    }
+    showScreen('gameplay');
+    return;
+  }
+
+  if (step.type === "narrative") {
+    if (elements.bgNameTag) elements.bgNameTag.innerText = "【場景】";
+    if (elements.speakerName) elements.speakerName.innerText = "旁白";
+    if (elements.speakerTitle) elements.speakerTitle.innerText = "";
+    if (elements.vnNameplate) elements.vnNameplate.style.backgroundColor = "#718093";
+
+    if (elements.dialogueJp) {
+      elements.dialogueJp.style.display = "block";
+      typeWriterText(elements.dialogueJp, step.text);
+    }
+    if (elements.dialogueZh) {
+      elements.dialogueZh.innerHTML = "";
+      elements.dialogueZh.style.display = "none";
+    }
+    showScreen('gameplay');
+    return;
+  }
+
+  if (step.type === "time_passage") {
+    if (elements.bgNameTag) elements.bgNameTag.innerText = "【時間経過】";
+    if (elements.speakerName) elements.speakerName.innerText = "旁白";
+    if (elements.speakerTitle) elements.speakerTitle.innerText = "";
+    if (elements.vnNameplate) elements.vnNameplate.style.backgroundColor = "#718093";
+
+    if (elements.dialogueJp) {
+      elements.dialogueJp.style.display = "block";
+      typeWriterText(elements.dialogueJp, step.text);
+    }
+    if (elements.dialogueZh) {
+      elements.dialogueZh.innerHTML = "";
+      elements.dialogueZh.style.display = "none";
+    }
+    showScreen('gameplay');
+    return;
+  }
+
+  if (step.type === "if_end_title") {
+    if (elements.bgNameTag) elements.bgNameTag.innerText = "【IF END】";
+    if (elements.speakerName) elements.speakerName.innerText = step.title;
+    if (elements.speakerTitle) elements.speakerTitle.innerText = "特別結局";
+    if (elements.vnNameplate) elements.vnNameplate.style.backgroundColor = "#e84118";
+
+    if (elements.dialogueJp) {
+      elements.dialogueJp.style.display = "block";
+      typeWriterText(elements.dialogueJp, step.subtitle);
+    }
+    if (elements.dialogueZh) {
+      elements.dialogueZh.innerHTML = "";
+      elements.dialogueZh.style.display = "none";
+    }
+    showScreen('gameplay');
+    return;
+  }
+
+  if (step.type === "if_end_text") {
+    if (elements.bgNameTag) elements.bgNameTag.innerText = "【IF END】";
+    if (elements.speakerName) elements.speakerName.innerText = "特別結局";
+    if (elements.speakerTitle) elements.speakerTitle.innerText = "「幻の焼きそばラリー」";
+    if (elements.vnNameplate) elements.vnNameplate.style.backgroundColor = "#e84118";
+
+    if (elements.dialogueJp) {
+      elements.dialogueJp.style.display = "block";
+      typeWriterText(elements.dialogueJp, step.text);
+    }
+    if (elements.dialogueZh) {
+      elements.dialogueZh.innerHTML = "";
+      elements.dialogueZh.style.display = "none";
+    }
+    showScreen('gameplay');
+    return;
+  }
+
+  // Normal Dialogue Step
+  const speaker = CHARACTERS[step.speaker] || { name: "蓮・透", title: "聯合演出", color: "#e84118" };
+  if (elements.speakerName) elements.speakerName.innerText = speaker.name;
+  if (elements.speakerTitle) elements.speakerTitle.innerText = speaker.title;
+  if (elements.vnNameplate) elements.vnNameplate.style.backgroundColor = speaker.color;
+
+  if (elements.dialogueJp) {
+    elements.dialogueJp.style.display = "block";
+    typeWriterText(elements.dialogueJp, step.jp);
+  }
+
+  const subtitlesEnabled = ((gameSettings.chineseSubtitle || "on") === 'on');
+  if (elements.dialogueZh) {
+    if (subtitlesEnabled && step.zh) {
+      elements.dialogueZh.innerText = formatTextWithPlayer(step.zh);
+      elements.dialogueZh.style.display = "block";
+    } else {
+      elements.dialogueZh.innerHTML = "";
+      elements.dialogueZh.style.display = "none";
+    }
+  }
+
+  if (step.speaker === "dual" && Array.isArray(step.audio)) {
+    playParallelVoices(step.audio);
+  } else if (step.audio) {
+    playVoiceAudio(step.audio, "extra_step_" + extraEventState.stepIndex);
+  }
+
+  showScreen('gameplay');
+}
+
+function advanceExtraEvent() {
+  extraEventState.stepIndex++;
+  if (extraEventState.stepIndex >= EXTRA_EVENT_STEPS.length) {
+    finishExtraEvent();
+  } else {
+    renderExtraEventStep();
+  }
+}
+
+function finishExtraEvent() {
+  extraEventState.active = false;
+  extraEventState.stepIndex = 0;
+  extraEventState.currentCgKey = null;
+
+  stopAllTypewriters();
+  stopActiveAudio("finishExtraEvent", "extra");
+  stopParallelVoices();
+  removeReplayAudioButton("finishExtraEvent");
+
+  if (elements.bgLayer) {
+    elements.bgLayer.style.backgroundImage = "";
+    elements.bgLayer.style.backgroundColor = "";
+    elements.bgLayer.style.backgroundSize = "";
+    elements.bgLayer.style.backgroundPosition = "";
+  }
+  if (elements.bgNameTag) elements.bgNameTag.innerText = "";
+  if (elements.speakerName) elements.speakerName.innerText = "";
+  if (elements.speakerTitle) elements.speakerTitle.innerText = "";
+  if (elements.dialogueJp) {
+    elements.dialogueJp.innerHTML = "";
+    elements.dialogueJp.style.display = "block";
+  }
+  if (elements.dialogueZh) {
+    elements.dialogueZh.innerHTML = "";
+    elements.dialogueZh.style.display = "none";
+  }
+
+  updateHUD();
+  if (elements.feedbackModal) {
+    elements.feedbackModal.classList.remove('hidden');
+  }
+  saveGameData();
+}
+
+/* ==========================================================================
    2. 跨章節流程資料結構
    ========================================================================== */
 const CHAPTER_DATA = {
@@ -138,7 +492,7 @@ const CHAPTER_DATA = {
       { id: "ch1_s03_034_ren", type: "dialogue", bg: "2年B班 教室 (課堂)", speaker: "ren", expression: "surprised", position: "left", jp: "いや、こいつ今日来たばっかだろ。", zh: "不對啊，這傢伙今天才剛來耶。", audio: "/assets/voice/chapter1/ch1_s03_034_ren.m4a", listeningSection: 4 },
       { id: "ch1_s03_035_toru", type: "dialogue", bg: "2年B班 教室 (課堂)", speaker: "toru", expression: "roast", position: "right", jp: "お前だって、今日まで何も考えてなかっただろ。", zh: "你還不是一樣，直到今天什麼都沒想。", audio: "/assets/voice/chapter1/ch1_s03_035_toru.m4a", listeningSection: 4 },
       { id: "ch1_s03_036_sato", type: "dialogue", bg: "2年B班 教室 (課堂)", speaker: "sato", expression: "smile", position: "center", jp: "では、鬼塚くん、白石くん、美咲さん、それから転校生さんの四人でお願いしますね。", zh: "那麼，就拜託鬼塚同學、白石同學、美咲同學，還有轉學生同學四個人了。", audio: "/assets/voice/chapter1/ch1_s03_036_sato.m4a", listeningSection: 4 },
-      { id: "ch1_s03_037_player", type: "dialogue", bg: "2年B班 教室 (課堂)", speaker: "player", expression: "困惑觀察", position: "center", jp: "っ、――えっ……？", zh: "咦……？", audio: null, listeningSection: 4 },
+      { id: "ch1_s03_037_player", type: "dialogue", bg: "2年B班 教室 (課堂)", speaker: "player", expression: "困惑觀察", position: "center", jp: "えっ……？", zh: "咦……？", audio: null, listeningSection: 4 },
       { id: "ch1_s03_038_toru", type: "dialogue", bg: "2年B班 教室 (課堂)", speaker: "toru", expression: "smirk", position: "right", jp: "ご愁傷様。", zh: "真是辛苦啦。", audio: "/assets/voice/chapter1/ch1_s03_038_toru.m4a", listeningSection: 4 },
       { id: "ch1_s03_039_ren", type: "dialogue", bg: "2年B班 教室 (課堂)", speaker: "ren", expression: "angry", position: "left", jp: "うるせえな！", zh: "吵死了！", audio: "/assets/voice/chapter1/ch1_s03_039_ren.m4a", listeningSection: 4 },
       { id: "ch1_s03_040_ren", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "ren", expression: "angry", position: "left", jp: "お前、他人事だと思ってんだろ！", zh: "你這傢伙，覺得跟自己無關對吧！", audio: "/assets/voice/chapter1/ch1_s03_040_ren.m4a", listeningSection: 4 },
@@ -153,7 +507,7 @@ const CHAPTER_DATA = {
       { id: "ch1_s03_049_toru", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "toru", expression: "roast", position: "right", jp: "お前には現実を見る才能がないけどな。", zh: "不過你倒是沒有面對現實的才能就是了。", audio: "/assets/voice/chapter1/ch1_s03_049_toru.m4a", listeningSection: 4 },
       { id: "ch1_s03_050_player", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "player", expression: "溫和微笑", position: "center", jp: "じゃあ……校内を回りながら、いくつかのミッションに挑戦するのはどう？", zh: "那……邊參觀校園邊挑戰幾個任務怎麼樣？", audio: null, listeningSection: 4 },
       { id: "ch1_s03_051_ren", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "ren", expression: "suspect", position: "left", jp: "ミッション？", zh: "任務？", audio: "/assets/voice/chapter1/ch1_s03_051_ren.m4a", listeningSection: 4 },
-      { id: "ch1_s03_052_player", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "player", expression: "溫和微笑", position: "center", jp: "うん。校内の何か所かに問題とかミッションを用意して、順番に回ってもらうとか。", zh: "對啊。在校內好幾個地方準備題目或任務，讓大家依序去闖關之類的。", audio: null, listeningSection: 4 },
+      { id: "ch1_s03_052_player", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "player", expression: "溫和微笑", position: "center", jp: "うん。校內的何か所かに問題とかミッションを用意して、順番に回ってもらうとか。", zh: "對啊。在校內好幾個地方準備題目或任務，讓大家依序去闖關之類的。", audio: null, listeningSection: 4 },
       { id: "ch1_s03_053_toru", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "toru", expression: "serious", position: "right", jp: "スタンプラリーみたいな感じか。", zh: "像是集章闖關的感覺嗎。", audio: "/assets/voice/chapter1/ch1_s03_053_toru.m4a", listeningSection: 4 },
       { id: "ch1_s03_054_player", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "player", expression: "溫和微笑", position: "center", jp: "そうそう。食べ物みたいに調理もいらないし。", zh: "對對。又不像食物那樣需要烹調。", audio: null, listeningSection: 4 },
       { type: "quiz", id: "ch1_q4", listeningSection: 4, nextStepIndex: 57 },
@@ -262,12 +616,12 @@ const QUIZZES = {
     feedback: {
       correct: {
         title: "正解！ (B)", story: "完美掌握了轉學生提出的校園闖關提案！",
-        jpOriginal: "校内の何か所かに問題とかミッションを用意して、順番に回ってもらうとか。", zhTrans: "在校內好幾個地方準備題目或任務，讓大家依序去闖關之類的。",
+        jpOriginal: "校內的何か所かに問題とかミッションを用意して、順番に回ってもらうとか。", zhTrans: "在校內好幾個地方準備題目或任務，讓大家依序去闖關之類的。",
         words: "ミッション(任務)、回る(繞行/參觀)", explanation: "正確答案為 B。"
       },
       wrong: {
         title: "不正解！ (正確答案為 B)", story: "轉學生的提案是校園闖關任務。",
-        jpOriginal: "校内の何か所かに問題とかミッションを用意して、順番に回ってもらうとか。", zhTrans: "在校內好幾個地方準備題目或任務，讓大家依序去闖關之類的。",
+        jpOriginal: "校內的何か所かに問題とかミッションを用意して、順番に回ってもらうとか。", zhTrans: "在校內好幾個地方準備題目或任務，讓大家依序去闖關之類的。",
         words: "ミッション(任務)、回る(繞行/參觀)", explanation: "正確答案為 B。"
       }
     }
@@ -384,9 +738,11 @@ function typeWriterText(element, text) {
   }
 
   const formattedText = formatTextWithPlayer(text);
+  element.setAttribute('data-full-text', formattedText);
   
   if (gameSettings.textSpeed === "instant") {
     element.innerHTML = formattedText;
+    element.removeAttribute('data-full-text');
     return;
   }
 
@@ -403,6 +759,7 @@ function typeWriterText(element, text) {
     } else {
       clearInterval(timer);
       typingTimers.delete(element);
+      element.removeAttribute('data-full-text');
     }
   }, speedDelay);
 
@@ -694,9 +1051,9 @@ function showScreen(screenKey) {
   const hudGameExitBtn = document.getElementById('btn-game-exit');
 
   if (screenKey === 'gameplay') {
-    if (elements.vnHud) elements.vnHud.classList.remove('hidden');
-    if (hudConfigBtn) hudConfigBtn.style.display = 'block';
-    if (hudGameExitBtn) hudGameExitBtn.style.display = 'block';
+    if (elements.vnHud && !extraEventState.active) elements.vnHud.classList.remove('hidden');
+    if (hudConfigBtn) hudConfigBtn.style.display = extraEventState.active ? 'none' : 'block';
+    if (hudGameExitBtn) hudGameExitBtn.style.display = extraEventState.active ? 'none' : 'block';
     const chapterData = CHAPTER_DATA[gameState.currentChapter];
     if (chapterData && elements.hudChapterTitle) elements.hudChapterTitle.innerText = chapterData.title;
   } else {
@@ -771,6 +1128,10 @@ function renderDialogueStep(stepData) {
   const isPlayer = (stepData.speaker === "player");
   const subtitlesEnabled = ((gameSettings.chineseSubtitle || "on") === 'on');
 
+  if (elements.dialogueJp) {
+    elements.dialogueJp.style.display = "block";
+  }
+
   if (isPlayer) {
     typeWriterText(elements.dialogueJp, stepData.jp);
     if (elements.dialogueJp) elements.dialogueJp.style.display = "block";
@@ -825,14 +1186,14 @@ function renderQuizOverlay(quizId, frozenSection = null) {
 
   if (elements.quizOptions) {
     elements.quizOptions.innerHTML = '';
-    quiz.options.forEach((opt) => {
+    quiz.options.forEach((opt, optionIndex) => {
       const btn = document.createElement('button');
       btn.className = 'quiz-opt-btn';
       btn.innerHTML = formatTextWithPlayer(opt.text);
 
       btn.onclick = (e) => {
         e.stopPropagation();
-        handleAnswer(opt, quiz);
+        handleAnswer(opt, quiz, optionIndex);
       };
       elements.quizOptions.appendChild(btn);
     });
@@ -854,7 +1215,7 @@ function renderQuizOverlay(quizId, frozenSection = null) {
   saveGameData();
 }
 
-function handleAnswer(selectedOpt, quizData) {
+function handleAnswer(selectedOpt, quizData, optionIndex) {
   removeReplayAudioButton("handleAnswer");
   stopAllTypewriters();
   stopActiveAudio("handleAnswer", quizData.id);
@@ -916,6 +1277,16 @@ function handleAnswer(selectedOpt, quizData) {
   }
 
   updateHUD();
+
+  const isQ4ExtraD = (quizData.quizNumber === 4 && optionIndex === 3);
+  if (isQ4ExtraD) {
+    if (elements.quizOverlay) {
+      elements.quizOverlay.classList.add('hidden');
+    }
+    startExtraEvent();
+    return;
+  }
+
   if (elements.feedbackModal) elements.feedbackModal.classList.remove('hidden');
   saveGameData();
 }
@@ -1089,8 +1460,10 @@ function renderReplayStepManual(index) {
 
   const subtitlesEnabled = ((gameSettings.chineseSubtitle || "on") === 'on');
 
+  if (elements.dialogueJp) {
+    elements.dialogueJp.style.display = "block";
+  }
   typeWriterText(elements.dialogueJp, stepData.jp);
-  if (elements.dialogueJp) elements.dialogueJp.style.display = "block";
 
   if (elements.dialogueZh) {
     if (subtitlesEnabled && stepData.zh) {
@@ -1137,19 +1510,35 @@ function renderReplayStepManual(index) {
 }
 
 function refreshCurrentReplaySubtitleLive() {
-  if (gameState.listeningState !== "QUESTION_REPLAY" && !isWrongReviewMode) return;
-  if (!sectionReplayQueue || sectionReplayQueue.length === 0) return;
-  const stepData = sectionReplayQueue[sectionReplayIndex];
-  if (!stepData) return;
-
-  const subtitlesEnabled = ((gameSettings.chineseSubtitle || "on") === 'on');
-  if (elements.dialogueZh) {
-    if (subtitlesEnabled && stepData.zh) {
-      elements.dialogueZh.innerText = formatTextWithPlayer(stepData.zh);
-      elements.dialogueZh.style.display = "block";
-    } else {
-      elements.dialogueZh.innerHTML = "";
-      elements.dialogueZh.style.display = "none";
+  if (gameState.listeningState === "QUESTION_REPLAY" || isWrongReviewMode) {
+    if (sectionReplayQueue && sectionReplayQueue.length > 0) {
+      const stepData = sectionReplayQueue[sectionReplayIndex];
+      if (stepData) {
+        const subtitlesEnabled = ((gameSettings.chineseSubtitle || "on") === 'on');
+        if (elements.dialogueZh) {
+          if (subtitlesEnabled && stepData.zh) {
+            elements.dialogueZh.innerText = formatTextWithPlayer(stepData.zh);
+            elements.dialogueZh.style.display = "block";
+          } else {
+            elements.dialogueZh.innerHTML = "";
+            elements.dialogueZh.style.display = "none";
+          }
+        }
+      }
+    }
+  } else if (extraEventState.active) {
+    const step = EXTRA_EVENT_STEPS[extraEventState.stepIndex];
+    if (step && step.zh) {
+      const subtitlesEnabled = ((gameSettings.chineseSubtitle || "on") === 'on');
+      if (elements.dialogueZh) {
+        if (subtitlesEnabled) {
+          elements.dialogueZh.innerText = formatTextWithPlayer(step.zh);
+          elements.dialogueZh.style.display = "block";
+        } else {
+          elements.dialogueZh.innerHTML = "";
+          elements.dialogueZh.style.display = "none";
+        }
+      }
     }
   }
 }
@@ -1325,7 +1714,7 @@ function continueGame() {
   unlockAudioContextIOS();
   const loaded = loadGameData();
   if (!loaded || !gameState.hasValidSave) {
-    if (elements.noSaveModal) elements.noSaveModal.classList.remove('hidden');
+    if (elements.noSaveModal) elements.noSaveModal.classList.add('hidden');
     return;
   }
 
@@ -1373,6 +1762,22 @@ function handleDialogueBoxClick(e) {
   if (elements.dangerConfirmModal && !elements.dangerConfirmModal.classList.contains('hidden')) return;
   if (elements.exitConfirmModal && !elements.exitConfirmModal.classList.contains('hidden')) return;
   if (elements.noSaveModal && !elements.noSaveModal.classList.contains('hidden')) return;
+
+  if (extraEventState.active) {
+    const fullTextAttr = elements.dialogueJp ? elements.dialogueJp.getAttribute('data-full-text') : null;
+    if (fullTextAttr && typingTimers.has(elements.dialogueJp)) {
+      const timer = typingTimers.get(elements.dialogueJp);
+      if (timer) {
+        clearInterval(timer);
+        typingTimers.delete(elements.dialogueJp);
+      }
+      elements.dialogueJp.innerHTML = fullTextAttr;
+      elements.dialogueJp.removeAttribute('data-full-text');
+      return;
+    }
+    advanceExtraEvent();
+    return;
+  }
 
   if (isWrongReviewMode) {
     stopAllTypewriters();
