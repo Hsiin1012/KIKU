@@ -884,7 +884,7 @@ html, body {
   }
 
   #screen-title {
-    padding: clamp(150px, 24vh, 200px) clamp(16px, 5vw, 24px);
+    padding: clamp(100px, 16vh, 150px) clamp(16px, 5vw, 24px);
     align-items: flex-start;
     justify-content: flex-start;
     overflow-y: auto;
