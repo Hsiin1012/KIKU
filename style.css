@@ -229,7 +229,7 @@ html, body {
    ========================================================================== */
 #screen-title .title-menu-buttons .vn-btn {
   background: rgba(255, 255, 255, 0.25);
-  color: #665b56;
+  color: #4a403c;
   border: 1px solid rgba(255, 255, 255, 0.28);
   border-radius: 10px;
   font-size: clamp(1rem, 1.2vw, 1.1rem);
@@ -251,7 +251,7 @@ html, body {
 
 #screen-title .title-menu-buttons .vn-btn.primary {
   background: rgba(255, 255, 255, 0.25);
-  color: #665b56;
+  color: #4a403c;
   border: 1px solid rgba(255, 255, 255, 0.28);
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
 }
@@ -884,7 +884,7 @@ html, body {
   }
 
   #screen-title {
-    padding: clamp(60px, 12vh, 100px) clamp(20px, 6vw, 30px);
+    padding: clamp(150px, 24vh, 200px) clamp(16px, 5vw, 24px);
     align-items: flex-start;
     justify-content: flex-start;
     overflow-y: auto;
@@ -892,21 +892,21 @@ html, body {
   }
 
   .title-content-box {
-    width: clamp(240px, 60vw, 280px);
+    width: clamp(210px, 48vw, 250px);
     margin-top: 0;
     margin-bottom: 0;
-    margin-left: clamp(10px, 3vw, 20px);
+    margin-left: clamp(8px, 2.5vw, 16px);
   }
 
   #screen-title .title-menu-buttons .vn-btn {
-    font-size: 0.95rem;
-    padding: 12px 16px;
+    font-size: 0.9rem;
+    padding: 10px 14px;
     height: auto;
-    min-height: 50px;
+    min-height: 46px;
   }
 
   .title-menu-buttons {
-    gap: 10px;
+    gap: 9px;
   }
 
   #screen-config,
