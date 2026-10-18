@@ -738,6 +738,68 @@ html, body {
   border-color: #3b82f6;
 }
 
+/* ==========================================================================
+   QUESTION UI - APPROVED LIGHT DESIGN PASS
+   Scoped to gameplay quiz overlay only
+   ========================================================================== */
+
+#vn-quiz-overlay .quiz-card-container {
+  background: rgba(255, 255, 255, 0.92);
+  color: #263746;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.16);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* 聽力理解任務 */
+#vn-quiz-overlay .quiz-type-pill {
+  background: #6f8fa8;
+  color: #ffffff;
+}
+
+/* 任務檢定 Q1 / Q2... */
+#vn-quiz-overlay .quiz-num-pill {
+  color: #718096;
+}
+
+/* 題目 */
+#vn-quiz-overlay .quiz-question-text {
+  color: #263746;
+}
+
+/* A–D 選項 */
+#vn-quiz-overlay .quiz-opt-btn {
+  background: rgba(255, 255, 255, 0.72);
+  color: #334155;
+  border: 1px solid rgba(71, 85, 105, 0.16);
+  box-shadow: 0 2px 6px rgba(30, 41, 59, 0.04);
+}
+
+/* 選項 Hover */
+#vn-quiz-overlay .quiz-opt-btn:hover {
+  background: rgba(111, 143, 168, 0.12);
+  color: #263746;
+  border-color: rgba(111, 143, 168, 0.55);
+  box-shadow: 0 3px 8px rgba(60, 80, 100, 0.08);
+}
+
+/* Question Replay Button - Light System Accent */
+#vn-quiz-overlay .quiz-options-grid > .vn-btn.secondary {
+  background: #6f8fa8;
+  color: #ffffff;
+  border: 1px solid rgba(72, 101, 124, 0.22);
+  border-radius: 8px;
+  box-shadow: 0 3px 8px rgba(60, 80, 100, 0.12);
+}
+
+#vn-quiz-overlay .quiz-options-grid > .vn-btn.secondary:hover {
+  background: #627f97;
+  color: #ffffff;
+  border-color: rgba(72, 101, 124, 0.30);
+  box-shadow: 0 4px 10px rgba(60, 80, 100, 0.16);
+}
+
 /* Feedback Modal Styling */
 .feedback-header {
   display: flex;
@@ -934,6 +996,33 @@ html, body {
   margin-top: 15px;
   text-align: left;
   color: #334155;
+}
+
+/* Player Identity Setup - Soft Primary Button */
+#name-setup-modal .vn-btn.primary {
+  background: #e9a27f;
+  color: #ffffff;
+  border: 1px solid rgba(180, 105, 70, 0.18);
+  box-shadow: 0 3px 8px rgba(120, 80, 60, 0.10);
+}
+
+#name-setup-modal .vn-btn.primary:hover {
+  background: #df9270;
+  border-color: rgba(180, 105, 70, 0.25);
+  box-shadow: 0 4px 10px rgba(120, 80, 60, 0.14);
+}
+
+#name-setup-modal .vn-btn.primary {
+  background: #6f8fa8;
+  color: #ffffff;
+  border: 1px solid rgba(72, 101, 124, 0.22);
+  box-shadow: 0 3px 8px rgba(60, 80, 100, 0.12);
+}
+
+#name-setup-modal .vn-btn.primary:hover {
+  background: #627f97;
+  border-color: rgba(72, 101, 124, 0.30);
+  box-shadow: 0 4px 10px rgba(60, 80, 100, 0.16);
 }
 
 /* Chapter Transition Banner */
