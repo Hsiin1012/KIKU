@@ -267,7 +267,7 @@ html, body {
 }
 
 /* ==========================================================================
-   3. GAMEPLAY SCREEN & LIGHT UI CONVERSION
+   3. GAMEPLAY SCREEN & POLISHED LIGHT HUD + FROZEN DIALOGUE BOX
    ========================================================================== */
 #screen-gameplay {
   position: relative;
@@ -341,7 +341,7 @@ html, body {
   transition: all 0.3s ease;
 }
 
-/* 上方 HUD 列 (Light UI) */
+/* 上方 HUD 列 (Polished Light Glass HUD) */
 .vn-hud-bar {
   position: absolute;
   top: 0; left: 0; width: 100%;
@@ -350,7 +350,7 @@ html, body {
   justify-content: space-between;
   align-items: center;
   z-index: 15;
-  background: linear-gradient(to bottom, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0) 100%);
+  background: linear-gradient(to bottom, rgba(255,255,255,0.75) 0%, rgba(255,255,255,0) 100%);
   pointer-events: auto;
 }
 
@@ -364,13 +364,13 @@ html, body {
   font-size: clamp(0.8rem, 1.5vw, 1rem);
   font-weight: bold;
   color: #1e293b;
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.82);
   padding: 6px 14px;
-  border-radius: 20px;
-  border: 1px solid rgba(0,0,0,0.1);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 .hud-right-group {
@@ -393,18 +393,18 @@ html, body {
 .trust-pill {
   font-size: 0.8rem;
   font-weight: bold;
-  padding: 4px 10px;
-  border-radius: 12px;
+  padding: 5px 12px;
+  border-radius: 10px;
   color: #1e293b;
-  background: rgba(255, 255, 255, 0.85);
-  border: 1px solid rgba(0,0,0,0.12);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.04);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
-.trust-pill.ren { border-color: #e84118; color: #e84118; }
-.trust-pill.toru { border-color: #00a8ff; color: #00a8ff; }
-.trust-pill.sato { border-color: #9c88ff; color: #9c88ff; }
+.trust-pill.ren { border-left: 3px solid #e84118; color: #1e293b; }
+.trust-pill.toru { border-left: 3px solid #00a8ff; color: #1e293b; }
+.trust-pill.sato { border-left: 3px solid #9c88ff; color: #1e293b; }
 
 .vn-ctrl-btn {
   background: rgba(30, 41, 59, 0.85);
@@ -420,26 +420,27 @@ html, body {
   background: rgba(51, 65, 85, 0.95);
 }
 
-/* Gameplay HUD Controls Specific Override for Light UI */
+/* Gameplay HUD Controls Specific Override for Polished Light UI */
 #hud-config-btn,
 #btn-game-exit,
 #btn-audio-play {
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.82);
   color: #1e293b;
-  border: 1px solid rgba(0,0,0,0.12);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 #hud-config-btn:hover,
 #btn-game-exit:hover,
 #btn-audio-play:hover {
   background: rgba(255, 255, 255, 0.95);
-  border-color: rgba(0,0,0,0.2);
+  border-color: rgba(255, 255, 255, 1);
 }
 
-/* 下方對話框 (Light UI) */
+/* 下方對話框 (FROZEN — APPROVED LIGHT DIALOGUE BOX) */
 .vn-dialogue-box {
   position: absolute;
   bottom: 20px;
@@ -1003,10 +1004,10 @@ html, body {
     align-items: flex-start;
     gap: 6px;
     padding: 6px 10px;
-    background: rgba(255, 255, 255, 0.92);
+    background: rgba(255, 255, 255, 0.85);
     padding-bottom: max(6px, env(safe-area-inset-bottom));
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
   }
   
   .hud-right-group {
@@ -1040,7 +1041,7 @@ html, body {
 
   .trust-pill {
     font-size: 0.72rem;
-    padding: 2px 6px;
+    padding: 3px 8px;
   }
 
   .vn-ctrl-btn {
@@ -1143,15 +1144,15 @@ html, body {
 
   .vn-hud-bar {
     padding: 4px 12px;
-    background: rgba(255, 255, 255, 0.92);
+    background: rgba(255, 255, 255, 0.85);
     height: 36px;
     display: flex;
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
     z-index: 25;
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
   }
 
   .hud-left-group {
