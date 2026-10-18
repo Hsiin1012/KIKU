@@ -892,17 +892,17 @@ html, body {
   }
 
   .title-content-box {
-    width: clamp(210px, 48vw, 250px);
+    width: clamp(190px, 42vw, 220px);
     margin-top: 0;
     margin-bottom: 0;
     margin-left: clamp(8px, 2.5vw, 16px);
   }
 
   #screen-title .title-menu-buttons .vn-btn {
-    font-size: 0.9rem;
-    padding: 10px 14px;
+    font-size: clamp(1rem, 4.2vw, 1.1rem);
+    padding: 11px 16px;
     height: auto;
-    min-height: 46px;
+    min-height: unset;
   }
 
   .title-menu-buttons {
