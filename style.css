@@ -852,7 +852,7 @@ html, body {
 /* Tablet Portrait (Min-width 768px and max-width 1024px and orientation portrait) */
 @media screen and (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
   .title-bg-layer {
-    background: url('assets/title/title_cover_phone.webp') center/cover no-repeat;
+    background: url('assets/title/title_cover_phone.webp') center 35% / cover no-repeat;
   }
 
   #screen-config,
