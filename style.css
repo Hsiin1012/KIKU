@@ -888,7 +888,7 @@ html, body {
   }
 
   #screen-title {
-    padding: 160px clamp(30px, 6vw, 70px);
+    padding: 260px clamp(30px, 6vw, 70px);
   }
 
   /* Tablet Portrait 專屬：隱藏 Title Menu 按鈕中的英文副標籤 */
