@@ -1960,3 +1960,291 @@ body {
 #game-container {
   background-color: #25272d;
 }
+
+/* ==========================================================================
+   START GATE / AUDIO UNLOCK
+   Chapter-transition inspired entrance
+   ========================================================================== */
+
+#start-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 99990;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  overflow: hidden;
+  background: #25272d;
+
+  opacity: 1;
+  visibility: visible;
+
+  transition:
+    opacity 0.7s ease,
+    visibility 0.7s ease;
+}
+
+
+/* ----------------------------------------------------------
+   Background
+   ---------------------------------------------------------- */
+
+.start-gate-bg {
+  position: absolute;
+
+  /* 跟正式遊戲舞台使用相同的最大寬度 */
+  top: -20px;
+  bottom: -20px;
+
+  left: 50%;
+  width: min(100%, 1440px);
+
+  background:
+    url("assets/title/title_cover_pc.webp")
+    center / cover no-repeat;
+
+  filter: blur(11px);
+
+  transform:
+    translateX(-50%)
+    scale(1.04);
+
+  transition:
+    filter 0.75s ease,
+    transform 0.75s ease;
+}
+
+
+/* 淡淡的 Light Design 霧層 */
+.start-gate-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+
+  background: rgba(255, 255, 255, 0.18);
+
+  transition:
+    background 0.75s ease;
+}
+
+
+/* ----------------------------------------------------------
+   TAP TO START
+   無框、無底色
+   ---------------------------------------------------------- */
+
+#btn-start-gate {
+  position: relative;
+  z-index: 2;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  gap: 9px;
+
+  margin: 0;
+  padding: 28px 40px;
+
+  border: 0;
+  outline: 0;
+
+  background: transparent;
+
+  color: #263746;
+
+  font-family: inherit;
+  text-align: center;
+
+  cursor: pointer;
+
+  -webkit-tap-highlight-color: transparent;
+
+  animation:
+    startGateBreath 2.4s ease-in-out infinite;
+
+  transition:
+    opacity 0.4s ease,
+    transform 0.4s ease;
+}
+
+
+#btn-start-gate:hover {
+  transform: scale(1.025);
+}
+
+
+#btn-start-gate:active {
+  transform: scale(0.98);
+}
+
+
+/* 英文主標 */
+
+.start-gate-main {
+  display: block;
+
+  font-size: clamp(1.15rem, 2.1vw, 1.55rem);
+  font-weight: 700;
+
+  letter-spacing: 0.18em;
+
+  line-height: 1.2;
+
+  text-shadow:
+    0 1px 8px rgba(255, 255, 255, 0.55);
+}
+
+
+/* 中文提示 */
+
+.start-gate-sub {
+  display: block;
+
+  font-size: 0.78rem;
+  font-weight: 500;
+
+  letter-spacing: 0.12em;
+
+  opacity: 0.68;
+
+  text-shadow:
+    0 1px 7px rgba(255, 255, 255, 0.55);
+}
+
+
+/* ----------------------------------------------------------
+   Gentle breathing
+   ---------------------------------------------------------- */
+
+@keyframes startGateBreath {
+  0%,
+  100% {
+    opacity: 0.72;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+
+/* ----------------------------------------------------------
+   Click → reveal Title
+   ---------------------------------------------------------- */
+
+#start-gate.is-closing {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+
+/* 點擊後背景逐漸清晰 */
+
+#start-gate.is-closing .start-gate-bg {
+  filter: blur(0);
+
+  transform:
+    translateX(-50%)
+    scale(1);
+}
+
+
+/* 白霧同時消失 */
+
+#start-gate.is-closing .start-gate-bg::after {
+  background: rgba(255, 255, 255, 0);
+}
+
+
+/* TAP TO START 先淡掉 */
+
+#start-gate.is-closing #btn-start-gate {
+  opacity: 0;
+  transform: scale(1.035);
+  animation: none;
+}
+
+
+/* ----------------------------------------------------------
+   Tablet Portrait
+   ---------------------------------------------------------- */
+
+@media screen
+and (min-width: 768px)
+and (max-width: 1024px)
+and (orientation: portrait) {
+
+  .start-gate-bg {
+    background:
+      url("assets/title/title_cover_tablet.webp")
+      center 50% / cover no-repeat;
+  }
+
+}
+
+
+/* ----------------------------------------------------------
+   Phone Portrait
+   ---------------------------------------------------------- */
+
+@media screen
+and (max-width: 768px)
+and (orientation: portrait) {
+
+  .start-gate-bg {
+    background:
+      url("assets/title/title_cover_phone.webp")
+      center / cover no-repeat;
+  }
+
+  #btn-start-gate {
+    padding: 24px 28px;
+    gap: 7px;
+  }
+
+  .start-gate-main {
+    font-size: 1.05rem;
+    letter-spacing: 0.16em;
+  }
+
+  .start-gate-sub {
+    font-size: 0.72rem;
+  }
+
+}
+
+/* ==========================================================================
+   PHONE PORTRAIT — COMPACT FLOATING HUD
+   手機直向：移除 HUD 白色底層，讓遊戲畫面延伸至頂部
+   ========================================================================== */
+
+@media screen
+and (max-width: 767px)
+and (orientation: portrait) {
+
+  /* HUD 不再形成一整條白色區域 */
+  .vn-hud-bar {
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+
+    padding: 8px 10px;
+
+    gap: 5px;
+  }
+
+  /* 背景從最頂部開始 */
+  .vn-bg-layer {
+    top: 0;
+    height: 100%;
+  }
+
+  /* 角色也往上移，不再為白色 HUD 預留 55px */
+  .vn-sprite-container {
+    top: 0;
+  }
+}

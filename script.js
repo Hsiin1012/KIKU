@@ -144,6 +144,269 @@ const extraEventState = {
   currentCgKey: null
 };
 
+const EXTRA_AUDIO = {
+  seTrigger: "assets/se/se_extra_trigger.ogg",
+  seTitle: "assets/se/se_extra_title.ogg",
+  seImagination: "assets/se/se_imagination.ogg",
+  bgmComedy: "assets/bgm/bgm_extra_comedy.ogg"
+};
+
+let extraBgmAudio = null;
+let extraBgmFadeTimer = null;
+
+function playExtraSe(path, onEnded = null) {
+  if (!path) {
+    if (typeof onEnded === "function") onEnded();
+    return;
+  }
+
+  let cleanPath = path.startsWith("/") ? path.slice(1) : path;
+  if (!cleanPath.startsWith("assets/")) {
+    cleanPath = "assets/" + cleanPath;
+  }
+
+  const volume = (gameSettings.seVolume ?? 50) / 100;
+
+  if (volume <= 0) {
+    if (typeof onEnded === "function") onEnded();
+    return;
+  }
+
+  try {
+    const audio = new Audio(cleanPath);
+    audio.volume = volume;
+    audio.loop = false;
+
+    let finished = false;
+
+    const finishOnce = () => {
+      if (finished) return;
+      finished = true;
+
+      audio.onended = null;
+      audio.onerror = null;
+
+      if (typeof onEnded === "function") {
+        onEnded();
+      }
+    };
+
+    audio.onended = finishOnce;
+    audio.onerror = () => {
+      console.error("[EXTRA SE] FILE ERROR:", cleanPath);
+      finishOnce();
+    };
+
+    console.log("[EXTRA SE] load:", cleanPath);
+
+    audio.play()
+      .then(() => {
+        console.log("[EXTRA SE] playing:", cleanPath);
+      })
+      .catch(err => {
+        console.error("[EXTRA SE] PLAY FAILED:", cleanPath, err);
+        finishOnce();
+      });
+
+  } catch (err) {
+    console.error("[EXTRA SE] ERROR:", cleanPath, err);
+
+    if (typeof onEnded === "function") {
+      onEnded();
+    }
+  }
+}
+
+function playExtraBgm(path, fadeMs = 700) {
+  if (!path) return;
+
+  let cleanPath = path.startsWith("/") ? path.slice(1) : path;
+  if (!cleanPath.startsWith("assets/")) {
+    cleanPath = "assets/" + cleanPath;
+  }
+
+  if (extraBgmFadeTimer) {
+    clearInterval(extraBgmFadeTimer);
+    extraBgmFadeTimer = null;
+  }
+
+  if (extraBgmAudio) {
+    try {
+      extraBgmAudio.pause();
+      extraBgmAudio.currentTime = 0;
+    } catch (e) {}
+
+    extraBgmAudio = null;
+  }
+
+  try {
+    const audio = new Audio(cleanPath);
+
+    audio.preload = "auto";
+    audio.loop = true;
+    audio.volume = 0;
+
+    extraBgmAudio = audio;
+
+    console.log("[EXTRA BGM] load:", cleanPath);
+
+    audio.play()
+      .then(() => {
+        console.log("[EXTRA BGM] playing:", cleanPath);
+
+        const targetVolume =
+          Math.max(
+            0,
+            Math.min(
+              1,
+              (gameSettings.bgmVolume ?? 50) / 100
+            )
+          );
+
+        if (fadeMs <= 0) {
+          audio.volume = targetVolume;
+          return;
+        }
+
+        const startTime = performance.now();
+
+        extraBgmFadeTimer = setInterval(() => {
+          const progress = Math.min(
+            1,
+            (performance.now() - startTime) / fadeMs
+          );
+
+          audio.volume = targetVolume * progress;
+
+          if (progress >= 1) {
+            clearInterval(extraBgmFadeTimer);
+            extraBgmFadeTimer = null;
+            audio.volume = targetVolume;
+          }
+        }, 40);
+      })
+      .catch(err => {
+        console.error("[EXTRA BGM] PLAY FAILED:", cleanPath, err);
+      });
+
+  } catch (err) {
+    console.error("[EXTRA BGM] ERROR:", cleanPath, err);
+  }
+}
+
+function stopExtraBgm(fadeMs = 700) {
+  const audio = extraBgmAudio;
+
+  extraBgmAudio = null;
+
+  if (extraBgmFadeTimer) {
+    clearInterval(extraBgmFadeTimer);
+    extraBgmFadeTimer = null;
+  }
+
+  if (!audio) return;
+
+  const startVolume = audio.volume;
+
+  if (fadeMs <= 0 || startVolume <= 0) {
+    try {
+      audio.pause();
+      audio.currentTime = 0;
+    } catch (e) {}
+    return;
+  }
+
+  const startTime = performance.now();
+
+  const timer = setInterval(() => {
+    const progress = Math.min(
+      1,
+      (performance.now() - startTime) / fadeMs
+    );
+
+    audio.volume = Math.max(
+      0,
+      startVolume * (1 - progress)
+    );
+
+    if (progress >= 1) {
+      clearInterval(timer);
+
+      try {
+        audio.pause();
+        audio.currentTime = 0;
+      } catch (e) {}
+    }
+  }, 40);
+}
+
+
+let extraEventBgmAudio = null;
+
+function playExtraEventBgm(path, fadeMs = 700) {
+  if (!path) return;
+
+  if (extraEventBgmAudio) {
+    extraEventBgmAudio.pause();
+    extraEventBgmAudio = null;
+  }
+
+  const audio = new Audio(path);
+  extraEventBgmAudio = audio;
+
+  audio.loop = true;
+  audio.volume = 0;
+
+  const targetVolume = (gameSettings.bgmVolume ?? 50) / 100;
+
+  audio.play().catch(err => {
+    console.error("[EXTRA BGM] PLAY FAILED:", path, err);
+  });
+
+  const startTime = performance.now();
+
+  function fadeIn(now) {
+    if (extraEventBgmAudio !== audio) return;
+
+    const progress = Math.min((now - startTime) / fadeMs, 1);
+    audio.volume = targetVolume * progress;
+
+    if (progress < 1) {
+      requestAnimationFrame(fadeIn);
+    }
+  }
+
+  requestAnimationFrame(fadeIn);
+}
+
+function stopExtraEventBgm(fadeMs = 700) {
+  const audio = extraEventBgmAudio;
+  if (!audio) return;
+
+  const startVolume = audio.volume;
+  const startTime = performance.now();
+
+  function fadeOut(now) {
+    if (extraEventBgmAudio !== audio) return;
+
+    const progress = Math.min((now - startTime) / fadeMs, 1);
+    audio.volume = startVolume * (1 - progress);
+
+    if (progress < 1) {
+      requestAnimationFrame(fadeOut);
+    } else {
+      audio.pause();
+      audio.currentTime = 0;
+
+      if (extraEventBgmAudio === audio) {
+        extraEventBgmAudio = null;
+      }
+    }
+  }
+
+  requestAnimationFrame(fadeOut);
+}
+
 let parallelAudioInstances = [];
 
 function playParallelVoices(paths) {
@@ -228,6 +491,27 @@ function renderExtraEventStep() {
   removeReplayAudioButton("extraEventStep");
 
   const step = EXTRA_EVENT_STEPS[extraEventState.stepIndex];
+
+  // Extra Event CG 持續顯示
+  // cg step 設定 currentCgKey 後，後續角色台詞也持續重新套用 CG
+  if (
+    extraEventState.currentCgKey &&
+    step &&
+    step.type !== "blackout"
+  ) {
+    const currentCgUrl =
+      getExtraEventCgSource(extraEventState.currentCgKey);
+
+    if (elements.bgLayer && currentCgUrl) {
+      elements.bgLayer.style.backgroundImage =
+        `url('${currentCgUrl}')`;
+
+      elements.bgLayer.style.backgroundSize = "cover";
+      elements.bgLayer.style.backgroundPosition = "center";
+      elements.bgLayer.style.backgroundColor = "";
+      elements.bgLayer.classList.remove("dimmed", "memory");
+    }
+  }
   if (!step) {
     finishExtraEvent();
     return;
@@ -238,22 +522,30 @@ function renderExtraEventStep() {
   if (elements.spriteCenter) elements.spriteCenter.classList.add('hidden');
   if (elements.spriteRight) elements.spriteRight.classList.add('hidden');
 
-  if (step.type === "cg") {
-    extraEventState.currentCgKey = step.cgKey;
-    const cgUrl = getExtraEventCgSource(step.cgKey);
-    if (elements.bgLayer) {
-      elements.bgLayer.style.backgroundImage = `url('${cgUrl}')`;
-      elements.bgLayer.style.backgroundSize = "cover";
-      elements.bgLayer.style.backgroundPosition = "center";
-      elements.bgLayer.style.backgroundColor = "";
-      elements.bgLayer.classList.remove("dimmed", "memory");
-    }
-    extraEventState.stepIndex++;
-    renderExtraEventStep();
-    return;
+ if (step.type === "cg") {
+  extraEventState.currentCgKey = step.cgKey;
+
+  // CG01 開始時播放 Extra Event comedy BGM
+  if (step.cgKey === "cg01") {
+    playExtraBgm(EXTRA_AUDIO.bgmComedy);
   }
 
-  if (step.type === "blackout") {
+  const cgUrl = getExtraEventCgSource(step.cgKey);
+
+  if (elements.bgLayer) {
+    elements.bgLayer.style.backgroundImage = `url('${cgUrl}')`;
+    elements.bgLayer.style.backgroundSize = "cover";
+    elements.bgLayer.style.backgroundPosition = "center";
+    elements.bgLayer.style.backgroundColor = "";
+    elements.bgLayer.classList.remove("dimmed", "memory");
+  }
+
+  extraEventState.stepIndex++;
+  renderExtraEventStep();
+  return;
+}
+
+if (step.type === "blackout") {
     extraEventState.currentCgKey = null;
     if (elements.bgLayer) {
       elements.bgLayer.style.backgroundImage = "none";
@@ -277,6 +569,8 @@ function renderExtraEventStep() {
   }
 
   if (step.type === "title_card") {
+  playExtraSe(EXTRA_AUDIO.seTitle);
+    playMainSe(MAIN_AUDIO.seExtraTitle);
     if (elements.bgNameTag) elements.bgNameTag.innerText = "【EXTRA EVENT】";
     if (elements.speakerName) elements.speakerName.innerText = step.title;
     if (elements.speakerTitle) elements.speakerTitle.innerText = "特別劇本";
@@ -295,6 +589,10 @@ function renderExtraEventStep() {
   }
 
   if (step.type === "narrative") {
+
+  if (step.text === "――文化祭当日。") {
+    playExtraSe(EXTRA_AUDIO.seImagination);
+  }
     if (elements.bgNameTag) elements.bgNameTag.innerText = "【場景】";
     if (elements.speakerName) elements.speakerName.innerText = "旁白";
     if (elements.speakerTitle) elements.speakerTitle.innerText = "";
@@ -398,8 +696,35 @@ function renderExtraEventStep() {
 }
 
 function advanceExtraEvent() {
+  const currentStep =
+    EXTRA_EVENT_STEPS[extraEventState.stepIndex];
+
+  // 「――文化祭当日。」→ imagination SE → CG01
+  if (
+    currentStep?.type === "narrative" &&
+    currentStep.text === "――文化祭当日。"
+  ) {
+    playExtraSe(EXTRA_AUDIO.seImagination);
+
+    extraEventState.stepIndex++;
+    renderExtraEventStep();
+    return;
+  }
+
+  // 023 結束後，進入 blackout 前淡出 Extra Event BGM
+  if (
+    currentStep?.audio ===
+    "assets/voice/chapter1/extra/voice_ch1_extra_023_toru.m4a"
+  ) {
+    stopExtraBgm(700);
+  }
+
   extraEventState.stepIndex++;
-  if (extraEventState.stepIndex >= EXTRA_EVENT_STEPS.length) {
+
+  if (
+    extraEventState.stepIndex >=
+    EXTRA_EVENT_STEPS.length
+  ) {
     finishExtraEvent();
   } else {
     renderExtraEventStep();
@@ -407,9 +732,14 @@ function advanceExtraEvent() {
 }
 
 function finishExtraEvent() {
+  stopExtraBgm(0);
+
   extraEventState.active = false;
   extraEventState.stepIndex = 0;
   extraEventState.currentCgKey = null;
+
+  // Extra Event 已正常完成
+  gameState.extraEventPending = false;
 
   stopAllTypewriters();
   stopActiveAudio("finishExtraEvent", "extra");
@@ -656,6 +986,7 @@ const QUIZZES = {
    4. 遊戲狀態與 CONFIG 全局設定資料庫
    ========================================================================== */
 const gameState = {
+  extraEventPending: false,
   hasValidSave: false,
   currentChapter: 1,
   currentStepIndex: 0,
@@ -674,7 +1005,7 @@ const gameState = {
 };
 
 const gameSettings = {
-  bgmVolume: 50,
+  bgmVolume: 18,
   seVolume: 50,
   voiceVolume: 50,
   textSpeed: "normal",
@@ -685,6 +1016,785 @@ let previousScreenBeforeConfig = "title";
 const typingTimers = new Map();
 let activeAudioInstance = null;
 let currentPlaybackToken = 0;
+
+/* =========================================================
+   CHAPTER 1 MAIN STORY AUDIO
+   ※ EXTRA EVENT 暫時不處理
+   ========================================================= */
+
+const MAIN_AUDIO = {
+  bgmDaily: "assets/bgm/bgm_daily.ogg",
+  bgmSchoolDay: "assets/bgm/bgm_school_dayL.ogg",
+  bgmNewIdea: "assets/bgm/bgm_new_idea.ogg",
+
+  ambSchoolMorning: "assets/se/amb_school_morning.ogg",
+  seSchoolBell: "assets/se/se_school_bell.ogg",
+
+  seChoiceOpen: "assets/se/se_choice_open.ogg",
+  seChoiceSelect: "assets/se/se_choice_select.ogg",
+  seCorrect: "assets/se/se_correct.ogg",
+  seWrong: "assets/se/se_wrong.ogg",
+
+  seChapterClear: "assets/se/se_chapter_clear.ogg",
+
+// Extra Event
+seExtraTrigger: "assets/se/se_extra_trigger.ogg",
+seExtraTitle: "assets/se/se_extra_title.ogg",
+seImagination: "assets/se/se_imagination.ogg",
+bgmExtraComedy: "assets/bgm/bgm_extra_comedy.ogg"
+};
+
+let mainBgmAudio = null;
+let mainBgmPath = "";
+let mainBgmDuckFactor = 1;
+let mainBgmFadeTimer = null;
+
+let morningAmbientAudio = null;
+let morningAmbientFadeTimer = null;
+
+let mainAudioUnlocked = false;
+
+const mainSePool = [];
+
+const MAIN_BGM_DUCK_FACTOR = 0.35;
+const MORNING_AMBIENT_FACTOR = 0.28;
+
+
+/* ---------- path ---------- */
+
+function normalizeMainAudioPath(path) {
+  if (!path) return "";
+
+  let cleanPath = path.startsWith("/")
+    ? path.slice(1)
+    : path;
+
+  if (!cleanPath.startsWith("assets/")) {
+    cleanPath = "assets/" + cleanPath;
+  }
+
+  return cleanPath;
+}
+
+
+/* ---------- volume ---------- */
+
+function getMainBgmVolume() {
+  const base =
+    (gameSettings.bgmVolume ?? 50) / 100;
+
+  return Math.max(
+    0,
+    Math.min(
+      1,
+      base * mainBgmDuckFactor
+    )
+  );
+}
+
+function getMainSeVolume() {
+  return Math.max(
+    0,
+    Math.min(
+      1,
+      (gameSettings.seVolume ?? 50) / 100
+    )
+  );
+}
+
+function getMorningAmbientVolume() {
+  return Math.max(
+    0,
+    Math.min(
+      1,
+      getMainSeVolume() *
+      MORNING_AMBIENT_FACTOR
+    )
+  );
+}
+
+
+/* ---------- fade ---------- */
+
+function fadeMainAudio(
+  audio,
+  targetVolume,
+  duration = 700,
+  type = "bgm",
+  onComplete = null
+) {
+  if (!audio) {
+    if (onComplete) onComplete();
+    return;
+  }
+
+  if (type === "bgm" && mainBgmFadeTimer) {
+    clearInterval(mainBgmFadeTimer);
+    mainBgmFadeTimer = null;
+  }
+
+  if (
+    type === "ambient" &&
+    morningAmbientFadeTimer
+  ) {
+    clearInterval(morningAmbientFadeTimer);
+    morningAmbientFadeTimer = null;
+  }
+
+  const startVolume =
+    Number.isFinite(audio.volume)
+      ? audio.volume
+      : 0;
+
+  const safeTarget = Math.max(
+    0,
+    Math.min(1, targetVolume)
+  );
+
+  if (duration <= 0) {
+    audio.volume = safeTarget;
+
+    if (onComplete) onComplete();
+    return;
+  }
+
+  const startTime = performance.now();
+
+  const timer = setInterval(() => {
+    const elapsed =
+      performance.now() - startTime;
+
+    const progress = Math.min(
+      1,
+      elapsed / duration
+    );
+
+    audio.volume =
+      startVolume +
+      (safeTarget - startVolume) *
+      progress;
+
+    if (progress >= 1) {
+      clearInterval(timer);
+
+      if (
+        type === "bgm" &&
+        mainBgmFadeTimer === timer
+      ) {
+        mainBgmFadeTimer = null;
+      }
+
+      if (
+        type === "ambient" &&
+        morningAmbientFadeTimer === timer
+      ) {
+        morningAmbientFadeTimer = null;
+      }
+
+      audio.volume = safeTarget;
+
+      if (onComplete) onComplete();
+    }
+  }, 40);
+
+  if (type === "bgm") {
+    mainBgmFadeTimer = timer;
+  }
+
+  if (type === "ambient") {
+    morningAmbientFadeTimer = timer;
+  }
+}
+
+
+/*
+ * 舊 BGM 使用獨立 timer 淡出。
+ * 不和新 BGM 的 mainBgmFadeTimer 打架。
+ */
+function fadeDetachedMainAudioOut(
+  audio,
+  duration = 500
+) {
+  if (!audio) return;
+
+  const startVolume =
+    Number.isFinite(audio.volume)
+      ? audio.volume
+      : 0;
+
+  const startTime = performance.now();
+
+  const timer = setInterval(() => {
+    const progress = Math.min(
+      1,
+      (performance.now() - startTime) /
+      Math.max(1, duration)
+    );
+
+    audio.volume = Math.max(
+      0,
+      startVolume * (1 - progress)
+    );
+
+    if (progress >= 1) {
+      clearInterval(timer);
+
+      try {
+        audio.pause();
+        audio.currentTime = 0;
+      } catch (e) {}
+    }
+  }, 40);
+}
+
+
+/* ---------- audio unlock ---------- */
+
+function unlockMainStoryAudio() {
+  if (mainAudioUnlocked) return;
+
+  try {
+    /*
+     * BGM channel
+     */
+    if (!mainBgmAudio) {
+      mainBgmAudio = new Audio();
+      mainBgmAudio.preload = "auto";
+      mainBgmAudio.loop = true;
+      mainBgmAudio.volume = 0;
+    }
+
+    /*
+     * Morning ambience channel
+     */
+    if (!morningAmbientAudio) {
+      morningAmbientAudio = new Audio();
+      morningAmbientAudio.preload = "auto";
+      morningAmbientAudio.loop = true;
+      morningAmbientAudio.volume = 0;
+    }
+
+    /*
+     * SE channels
+     * 預先建立幾個，避免每次點擊才建立。
+     */
+    if (mainSePool.length === 0) {
+      for (let i = 0; i < 4; i++) {
+        const seAudio = new Audio();
+        seAudio.preload = "auto";
+        mainSePool.push(seAudio);
+      }
+    }
+
+    mainAudioUnlocked = true;
+
+    console.log(
+      "[MAIN AUDIO] channels ready"
+    );
+
+  } catch (e) {
+    console.warn(
+      "[MAIN AUDIO] channel init failed",
+      e
+    );
+  }
+}
+
+
+/* ---------- BGM ---------- */
+
+function playMainBgm(path, fadeMs = 700) {
+  if (
+    typeof extraEventState !== "undefined" &&
+    extraEventState.active
+  ) {
+    return;
+  }
+
+  unlockMainStoryAudio();
+
+  const cleanPath =
+    normalizeMainAudioPath(path);
+
+  if (!cleanPath) return;
+
+  /*
+   * 同一首 BGM
+   */
+  if (
+    mainBgmAudio &&
+    mainBgmPath === cleanPath
+  ) {
+    const playPromise =
+      mainBgmAudio.play();
+
+    if (
+      playPromise &&
+      typeof playPromise.catch === "function"
+    ) {
+      playPromise.catch((err) => {
+        console.error(
+          "[MAIN BGM] resume failed:",
+          cleanPath,
+          err
+        );
+      });
+    }
+
+    fadeMainAudio(
+      mainBgmAudio,
+      getMainBgmVolume(),
+      fadeMs,
+      "bgm"
+    );
+
+    return;
+  }
+
+  /*
+   * 舊 BGM
+   */
+  const oldAudio = mainBgmAudio;
+
+  if (
+    oldAudio &&
+    mainBgmPath
+  ) {
+    fadeDetachedMainAudioOut(
+      oldAudio,
+      Math.min(fadeMs, 500)
+    );
+  }
+
+  /*
+   * 新 BGM channel
+   */
+  const audio = new Audio();
+
+  audio.preload = "auto";
+  audio.loop = true;
+  audio.volume = 0;
+  audio.src = cleanPath;
+
+  mainBgmAudio = audio;
+  mainBgmPath = cleanPath;
+
+  console.log(
+    "[MAIN BGM] load:",
+    cleanPath
+  );
+
+  audio.addEventListener(
+    "error",
+    () => {
+      console.error(
+        "[MAIN BGM] FILE ERROR:",
+        cleanPath,
+        audio.error
+      );
+    },
+    { once: true }
+  );
+
+  const playPromise = audio.play();
+
+  if (
+    playPromise &&
+    typeof playPromise.then === "function"
+  ) {
+    playPromise
+      .then(() => {
+        console.log(
+          "[MAIN BGM] playing:",
+          cleanPath
+        );
+
+        if (mainBgmAudio !== audio) {
+          return;
+        }
+
+        fadeMainAudio(
+          audio,
+          getMainBgmVolume(),
+          fadeMs,
+          "bgm"
+        );
+      })
+      .catch((err) => {
+        console.error(
+          "[MAIN BGM] PLAY FAILED:",
+          cleanPath,
+          err
+        );
+      });
+  }
+}
+
+
+function stopMainBgm(fadeMs = 700) {
+  const audio = mainBgmAudio;
+
+  mainBgmAudio = null;
+  mainBgmPath = "";
+
+  if (!audio) return;
+
+  if (mainBgmFadeTimer) {
+    clearInterval(mainBgmFadeTimer);
+    mainBgmFadeTimer = null;
+  }
+
+  fadeDetachedMainAudioOut(
+    audio,
+    fadeMs
+  );
+}
+
+
+function setMainBgmDucked(
+  ducked,
+  fadeMs = 250
+) {
+  mainBgmDuckFactor =
+    ducked
+      ? MAIN_BGM_DUCK_FACTOR
+      : 1;
+
+  if (!mainBgmAudio) return;
+
+  fadeMainAudio(
+    mainBgmAudio,
+    getMainBgmVolume(),
+    fadeMs,
+    "bgm"
+  );
+}
+
+
+/* ---------- SE ---------- */
+
+function getAvailableMainSeChannel() {
+  unlockMainStoryAudio();
+
+  let audio = mainSePool.find(
+    item =>
+      item.paused ||
+      item.ended ||
+      !item.src
+  );
+
+  /*
+   * 同時有多個 SE 時允許增加 channel。
+   */
+  if (!audio) {
+    audio = new Audio();
+    audio.preload = "auto";
+    mainSePool.push(audio);
+  }
+
+  return audio;
+}
+
+
+function playMainSe(path, onEnded = null) {
+  if (
+    typeof extraEventState !== "undefined" &&
+    extraEventState.active
+  ) {
+    if (typeof onEnded === "function") onEnded();
+    return;
+  }
+
+  const volume = getMainSeVolume();
+
+  if (volume <= 0) {
+    if (typeof onEnded === "function") onEnded();
+    return;
+  }
+
+  const cleanPath =
+    normalizeMainAudioPath(path);
+
+  if (!cleanPath) {
+    if (typeof onEnded === "function") onEnded();
+    return;
+  }
+
+  try {
+    const audio =
+      getAvailableMainSeChannel();
+
+    audio.pause();
+    audio.currentTime = 0;
+
+    audio.src = cleanPath;
+    audio.loop = false;
+    audio.volume = volume;
+
+    let finished = false;
+    const finishOnce = () => {
+      if (finished) return;
+      finished = true;
+
+      audio.onended = null;
+      audio.onerror = null;
+
+      if (typeof onEnded === "function") {
+        onEnded();
+      }
+    };
+
+    audio.onended = () => {
+      finishOnce();
+    };
+
+    audio.onerror = () => {
+      console.error(
+        "[MAIN SE] FILE ERROR:",
+        cleanPath,
+        audio.error
+      );
+      finishOnce();
+    };
+
+    const playPromise = audio.play();
+
+    if (
+      playPromise &&
+      typeof playPromise.catch === "function"
+    ) {
+      playPromise.catch((err) => {
+        console.error(
+          "[MAIN SE] PLAY FAILED:",
+          cleanPath,
+          err
+        );
+        finishOnce();
+      });
+    }
+
+  } catch (e) {
+    console.error(
+      "[MAIN SE] ERROR:",
+      cleanPath,
+      e
+    );
+    if (typeof onEnded === "function") {
+      onEnded();
+    }
+  }
+}
+
+/* ---------- morning ambience ---------- */
+
+function startMorningAmbient(
+  fadeMs = 700
+) {
+  if (
+    typeof extraEventState !== "undefined" &&
+    extraEventState.active
+  ) {
+    return;
+  }
+
+  unlockMainStoryAudio();
+
+  const cleanPath =
+    normalizeMainAudioPath(
+      MAIN_AUDIO.ambSchoolMorning
+    );
+
+  /*
+   * 已經是同一個環境音
+   */
+  if (
+    morningAmbientAudio &&
+    morningAmbientAudio.dataset &&
+    morningAmbientAudio.dataset.mainPath ===
+      cleanPath
+  ) {
+    const playPromise =
+      morningAmbientAudio.play();
+
+    if (
+      playPromise &&
+      typeof playPromise.catch === "function"
+    ) {
+      playPromise.catch((err) => {
+        console.error(
+          "[MORNING AMBIENT] resume failed:",
+          cleanPath,
+          err
+        );
+      });
+    }
+
+    fadeMainAudio(
+      morningAmbientAudio,
+      getMorningAmbientVolume(),
+      fadeMs,
+      "ambient"
+    );
+
+    return;
+  }
+
+  const oldAudio =
+    morningAmbientAudio;
+
+  if (
+    oldAudio &&
+    oldAudio.src
+  ) {
+    if (morningAmbientFadeTimer) {
+      clearInterval(
+        morningAmbientFadeTimer
+      );
+
+      morningAmbientFadeTimer = null;
+    }
+
+    fadeDetachedMainAudioOut(
+      oldAudio,
+      Math.min(fadeMs, 500)
+    );
+  }
+
+  const audio = new Audio();
+
+  audio.preload = "auto";
+  audio.loop = true;
+  audio.volume = 0;
+  audio.src = cleanPath;
+
+  audio.dataset.mainPath = cleanPath;
+
+  morningAmbientAudio = audio;
+
+  console.log(
+    "[MORNING AMBIENT] load:",
+    cleanPath
+  );
+
+  audio.addEventListener(
+    "error",
+    () => {
+      console.error(
+        "[MORNING AMBIENT] FILE ERROR:",
+        cleanPath,
+        audio.error
+      );
+    },
+    { once: true }
+  );
+
+  const playPromise = audio.play();
+
+  if (
+    playPromise &&
+    typeof playPromise.then === "function"
+  ) {
+    playPromise
+      .then(() => {
+        console.log(
+          "[MORNING AMBIENT] playing:",
+          cleanPath
+        );
+
+        if (
+          morningAmbientAudio !== audio
+        ) {
+          return;
+        }
+
+        fadeMainAudio(
+          audio,
+          getMorningAmbientVolume(),
+          fadeMs,
+          "ambient"
+        );
+      })
+      .catch((err) => {
+        console.error(
+          "[MORNING AMBIENT] PLAY FAILED:",
+          cleanPath,
+          err
+        );
+      });
+  }
+}
+
+
+function stopMorningAmbient(
+  fadeMs = 700
+) {
+  const audio =
+    morningAmbientAudio;
+
+  morningAmbientAudio = null;
+
+  if (!audio) return;
+
+  if (morningAmbientFadeTimer) {
+    clearInterval(
+      morningAmbientFadeTimer
+    );
+
+    morningAmbientFadeTimer = null;
+  }
+
+  fadeDetachedMainAudioOut(
+    audio,
+    fadeMs
+  );
+}
+
+
+/* ---------- emergency cleanup ---------- */
+
+function stopMainStoryAudioImmediately() {
+  if (mainBgmFadeTimer) {
+    clearInterval(mainBgmFadeTimer);
+    mainBgmFadeTimer = null;
+  }
+
+  if (morningAmbientFadeTimer) {
+    clearInterval(
+      morningAmbientFadeTimer
+    );
+
+    morningAmbientFadeTimer = null;
+  }
+
+  if (mainBgmAudio) {
+    try {
+      mainBgmAudio.pause();
+      mainBgmAudio.currentTime = 0;
+    } catch (e) {}
+
+    mainBgmAudio = null;
+    mainBgmPath = "";
+  }
+
+  if (morningAmbientAudio) {
+    try {
+      morningAmbientAudio.pause();
+      morningAmbientAudio.currentTime = 0;
+    } catch (e) {}
+
+    morningAmbientAudio = null;
+  }
+
+  mainSePool.forEach(audio => {
+    try {
+      audio.pause();
+      audio.currentTime = 0;
+    } catch (e) {}
+  });
+
+  mainBgmDuckFactor = 1;
+}
+
 
 let screens = {};
 let elements = {};
@@ -780,14 +1890,45 @@ function stopActiveAudio(reason = "manual_stop", dialogueId = "unknown") {
 /* ==========================================================================
    iOS Audio Unlock & Playback Utility
    ========================================================================== */
+
 function unlockAudioContextIOS() {
   try {
     const silentAudio = new Audio();
     silentAudio.src = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=";
-    silentAudio.play().catch(() => {});
-  } catch (e) {
-    // ignore
-  }
+    const promise = silentAudio.play();
+    if (promise && typeof promise.then === "function") {
+      promise.then(() => {
+        silentAudio.pause();
+        silentAudio.currentTime = 0;
+      }).catch(() => {});
+    }
+  } catch (e) {}
+
+  unlockMainStoryAudio();
+
+  try {
+    const bgmUnlock = new Audio(MAIN_AUDIO.bgmDaily);
+    bgmUnlock.volume = 0;
+    bgmUnlock.muted = true;
+    bgmUnlock.preload = "auto";
+    bgmUnlock.play().then(() => {
+      bgmUnlock.pause();
+      bgmUnlock.currentTime = 0;
+      bgmUnlock.muted = false;
+    }).catch(() => {});
+  } catch (e) {}
+
+  try {
+    const seUnlock = new Audio(MAIN_AUDIO.seChoiceOpen);
+    seUnlock.volume = 0;
+    seUnlock.muted = true;
+    seUnlock.preload = "auto";
+    seUnlock.play().then(() => {
+      seUnlock.pause();
+      seUnlock.currentTime = 0;
+      seUnlock.muted = false;
+    }).catch(() => {});
+  } catch (e) {}
 }
 
 function playVoiceAudio(audioPath, dialogueId = "unknown", onEndedCallback) {
@@ -856,6 +1997,9 @@ function saveGameData() {
     completedSections: gameState.completedSections,
     scoredSections: gameState.scoredSections,
     wrongQuestions: gameState.wrongQuestions,
+    
+    extraEventPending: gameState.extraEventPending === true,
+    
     settings: gameSettings
   };
   localStorage.setItem('furyo_vn_save', JSON.stringify(saveData));
@@ -898,6 +2042,7 @@ function loadGameData() {
     gameState.completedSections = data.completedSections || [];
     gameState.scoredSections = data.scoredSections || [];
     gameState.wrongQuestions = data.wrongQuestions || [];
+    gameState.extraEventPending =data.extraEventPending === true;
 
     syncConfigUI();
     return true;
@@ -926,7 +2071,7 @@ function updateTitleScreenButtons() {
 }
 
 /* ==========================================================================
-   FULLSCREEN MANAGEMENT (全螢幕管理 - 強化版 runtime capability 偵測與容錯)
+   FULLSCREEN MANAGEMENT
    ========================================================================== */
 function checkFullscreenSupport() {
     const elem = document.getElementById('game-container');
@@ -955,7 +2100,7 @@ function toggleFullscreen() {
 
         if (requestPromise && typeof requestPromise.then === 'function') {
             requestPromise.catch(err => {
-                console.error("全螢幕請求失敗 (Fullscreen request rejected):", err);
+                console.error("全螢幕請求失敗:", err);
             });
         }
     } else {
@@ -968,7 +2113,7 @@ function toggleFullscreen() {
 
         if (exitPromise && typeof exitPromise.then === 'function') {
             exitPromise.catch(err => {
-                console.error("退出全螢幕失敗 (Exit fullscreen rejected):", err);
+                console.error("退出全螢幕失敗:", err);
             });
         }
     }
@@ -1041,11 +2186,95 @@ function closeConfigScreen() {
   }
 }
 
+let titleBgmWaitingForGesture = false;
+
+function startTitleBgm() {
+  if (
+    !screens.title ||
+    !screens.title.classList.contains("active")
+  ) {
+    return;
+  }
+
+  playMainBgm(
+    MAIN_AUDIO.bgmNewIdea,
+    700
+  );
+}
+
+function armTitleBgm() {
+  if (
+    !screens.title ||
+    !screens.title.classList.contains("active")
+  ) {
+    return;
+  }
+
+  const startGate =
+    document.getElementById("start-gate");
+
+  // 首次進站時由 TAP TO START 負責解鎖音訊。
+  if (
+    startGate &&
+    !startGate.classList.contains("is-closing")
+  ) {
+    return;
+  }
+
+  // 已經通過 Start Gate，例如遊戲內返回 Title。
+  startTitleBgm();
+}
+
+function initStartGate() {
+  const startGate =
+    document.getElementById("start-gate");
+
+  const startButton =
+    document.getElementById("btn-start-gate");
+
+  if (!startGate || !startButton) {
+    return;
+  }
+
+  let started = false;
+
+  const enterGame = () => {
+    if (started) return;
+    started = true;
+
+    startButton.disabled = true;
+
+    // 這個 click / tap 就是瀏覽器允許音訊啟動的 user gesture。
+    unlockMainStoryAudio();
+
+    // Title 已經是 active，因此直接啟動首頁 BGM。
+    startTitleBgm();
+
+    startGate.classList.add("is-closing");
+
+    window.setTimeout(() => {
+      startGate.remove();
+    }, 600);
+  };
+
+  startButton.addEventListener(
+    "click",
+    enterGame,
+    { once: true }
+  );
+}
+
 function showScreen(screenKey) {
   Object.keys(screens).forEach(k => {
     if (screens[k]) screens[k].classList.remove('active');
   });
   if (screens[screenKey]) screens[screenKey].classList.add('active');
+
+  if (screenKey === "title") {
+  stopMainStoryAudioImmediately();
+  armTitleBgm();
+}
+
 
   const hudConfigBtn = document.getElementById('hud-config-btn');
   const hudGameExitBtn = document.getElementById('btn-game-exit');
@@ -1103,6 +2332,36 @@ function renderDialogueStep(stepData) {
   removeReplayAudioButton("renderDialogueStep");
   stopAllTypewriters();
   stopActiveAudio("renderDialogueStep", stepData.id);
+
+  if (stepData.listeningSection === 1) {
+    startMorningAmbient();
+    playMainBgm(MAIN_AUDIO.bgmDaily);
+  } else if (
+    stepData.listeningSection === 2 ||
+    stepData.listeningSection === 3 ||
+    stepData.listeningSection === 4
+  ) {
+    stopMorningAmbient();
+    playMainBgm(MAIN_AUDIO.bgmSchoolDay);
+  } else if (stepData.listeningSection === 5) {
+    stopMorningAmbient();
+
+    if (stepData.id === "ch1_s03_055_ren") {
+      setTimeout(() => {
+        if (
+          gameState.currentListeningSection === 5 &&
+          (
+            typeof extraEventState === "undefined" ||
+            !extraEventState.active
+          )
+        ) {
+          playMainBgm(MAIN_AUDIO.bgmNewIdea, 700);
+        }
+      }, 800);
+    } else {
+      playMainBgm(MAIN_AUDIO.bgmNewIdea);
+    }
+  }
 
   if (elements.bgNameTag) elements.bgNameTag.innerText = `【背景：${stepData.bg}】`;
   
@@ -1180,6 +2439,10 @@ function renderQuizOverlay(quizId, frozenSection = null) {
   }
 
   const quiz = QUIZZES[quizId];
+
+  setMainBgmDucked(true);
+  playMainSe(MAIN_AUDIO.seChoiceOpen);
+
   if (elements.quizTypeBadge) elements.quizTypeBadge.innerText = quiz.type;
   if (elements.quizNumberTag) elements.quizNumberTag.innerText = `任務檢定 Q${quiz.quizNumber}`;
   if (elements.quizQuestion) elements.quizQuestion.innerHTML = formatTextWithPlayer(quiz.question);
@@ -1220,6 +2483,21 @@ function handleAnswer(selectedOpt, quizData, optionIndex) {
   stopAllTypewriters();
   stopActiveAudio("handleAnswer", quizData.id);
   const isCorrect = selectedOpt.isCorrect;
+  
+  const isQ4ExtraD =
+    quizData.quizNumber === 4 &&
+    optionIndex === 3;
+
+  if (!isQ4ExtraD) {
+    playMainSe(MAIN_AUDIO.seChoiceSelect);
+
+    if (isCorrect) {
+      playMainSe(MAIN_AUDIO.seCorrect);
+    } else {
+      playMainSe(MAIN_AUDIO.seWrong);
+    }
+  }
+
   const feedback = quizData.feedback;
   const correctOpt = quizData.options.find(o => o.isCorrect === true);
   gameState.listeningState = "REVIEW";
@@ -1278,14 +2556,30 @@ function handleAnswer(selectedOpt, quizData, optionIndex) {
 
   updateHUD();
 
-  const isQ4ExtraD = (quizData.quizNumber === 4 && optionIndex === 3);
   if (isQ4ExtraD) {
-    if (elements.quizOverlay) {
-      elements.quizOverlay.classList.add('hidden');
-    }
-    startExtraEvent();
-    return;
+  if (elements.quizOverlay) {
+    elements.quizOverlay.classList.add('hidden');
   }
+
+  // 記錄 Extra Event 尚未完成
+  gameState.extraEventPending = true;
+  saveGameData();
+
+  // 選項確認音
+  playMainSe(MAIN_AUDIO.seChoiceSelect);
+
+  setTimeout(() => {
+    // Extra Event 觸發音
+    playExtraSe(EXTRA_AUDIO.seTrigger);
+
+    // 主線 school_day BGM 淡出
+    stopMainBgm(700);
+
+    startExtraEvent();
+  }, 500);
+
+  return;
+}
 
   if (elements.feedbackModal) elements.feedbackModal.classList.remove('hidden');
   saveGameData();
@@ -1303,7 +2597,6 @@ function playChapterTransition(nextChapter, callback) {
     elements.bannerSubtitle.innerText = nextChapter === 1 ? "INTRODUCTION" : `CHAPTER ${nextChapter - 1} CLEAR`;
     elements.bannerTitle.innerText = CHAPTER_DATA[nextChapter].title;
     
-    // Ensure "點擊開始" instruction hint is present on the banner
     let bannerHint = elements.chapterBanner.querySelector('.banner-hint');
     if (!bannerHint) {
       bannerHint = document.createElement('p');
@@ -1417,13 +2710,39 @@ function triggerSectionReplay() {
 
 function triggerWrongReviewReplay(sectionNumber) {
   unlockAudioContextIOS();
-  const chapterData = CHAPTER_DATA[gameState.currentChapter];
-  sectionReplayQueue = chapterData.steps.filter(s => s.listeningSection === sectionNumber && s.type === "dialogue");
+
+  const chapterData =
+    CHAPTER_DATA[gameState.currentChapter];
+
+  sectionReplayQueue = chapterData.steps.filter(
+    s =>
+      s.listeningSection === sectionNumber &&
+      s.type === "dialogue"
+  );
+
   if (sectionReplayQueue.length === 0) return;
 
   isWrongReviewMode = true;
   sectionReplayIndex = 0;
   gameState.listeningState = "QUESTION_REPLAY";
+
+  // 錯題重聽專用 BGM
+  switch (sectionNumber) {
+    case 1:
+      playMainBgm(MAIN_AUDIO.bgmDaily, 500);
+      break;
+
+    case 2:
+    case 3:
+    case 4:
+      playMainBgm(MAIN_AUDIO.bgmSchoolDay, 500);
+      break;
+
+    case 5:
+      playMainBgm(MAIN_AUDIO.bgmNewIdea, 500);
+      break;
+  }
+
   renderReplayStepManual(sectionReplayIndex);
 }
 
@@ -1545,6 +2864,9 @@ function refreshCurrentReplaySubtitleLive() {
 
 function renderWrongReviewScreen() {
   removeReplayAudioButton("renderWrongReviewScreen");
+
+  // 回顧列表本身不播放首頁 BGM
+  stopMainBgm(300);
   if (!elements.reviewListContent) return;
   elements.reviewListContent.innerHTML = '';
   
@@ -1559,19 +2881,29 @@ function renderWrongReviewScreen() {
         <div class="review-jp" style="color: #e84118;">📌 任務檢定 Q${qNum} 錯題重聽</div>
         <div class="review-zh">點擊此處重新聆聽 Section ${qNum} 對應的對話內容</div>
       `;
+
       div.onclick = (e) => {
         e.stopPropagation();
         triggerWrongReviewReplay(qNum);
       };
+
       elements.reviewListContent.appendChild(div);
     });
   }
+
   showScreen('review');
 }
 
 function renderEnding() {
   removeReplayAudioButton("renderEnding");
   stopAllTypewriters();
+  setMainBgmDucked(false);
+  stopMorningAmbient(500);
+  stopMainBgm(900);
+
+  setTimeout(() => {
+    playMainSe(MAIN_AUDIO.seChapterClear);
+  }, 950);
   gameState.isCleared = true;
   gameState.listeningState = "COMPLETE";
   stopActiveAudio("renderEnding", "ending");
@@ -1712,9 +3044,21 @@ function startNewGame() {
 
 function continueGame() {
   unlockAudioContextIOS();
+
   const loaded = loadGameData();
+
   if (!loaded || !gameState.hasValidSave) {
-    if (elements.noSaveModal) elements.noSaveModal.classList.add('hidden');
+    if (elements.noSaveModal) {
+      elements.noSaveModal.classList.add('hidden');
+    }
+    return;
+  }
+
+  // Extra Event 中途曾經重整：
+  // 不回 Q4 Quiz，直接從 Extra Event 開頭重新播放。
+  if (gameState.extraEventPending === true) {
+    stopMainBgm(0);
+    startExtraEvent();
     return;
   }
 
@@ -1751,8 +3095,11 @@ function continueGame() {
   }
 }
 
+let isMainStoryTransitioning = false;
+
 function handleDialogueBoxClick(e) {
   e.stopPropagation();
+  if (isMainStoryTransitioning) return;
   unlockAudioContextIOS();
 
   if (elements.quizOverlay && !elements.quizOverlay.classList.contains('hidden')) return;
@@ -1810,7 +3157,7 @@ function handleDialogueBoxClick(e) {
 }
 
 /* ==========================================================================
-   DOM 安全事件綁定初始化 (包含全螢幕切換與監聽)
+   DOM 安全事件綁定初始化
    ========================================================================== */
 function initEventListeners() {
   screens.title = document.getElementById('screen-title');
@@ -1918,6 +3265,7 @@ function initEventListeners() {
     }
   };
 
+  
   bindClick('btn-start', () => startNewGame());
   bindClick('btn-continue', () => continueGame());
   bindClick('btn-how-to-play', () => showScreen('instructions'));
@@ -1963,11 +3311,33 @@ function initEventListeners() {
     renderQuizOverlay(gameState.currentQuizId, gameState.activeQuestionSection);
   });
 
-  bindClick('btnCloseFeedback', () => {
+  bindClick('btnCloseFeedback', (e) => {
+    if (isMainStoryTransitioning) return;
+    e.stopPropagation();
+
     const quiz = QUIZZES[gameState.currentQuizId];
     const qNum = quiz ? quiz.quizNumber : 1;
 
+    // 若為 Q1，立即鎖定轉場並關閉 UI
+    if (qNum === 1) {
+      isMainStoryTransitioning = true;
+    }
+
     if (elements.feedbackModal) elements.feedbackModal.classList.add('hidden');
+    if (elements.quizOverlay) elements.quizOverlay.classList.add('hidden');
+    if (elements.choiceOverlay) elements.choiceOverlay.classList.add('hidden');
+
+    if (qNum === 1) {
+      setMainBgmDucked(false);
+      stopMorningAmbient(700);
+      stopMainBgm(700);
+    } else if (qNum === 2 || qNum === 3) {
+      setMainBgmDucked(false);
+    } else if (qNum === 4) {
+      setMainBgmDucked(false);
+      stopMainBgm(700);
+    }
+
     stopAllTypewriters();
     stopActiveAudio("closeFeedback", "feedback");
     removeReplayAudioButton("closeFeedback");
@@ -1984,31 +3354,125 @@ function initEventListeners() {
     } else if (qNum === 4) {
       nextStepIdx = chapterData.steps.findIndex(s => s.id === "ch1_s03_055_ren");
     } else if (qNum === 5) {
+      isMainStoryTransitioning = false;
       renderEnding();
       return;
     }
 
     if (nextStepIdx === -1 || nextStepIdx >= chapterData.steps.length) {
+      isMainStoryTransitioning = false;
       renderEnding();
       return;
     }
 
-    gameState.currentStepIndex = nextStepIdx;
-    const nextStepData = chapterData.steps[gameState.currentStepIndex];
-    gameState.currentListeningSection = nextStepData.listeningSection;
-    gameState.listeningState = "BLIND_LISTENING";
-    gameState.currentQuizId = null;
+    const continueToNextStep = () => {
+      gameState.currentStepIndex = nextStepIdx;
+      const nextStepData = chapterData.steps[gameState.currentStepIndex];
 
-    updateHUD();
-    if (nextStepData.type === "quiz") {
-      if (!gameState.completedSections.includes(nextStepData.listeningSection)) {
-        renderQuizOverlay(nextStepData.id, nextStepData.listeningSection);
+      gameState.currentListeningSection = nextStepData.listeningSection;
+      gameState.listeningState = "BLIND_LISTENING";
+      gameState.currentQuizId = null;
+
+      updateHUD();
+
+      if (nextStepData.type === "quiz") {
+        if (!gameState.completedSections.includes(nextStepData.listeningSection)) {
+          renderQuizOverlay(nextStepData.id, nextStepData.listeningSection);
+        } else {
+          nextStep();
+        }
       } else {
-        nextStep();
+        renderDialogueStep(nextStepData);
       }
-    } else {
-      renderDialogueStep(nextStepData);
+
+      // 解除轉場鎖
+      isMainStoryTransitioning = false;
+    };
+
+    if (qNum === 1) {
+  const dialogueBoxEl = document.getElementById('vn-dialogue-box');
+
+  const gameplayLayers = [
+    elements.bgLayer,
+    elements.spriteLeft,
+    elements.spriteCenter,
+    elements.spriteRight,
+    dialogueBoxEl
+  ].filter(Boolean);
+
+  // 014 整個畫面一起淡出：
+  // 背景 + 立繪 + 對話框
+  gameplayLayers.forEach(el => {
+    el.style.transition = "opacity 500ms ease";
+    el.style.opacity = "0";
+  });
+
+  setTimeout(() => {
+    // 進入純黑畫面
+    if (elements.bgLayer) {
+      elements.bgLayer.style.backgroundImage = "none";
+      elements.bgLayer.style.backgroundColor = "#000000";
+      elements.bgLayer.style.opacity = "1";
     }
+
+    // 立繪與對話框保持隱藏
+    [
+      elements.spriteLeft,
+      elements.spriteCenter,
+      elements.spriteRight,
+      dialogueBoxEl
+    ].filter(Boolean).forEach(el => {
+      el.style.opacity = "0";
+    });
+
+    // 黑畫面期間完整播放鐘聲
+    playMainSe(MAIN_AUDIO.seSchoolBell, () => {
+
+      // 鐘聲結束後才正式載入 015
+      continueToNextStep();
+
+      // 015 已經 render，但先保持透明
+      [
+        elements.spriteLeft,
+        elements.spriteCenter,
+        elements.spriteRight,
+        dialogueBoxEl
+      ].filter(Boolean).forEach(el => {
+        el.style.opacity = "0";
+      });
+
+      if (elements.bgLayer) {
+        elements.bgLayer.style.opacity = "0";
+      }
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+
+          // 015 新場景整體淡入
+          gameplayLayers.forEach(el => {
+            el.style.opacity = "1";
+          });
+
+          // 淡入完成後清掉臨時樣式
+          setTimeout(() => {
+            gameplayLayers.forEach(el => {
+              el.style.transition = "";
+              el.style.opacity = "";
+            });
+
+            if (elements.bgLayer) {
+              elements.bgLayer.style.backgroundColor = "";
+            }
+          }, 500);
+        });
+      });
+    });
+  }, 500);
+
+  return;
+}
+
+    continueToNextStep();
   });
 
   bindClick('btn-config-back', () => closeConfigScreen());
@@ -2040,7 +3504,6 @@ function initEventListeners() {
     showScreen('title');
   });
 
-  /* 綁定 Config 內互動按鈕事件群組 */
   if (elements.cfgTextSpeedGroup) {
     elements.cfgTextSpeedGroup.querySelectorAll('.vn-btn-select').forEach(btn => {
       btn.onclick = (e) => {
@@ -2072,7 +3535,6 @@ function initEventListeners() {
     });
   }
 
-  /* 視窗 ↔ 全螢幕切換按鈕綁定 (強化 Promise 錯誤捕捉與 capability 偵測) */
   if (elements.btnModeWindow) {
     elements.btnModeWindow.onclick = (e) => {
       e.stopPropagation();
@@ -2086,7 +3548,7 @@ function initEventListeners() {
         }
         if (exitPromise && typeof exitPromise.then === 'function') {
           exitPromise.catch(err => {
-            console.error("退出全螢幕失敗 (Exit fullscreen rejected):", err);
+            console.error("退出全螢幕失敗:", err);
           });
         }
       }
@@ -2103,13 +3565,8 @@ function initEventListeners() {
     };
   }
 
-  /* 監聽全螢幕狀態改變 (同步 ESC 或系統操作) */
-  document.addEventListener("fullscreenchange", () => {
-    syncConfigUI();
-  });
-  document.addEventListener("webkitfullscreenchange", () => {
-    syncConfigUI();
-  });
+  document.addEventListener("fullscreenchange", () => { syncConfigUI(); });
+  document.addEventListener("webkitfullscreenchange", () => { syncConfigUI(); });
 
   if (elements.btnCfgChangeName) {
     elements.btnCfgChangeName.onclick = (e) => {
@@ -2139,13 +3596,37 @@ function initEventListeners() {
   }
 
   if (elements.cfgBgmSlider) {
-    elements.cfgBgmSlider.oninput = (e) => { gameSettings.bgmVolume = parseInt(e.target.value, 10); if(elements.cfgBgmVal) elements.cfgBgmVal.innerText = `${gameSettings.bgmVolume}%`; saveGameData(); };
+    elements.cfgBgmSlider.oninput = (e) => {
+      gameSettings.bgmVolume = parseInt(e.target.value, 10);
+      if (elements.cfgBgmVal) {
+        elements.cfgBgmVal.innerText = `${gameSettings.bgmVolume}%`;
+      }
+      if (mainBgmAudio) {
+        mainBgmAudio.volume = getMainBgmVolume();
+      }
+      saveGameData();
+    };
   }
+
   if (elements.cfgSeSlider) {
-    elements.cfgSeSlider.oninput = (e) => { gameSettings.seVolume = parseInt(e.target.value, 10); if(elements.cfgSeVal) elements.cfgSeVal.innerText = `${gameSettings.seVolume}%`; saveGameData(); };
+    elements.cfgSeSlider.oninput = (e) => {
+      gameSettings.seVolume = parseInt(e.target.value, 10);
+      if (elements.cfgSeVal) {
+        elements.cfgSeVal.innerText = `${gameSettings.seVolume}%`;
+      }
+      if (morningAmbientAudio) {
+        morningAmbientAudio.volume = getMorningAmbientVolume();
+      }
+      saveGameData();
+    };
   }
+
   if (elements.cfgVoiceSlider) {
-    elements.cfgVoiceSlider.oninput = (e) => { gameSettings.voiceVolume = parseInt(e.target.value, 10); if(elements.cfgVoiceVal) elements.cfgVoiceVal.innerText = `${gameSettings.voiceVolume}%`; saveGameData(); };
+    elements.cfgVoiceSlider.oninput = (e) => {
+      gameSettings.voiceVolume = parseInt(e.target.value, 10);
+      if(elements.cfgVoiceVal) elements.cfgVoiceVal.innerText = `${gameSettings.voiceVolume}%`;
+      saveGameData();
+    };
   }
 }
 
@@ -2153,5 +3634,6 @@ document.addEventListener("DOMContentLoaded", () => {
   initEventListeners();
   loadGameData();
   updateTitleScreenButtons();
+  initStartGate();
   showScreen('title');
 });
