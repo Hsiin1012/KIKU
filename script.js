@@ -3159,6 +3159,43 @@ function handleDialogueBoxClick(e) {
 /* ==========================================================================
    DOM 安全事件綁定初始化
    ========================================================================== */
+
+function closeMobileHudMenu() {
+  const panel =
+    document.getElementById('hud-mobile-menu-panel');
+
+  const button =
+    document.getElementById('hud-mobile-menu-btn');
+
+  if (panel) {
+    panel.classList.remove('is-open');
+  }
+
+  if (button) {
+    button.setAttribute('aria-expanded', 'false');
+  }
+}
+
+function toggleMobileHudMenu() {
+  const panel =
+    document.getElementById('hud-mobile-menu-panel');
+
+  const button =
+    document.getElementById('hud-mobile-menu-btn');
+
+  if (!panel || !button) return;
+
+  const willOpen =
+    !panel.classList.contains('is-open');
+
+  panel.classList.toggle('is-open', willOpen);
+
+  button.setAttribute(
+    'aria-expanded',
+    willOpen ? 'true' : 'false'
+  );
+}
+
 function initEventListeners() {
   screens.title = document.getElementById('screen-title');
   screens.instructions = document.getElementById('screen-instructions');
@@ -3273,10 +3310,43 @@ function initEventListeners() {
   bindClick('btn-review', () => renderWrongReviewScreen());
   bindClick('vn-btn-review', () => renderWrongReviewScreen());
 
-  bindClick('hud-config-btn', () => openConfigScreen('gameplay'));
+  bindClick('hud-mobile-menu-btn', (event) => {
+  event.stopPropagation();
+  toggleMobileHudMenu();
+});
+
+  bindClick('hud-config-btn', () => {
+  closeMobileHudMenu();
+  openConfigScreen('gameplay');
+});
+
   bindClick('btn-game-exit', () => {
-    if (elements.exitConfirmModal) elements.exitConfirmModal.classList.remove('hidden');
-  });
+  closeMobileHudMenu();
+
+  if (elements.exitConfirmModal) {
+    elements.exitConfirmModal.classList.remove('hidden');
+  }
+});
+
+document.addEventListener('click', (event) => {
+  const panel =
+    document.getElementById('hud-mobile-menu-panel');
+
+  const button =
+    document.getElementById('hud-mobile-menu-btn');
+
+  if (!panel || !button) return;
+  if (!panel.classList.contains('is-open')) return;
+
+  if (
+    panel.contains(event.target) ||
+    button.contains(event.target)
+  ) {
+    return;
+  }
+
+  closeMobileHudMenu();
+});
 
   bindClick('btn-back-to-title', () => showScreen('title'));
   bindClick('btn-restart', () => {

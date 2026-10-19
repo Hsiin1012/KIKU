@@ -80,22 +80,53 @@
             <div id="bg-name-tag" class="bg-debug-tag">【背景：2年B班 教室 (早晨)】</div>
 
             <!-- 上方 HUD 列 -->
-            <div id="vn-hud" class="vn-hud-bar">
-                <div class="hud-left-group">
-                    <div id="hud-chapter-title" class="hud-chap-badge">第一章：誰把我們的班級交給這兩個人了？</div>
-                </div>
-                <div class="hud-right-group">
-                    <div class="hud-trust-badges">
-                        <div class="trust-pill ren">蓮: <span id="trust-ren">0</span></div>
-                        <div class="trust-pill toru">透: <span id="trust-toru">0</span></div>
-                        <div class="trust-pill sato">佐藤: <span id="trust-sato">0</span></div>
-                    </div>
-                    <div class="hud-buttons-group">
-                        <button id="hud-config-btn" class="vn-ctrl-btn">設定</button>
-                        <button id="btn-game-exit" class="vn-ctrl-btn">離開</button>
-                    </div>
-                </div>
+<div id="vn-hud" class="vn-hud-bar">
+
+    <div class="hud-left-group">
+        <div id="hud-chapter-title" class="hud-chap-badge">
+            第一章：誰把我們的班級交給這兩個人了？
+        </div>
+    </div>
+
+    <!-- 手機專用 MENU -->
+    <button
+        id="hud-mobile-menu-btn"
+        class="hud-mobile-menu-btn"
+        type="button"
+        aria-label="開啟選單"
+        aria-expanded="false"
+    >
+        ☰
+    </button>
+
+    <div id="hud-mobile-menu-panel" class="hud-right-group">
+
+        <div class="hud-trust-badges">
+            <div class="trust-pill ren">
+                蓮: <span id="trust-ren">0</span>
             </div>
+
+            <div class="trust-pill toru">
+                透: <span id="trust-toru">0</span>
+            </div>
+
+            <div class="trust-pill sato">
+                佐藤: <span id="trust-sato">0</span>
+            </div>
+        </div>
+
+        <div class="hud-buttons-group">
+            <button id="hud-config-btn" class="vn-ctrl-btn">
+                設定
+            </button>
+
+            <button id="btn-game-exit" class="vn-ctrl-btn">
+                離開
+            </button>
+        </div>
+
+    </div>
+</div>
 
             <!-- 角色立繪區 -->
             <div class="vn-sprite-container">
