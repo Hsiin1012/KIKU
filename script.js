@@ -856,6 +856,155 @@ const CHAPTER_DATA = {
   }
 };
 
+/* =========================================================
+   CHAPTER RESOURCE COLLECTOR
+   ========================================================= */
+
+function collectListeningSectionResources(
+  chapterNumber,
+  sectionNumber
+) {
+  const chapterData =
+    CHAPTER_DATA[chapterNumber];
+
+  if (!chapterData) {
+    return [];
+  }
+
+  const resources = [];
+
+  const sectionSteps =
+    chapterData.steps.filter(
+      step =>
+        step.type === "dialogue" &&
+        step.listeningSection === sectionNumber
+    );
+
+  sectionSteps.forEach(step => {
+
+    /* Background */
+
+    if (step.bg) {
+      const bgPath =
+        BACKGROUND_MAP[step.bg];
+
+      if (bgPath) {
+        resources.push({
+          type: "image",
+          path: bgPath
+        });
+      }
+    }
+
+
+    /* Character Sprite */
+
+    if (
+      step.speaker &&
+      step.speaker !== "player"
+    ) {
+      const charMap =
+        CHARACTER_SPRITE_MAP[
+          step.speaker
+        ];
+
+      if (charMap) {
+        const spritePath =
+          charMap[step.expression] ||
+          charMap["標準"];
+
+        if (spritePath) {
+          resources.push({
+            type: "image",
+            path: spritePath
+          });
+        }
+      }
+    }
+
+
+    /* Voice */
+
+    if (step.audio) {
+      resources.push({
+        type: "audio",
+        path: step.audio
+      });
+    }
+  });
+
+  return resources;
+}
+
+/* =========================================================
+   INITIAL GAME RESOURCES
+   TAP TO START 後第一批必要資源
+   ========================================================= */
+
+function getInitialGameResources() {
+
+  const resources = [
+    /*
+      第一段劇情
+      001–014
+    */
+    ...collectListeningSectionResources(
+      1,
+      1
+    ),
+
+    /*
+      第一段立即需要的 BGM / Ambient
+    */
+    {
+      type: "audio",
+      path: MAIN_AUDIO.bgmDaily
+    },
+
+    {
+      type: "audio",
+      path: MAIN_AUDIO.ambSchoolMorning
+    },
+
+    /*
+      Q1 會用到的 SE
+    */
+    {
+      type: "audio",
+      path: MAIN_AUDIO.seChoiceOpen
+    },
+
+    {
+      type: "audio",
+      path: MAIN_AUDIO.seChoiceSelect
+    },
+
+    {
+      type: "audio",
+      path: MAIN_AUDIO.seCorrect
+    },
+
+    {
+      type: "audio",
+      path: MAIN_AUDIO.seWrong
+    }
+  ];
+
+  return resources;
+}
+
+async function preloadInitialGameResources(
+  onProgress = null
+) {
+  const resources =
+    getInitialGameResources();
+
+  await preloadResourceBatch(
+    resources,
+    onProgress
+  );
+}
+
 /* ==========================================================================
    3. 全章節題目合集
    ========================================================================== */
@@ -1059,6 +1208,217 @@ const mainSePool = [];
 const MAIN_BGM_DUCK_FACTOR = 0.35;
 const MORNING_AMBIENT_FACTOR = 0.28;
 
+
+/* =========================================================
+   RESOURCE PRELOADER
+   圖片 / Voice / BGM / SE 預載
+   ========================================================= */
+
+const resourcePreloader = {
+  loaded: new Set(),
+  loading: new Map()
+};
+
+
+/* ---------- path ---------- */
+
+function normalizePreloadPath(path) {
+  if (!path) return "";
+
+  return path.startsWith("/")
+    ? path.slice(1)
+    : path;
+}
+
+
+/* ---------- image ---------- */
+
+function preloadImage(path) {
+  const src = normalizePreloadPath(path);
+
+  if (!src) {
+    return Promise.resolve();
+  }
+
+  if (resourcePreloader.loaded.has(src)) {
+    return Promise.resolve();
+  }
+
+  if (resourcePreloader.loading.has(src)) {
+    return resourcePreloader.loading.get(src);
+  }
+
+  const promise = new Promise(resolve => {
+    const img = new Image();
+
+    const finish = () => {
+      resourcePreloader.loaded.add(src);
+      resourcePreloader.loading.delete(src);
+      resolve();
+    };
+
+    img.onload = finish;
+
+    // 某一張圖片失敗時，不要讓整個遊戲卡死
+    img.onerror = finish;
+
+    img.src = src;
+  });
+
+  resourcePreloader.loading.set(src, promise);
+
+  return promise;
+}
+
+
+/* ---------- audio ---------- */
+
+function preloadAudio(path) {
+  const src = normalizePreloadPath(path);
+
+  if (!src) {
+    return Promise.resolve();
+  }
+
+  if (resourcePreloader.loaded.has(src)) {
+    return Promise.resolve();
+  }
+
+  if (resourcePreloader.loading.has(src)) {
+    return resourcePreloader.loading.get(src);
+  }
+
+  const promise = new Promise(resolve => {
+    const audio = new Audio();
+
+    let finished = false;
+
+    const finish = () => {
+      if (finished) return;
+
+      finished = true;
+
+      audio.removeEventListener(
+        "canplaythrough",
+        finish
+      );
+
+      audio.removeEventListener(
+        "loadeddata",
+        finish
+      );
+
+      audio.removeEventListener(
+        "error",
+        finish
+      );
+
+      resourcePreloader.loaded.add(src);
+      resourcePreloader.loading.delete(src);
+
+      resolve();
+    };
+
+    audio.preload = "auto";
+
+    audio.addEventListener(
+      "canplaythrough",
+      finish,
+      { once: true }
+    );
+
+    audio.addEventListener(
+      "loadeddata",
+      finish,
+      { once: true }
+    );
+
+    audio.addEventListener(
+      "error",
+      finish,
+      { once: true }
+    );
+
+    audio.src = src;
+    audio.load();
+
+    /*
+      iOS / Safari 有時不會可靠觸發 canplaythrough。
+      最多等待 8 秒，不讓 Loading 永久卡住。
+    */
+    window.setTimeout(
+      finish,
+      8000
+    );
+  });
+
+  resourcePreloader.loading.set(src, promise);
+
+  return promise;
+}
+
+
+/* ---------- batch ---------- */
+
+async function preloadResourceBatch(
+  resources,
+  onProgress = null
+) {
+  const uniqueResources = [
+    ...new Map(
+      resources
+        .filter(item => item && item.path)
+        .map(item => [
+          normalizePreloadPath(item.path),
+          {
+            ...item,
+            path: normalizePreloadPath(item.path)
+          }
+        ])
+    ).values()
+  ];
+
+  const total = uniqueResources.length;
+
+  if (total === 0) {
+    if (onProgress) {
+      onProgress(1, 1, 100);
+    }
+
+    return;
+  }
+
+  let completed = 0;
+
+  const reportProgress = () => {
+    completed++;
+
+    const percent =
+      Math.round(
+        (completed / total) * 100
+      );
+
+    if (onProgress) {
+      onProgress(
+        completed,
+        total,
+        percent
+      );
+    }
+  };
+
+  await Promise.all(
+    uniqueResources.map(async resource => {
+      if (resource.type === "image") {
+        await preloadImage(resource.path);
+      } else {
+        await preloadAudio(resource.path);
+      }
+
+      reportProgress();
+    })
+  );
+}
 
 /* ---------- path ---------- */
 
@@ -2232,30 +2592,177 @@ function initStartGate() {
   const startButton =
     document.getElementById("btn-start-gate");
 
+  const loadingPanel =
+    document.getElementById("start-loading");
+
+  const loadingFill =
+    document.getElementById("start-loading-fill");
+
+  const loadingPercent =
+    document.getElementById("start-loading-percent");
+
+
   if (!startGate || !startButton) {
     return;
   }
 
+
   let started = false;
 
-  const enterGame = () => {
+
+  const updateLoadingProgress = (
+    completed,
+    total,
+    percent
+  ) => {
+
+    const safePercent =
+      Math.max(
+        0,
+        Math.min(100, percent || 0)
+      );
+
+
+    if (loadingFill) {
+      loadingFill.style.width =
+        `${safePercent}%`;
+    }
+
+
+    if (loadingPercent) {
+      loadingPercent.textContent =
+        `${safePercent}%`;
+    }
+  };
+
+
+  const enterGame = async () => {
+
     if (started) return;
+
     started = true;
 
     startButton.disabled = true;
 
-    // 這個 click / tap 就是瀏覽器允許音訊啟動的 user gesture。
+
+    /*
+      這個 tap 是瀏覽器允許音訊啟動的
+      user gesture。
+
+      必須在 await 之前執行。
+    */
+
     unlockMainStoryAudio();
 
-    // Title 已經是 active，因此直接啟動首頁 BGM。
+
+    /*
+      TAP → LOADING
+    */
+
+    startGate.classList.add(
+      "is-loading"
+    );
+
+
+    updateLoadingProgress(
+      0,
+      1,
+      0
+    );
+
+
+    /*
+      第一批必要遊戲資源
+
+      - Section 1 背景
+      - Section 1 角色立繪
+      - 001–014 Voice
+      - daily BGM
+      - morning ambience
+      - Q1 SE
+    */
+
+    try {
+
+      await preloadInitialGameResources(
+        (
+          completed,
+          total,
+          percent
+        ) => {
+
+          updateLoadingProgress(
+            completed,
+            total,
+            percent
+          );
+
+        }
+      );
+
+    } catch (err) {
+
+      /*
+        Preloader 本身已經設計成：
+        單一資源失敗不阻塞遊戲。
+
+        這裡再做最後保護，
+        避免特殊瀏覽器讓 Start Gate 卡死。
+      */
+
+      console.warn(
+        "[INITIAL PRELOAD] failed:",
+        err
+      );
+
+    }
+
+
+    /*
+      強制完成 UI
+    */
+
+    updateLoadingProgress(
+      1,
+      1,
+      100
+    );
+
+
+    startGate.classList.add(
+      "is-ready"
+    );
+
+
+    /*
+      資源準備完成後才開始 Title BGM
+    */
+
     startTitleBgm();
 
-    startGate.classList.add("is-closing");
+
+    /*
+      給 100% 一點點可見時間，
+      然後沿用原本的 blur → clear 動畫。
+    */
 
     window.setTimeout(() => {
-      startGate.remove();
-    }, 600);
+
+      startGate.classList.add(
+        "is-closing"
+      );
+
+
+      window.setTimeout(() => {
+
+        startGate.remove();
+
+      }, 750);
+
+    }, 250);
+
   };
+
 
   startButton.addEventListener(
     "click",

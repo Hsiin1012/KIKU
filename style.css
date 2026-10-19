@@ -2647,3 +2647,137 @@ and (orientation: portrait) {
     left: 10px;
   }
 }
+
+/* ==========================================================================
+   START GATE — INITIAL LOADING
+   ========================================================================== */
+
+.start-loading {
+  position: relative;
+  z-index: 2;
+
+  display: none;
+  flex-direction: column;
+  align-items: center;
+
+  width: min(260px, 68vw);
+
+  opacity: 0;
+
+  transition:
+    opacity 0.35s ease;
+}
+
+
+/* TAP 後顯示 */
+
+#start-gate.is-loading .start-loading {
+  display: flex;
+  opacity: 1;
+}
+
+
+/* TAP TO START 消失 */
+
+#start-gate.is-loading #btn-start-gate {
+  display: none;
+}
+
+
+/* ----------------------------------------------------------
+   LOADING title
+   ---------------------------------------------------------- */
+
+.start-loading-title {
+  margin-bottom: 14px;
+
+  color: #263746;
+
+  font-size: 0.82rem;
+  font-weight: 700;
+
+  letter-spacing: 0.22em;
+
+  text-shadow:
+    0 1px 8px rgba(255, 255, 255, 0.55);
+}
+
+
+/* ----------------------------------------------------------
+   Progress bar
+   ---------------------------------------------------------- */
+
+.start-loading-bar {
+  width: 100%;
+  height: 3px;
+
+  overflow: hidden;
+
+  border-radius: 999px;
+
+  background:
+    rgba(38, 55, 70, 0.16);
+}
+
+
+.start-loading-fill {
+  width: 0%;
+  height: 100%;
+
+  border-radius: inherit;
+
+  background: #6F8FA8;
+
+  transition:
+    width 0.18s ease;
+}
+
+
+/* ----------------------------------------------------------
+   Percentage
+   ---------------------------------------------------------- */
+
+.start-loading-percent {
+  margin-top: 10px;
+
+  color: #263746;
+
+  font-size: 0.72rem;
+  font-weight: 600;
+
+  letter-spacing: 0.08em;
+
+  opacity: 0.68;
+}
+
+
+/* ----------------------------------------------------------
+   Loading finished
+   ---------------------------------------------------------- */
+
+#start-gate.is-ready .start-loading {
+  opacity: 0;
+}
+
+
+/* ----------------------------------------------------------
+   Phone
+   ---------------------------------------------------------- */
+
+@media screen
+and (max-width: 768px)
+and (orientation: portrait) {
+
+  .start-loading {
+    width: min(220px, 64vw);
+  }
+
+  .start-loading-title {
+    font-size: 0.76rem;
+  }
+
+  .start-loading-percent {
+    font-size: 0.68rem;
+  }
+
+}
