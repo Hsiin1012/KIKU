@@ -2702,32 +2702,31 @@ function initStartGate() {
       TAP → LOADING
     */
 
-    startGate.classList.add(
-      "is-loading"
-    );
+    sstartGate.classList.add(
+  "is-loading"
+);
+
+updateLoadingProgress(
+  0,
+  1,
+  0
+);
 
 
-    updateLoadingProgress(
-      0,
-      1,
-      0
-    );
+/*
+  先讓瀏覽器真正完成一次畫面更新，
+  確保手機 / 平板能看到 LOADING，
+  再開始資源預載。
+*/
+await new Promise(resolve => {
+  requestAnimationFrame(() => {
+    requestAnimationFrame(resolve);
+  });
+});
 
 
-    /*
-      第一批必要遊戲資源
-
-      - Section 1 背景
-      - Section 1 角色立繪
-      - 001–014 Voice
-      - daily BGM
-      - morning ambience
-      - Q1 SE
-    */
-
-    try {
-
-      await preloadInitialGameResources(
+try {
+  await preloadInitialGameResources(
         (
           completed,
           total,
@@ -2772,37 +2771,39 @@ function initStartGate() {
     );
 
 
-    startGate.classList.add(
-      "is-ready"
-    );
-
-
     /*
-      資源準備完成後才開始 Title BGM
-    */
+  Loading 完成。
 
-    startTitleBgm();
-
-
-    /*
-      給 100% 一點點可見時間，
-      然後沿用原本的 blur → clear 動畫。
-    */
-
-    window.setTimeout(() => {
-
-      startGate.classList.add(
-        "is-closing"
-      );
+  至少讓 100% 在實機上可見一下，
+  避免手機直接從 TAP 跳到 Title。
+*/
+await new Promise(resolve => {
+  window.setTimeout(resolve, 350);
+});
 
 
-      window.setTimeout(() => {
+startGate.classList.add(
+  "is-ready"
+);
 
-        startGate.remove();
 
-      }, 750);
+startTitleBgm();
 
-    }, 250);
+
+window.setTimeout(() => {
+
+  startGate.classList.add(
+    "is-closing"
+  );
+
+
+  window.setTimeout(() => {
+
+    startGate.remove();
+
+  }, 750);
+
+}, 350);
 
   };
 
