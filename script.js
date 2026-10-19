@@ -1005,6 +1005,88 @@ async function preloadInitialGameResources(
   );
 }
 
+/* =========================================================
+   STAGED BACKGROUND PRELOAD
+   遊戲進行中分段預載下一個 Listening Section
+   ========================================================= */
+
+const stagedPreloadState = {
+  sections: new Set()
+};
+
+function preloadListeningSectionInBackground(
+  chapterNumber,
+  sectionNumber
+) {
+  if (!chapterNumber || !sectionNumber) {
+    return;
+  }
+
+  const key =
+    `${chapterNumber}:${sectionNumber}`;
+
+  if (
+    stagedPreloadState.sections.has(key)
+  ) {
+    return;
+  }
+
+  stagedPreloadState.sections.add(key);
+
+  const resources =
+    collectListeningSectionResources(
+      chapterNumber,
+      sectionNumber
+    );
+
+  if (resources.length === 0) {
+    return;
+  }
+
+  preloadResourceBatch(resources)
+    .catch(err => {
+      console.warn(
+        "[STAGED PRELOAD] failed:",
+        key,
+        err
+      );
+    });
+}
+
+
+function preloadNextListeningSection(
+  currentSection
+) {
+  const chapterNumber =
+    gameState.currentChapter || 1;
+
+  const nextSection =
+    currentSection + 1;
+
+  const chapterData =
+    CHAPTER_DATA[chapterNumber];
+
+  if (!chapterData) {
+    return;
+  }
+
+  const hasNextSection =
+    chapterData.steps.some(
+      step =>
+        step.type === "dialogue" &&
+        step.listeningSection === nextSection
+    );
+
+  if (!hasNextSection) {
+    return;
+  }
+
+  preloadListeningSectionInBackground(
+    chapterNumber,
+    nextSection
+  );
+}
+
 /* ==========================================================================
    3. 全章節題目合集
    ========================================================================== */
@@ -2868,6 +2950,10 @@ function renderDialogueStep(stepData) {
   removeReplayAudioButton("renderDialogueStep");
   stopAllTypewriters();
   stopActiveAudio("renderDialogueStep", stepData.id);
+
+  preloadNextListeningSection(
+    stepData.listeningSection
+  );
 
   if (stepData.listeningSection === 1) {
     startMorningAmbient();
