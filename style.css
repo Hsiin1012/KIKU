@@ -2222,9 +2222,7 @@ and (orientation: portrait) {
    ========================================================================== */
 
 /* 桌機 / 平板不顯示手機 MENU 按鈕 */
-.hud-mobile-menu-btn {
-  display: none;
-}
+
 
 @media screen
 and (max-width: 767px)
@@ -2429,6 +2427,221 @@ and (orientation: portrait) {
   }
 
   /* 場景名稱避開第一列 HUD */
+  .bg-debug-tag {
+    top: 62px;
+    left: 10px;
+  }
+}
+
+/* ==========================================================================
+   COLLAPSIBLE GAMEPLAY HUD — ALL DEVICES
+   Desktop / Tablet / Phone 共用
+   ========================================================================== */
+
+.vn-hud-bar {
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+
+  pointer-events: none;
+}
+
+.hud-left-group {
+  flex: 1;
+  min-width: 0;
+  padding-right: 10px;
+}
+
+.hud-chap-badge {
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  pointer-events: auto;
+}
+
+
+/* ☰ MENU BUTTON */
+
+.hud-mobile-menu-btn {
+  display: flex;
+
+  width: 44px;
+  height: 40px;
+
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 10px;
+
+  background: rgba(255, 255, 255, 0.88);
+  color: #263746;
+
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+
+  font-family: inherit;
+  font-size: 1.2rem;
+  line-height: 1;
+
+  cursor: pointer;
+  pointer-events: auto;
+
+  -webkit-tap-highlight-color: transparent;
+}
+
+.hud-mobile-menu-btn:hover {
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.hud-mobile-menu-btn:active {
+  transform: scale(0.96);
+}
+
+
+/* 展開選單 */
+
+#hud-mobile-menu-panel {
+  position: absolute;
+
+  top: 62px;
+  right: 20px;
+
+  width: 180px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  padding: 12px;
+
+  background: rgba(255, 255, 255, 0.92);
+
+  border: 1px solid rgba(255, 255, 255, 0.95);
+  border-radius: 14px;
+
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.16);
+
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+
+  opacity: 0;
+  visibility: hidden;
+
+  transform: translateY(-6px) scale(0.98);
+  transform-origin: top right;
+
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s ease,
+    visibility 0.18s ease;
+
+  pointer-events: none;
+
+  z-index: 50;
+}
+
+#hud-mobile-menu-panel.is-open {
+  opacity: 1;
+  visibility: visible;
+
+  transform: translateY(0) scale(1);
+
+  pointer-events: auto;
+}
+
+
+/* 信賴度 */
+
+#hud-mobile-menu-panel .hud-trust-badges {
+  width: 100%;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 6px;
+}
+
+#hud-mobile-menu-panel .trust-pill {
+  width: 100%;
+  padding: 6px 10px;
+
+  font-size: 0.8rem;
+}
+
+
+/* 設定 / 離開 */
+
+#hud-mobile-menu-panel .hud-buttons-group {
+  width: 100%;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 6px;
+
+  margin: 0;
+  padding-top: 8px;
+
+  border-top: 1px solid rgba(38, 55, 70, 0.12);
+}
+
+#hud-mobile-menu-panel .vn-ctrl-btn {
+  width: 100%;
+
+  padding: 8px 10px;
+
+  font-size: 0.82rem;
+  text-align: center;
+}
+
+
+/* ==========================================================================
+   PHONE PORTRAIT — MENU POSITION
+   ========================================================================== */
+
+@media screen
+and (max-width: 767px)
+and (orientation: portrait) {
+
+  .vn-hud-bar {
+    padding: 8px 10px;
+  }
+
+  .hud-mobile-menu-btn {
+    width: 42px;
+    height: 38px;
+  }
+
+  #hud-mobile-menu-panel {
+    top: 54px;
+    right: 10px;
+
+    width: 170px;
+  }
+
+  /* 手機背景與角色維持延伸到最上方 */
+  .vn-bg-layer {
+    top: 0;
+    height: 100%;
+  }
+
+  .vn-sprite-container {
+    top: 0;
+  }
+
+  /* 場景名稱避開 HUD */
   .bg-debug-tag {
     top: 62px;
     left: 10px;
