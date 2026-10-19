@@ -1,4 +1,3 @@
-alert("JS VERSION：20261020-loading-debug-3");
 /* ==========================================================================
    [BUILD] Visual Novel Core Engine (Responsive, Fullscreen & Manual Transition Fix)
    ========================================================================== */
@@ -2682,8 +2681,6 @@ function initStartGate() {
 
   const enterGame = async () => {
 
-  alert("DEBUG 1：enterGame 有執行");
-
   if (started) return;
 
     started = true;
@@ -2709,10 +2706,6 @@ function initStartGate() {
   "is-loading"
 );
 
-alert(
-  "DEBUG 2：" +
-  startGate.className
-);
 
 updateLoadingProgress(
   0,
