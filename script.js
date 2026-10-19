@@ -1,3 +1,4 @@
+alert("JS VERSION：20261020-loading-debug-3");
 /* ==========================================================================
    [BUILD] Visual Novel Core Engine (Responsive, Fullscreen & Manual Transition Fix)
    ========================================================================== */
