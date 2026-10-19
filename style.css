@@ -2243,8 +2243,14 @@ and (orientation: portrait) {
     height: 100%;
   }
 
-  /* 角色也往上移，不再為白色 HUD 預留 55px */
+  /* 角色不再為 HUD 預留 55px */
   .vn-sprite-container {
     top: 0;
+  }
+
+  /* 場景標籤移到 HUD 下方，避免與章節標籤重疊 */
+  .bg-debug-tag {
+    top: 82px;
+    left: 10px;
   }
 }
