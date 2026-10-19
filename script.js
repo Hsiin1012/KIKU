@@ -1288,23 +1288,19 @@ function preloadAudio(path) {
     return resourcePreloader.loading.get(src);
   }
 
+
   const promise = new Promise(resolve => {
+
     const audio = new Audio();
 
     let finished = false;
+    let timeoutId = null;
 
-    const finish = () => {
-      if (finished) return;
 
-      finished = true;
+    const cleanup = () => {
 
       audio.removeEventListener(
         "canplaythrough",
-        finish
-      );
-
-      audio.removeEventListener(
-        "loadeddata",
         finish
       );
 
@@ -1313,13 +1309,41 @@ function preloadAudio(path) {
         finish
       );
 
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+
+    };
+
+
+    const finish = () => {
+
+      if (finished) return;
+
+      finished = true;
+
+      cleanup();
+
       resourcePreloader.loaded.add(src);
+
       resourcePreloader.loading.delete(src);
 
       resolve();
+
     };
 
+
+    /*
+      不使用 loadeddata 當完成條件。
+
+      手機 Safari 的 loadeddata
+      只代表已經取得第一段可播放資料，
+      不代表整個音訊已經準備好。
+    */
+
     audio.preload = "auto";
+
 
     audio.addEventListener(
       "canplaythrough",
@@ -1327,11 +1351,6 @@ function preloadAudio(path) {
       { once: true }
     );
 
-    audio.addEventListener(
-      "loadeddata",
-      finish,
-      { once: true }
-    );
 
     audio.addEventListener(
       "error",
@@ -1339,20 +1358,44 @@ function preloadAudio(path) {
       { once: true }
     );
 
+
     audio.src = src;
-    audio.load();
+
+
+    try {
+      audio.load();
+    } catch (err) {
+      console.warn(
+        "[PRELOAD AUDIO] load failed:",
+        src,
+        err
+      );
+    }
+
 
     /*
-      iOS / Safari 有時不會可靠觸發 canplaythrough。
-      最多等待 8 秒，不讓 Loading 永久卡住。
+      iOS Safari 不保證觸發 canplaythrough。
+
+      所以仍保留 timeout，
+      避免 Loading 永久卡住。
+
+      手機網路通常比桌機慢，
+      這裡給 12 秒。
     */
-    window.setTimeout(
+
+    timeoutId = window.setTimeout(
       finish,
-      8000
+      12000
     );
+
   });
 
-  resourcePreloader.loading.set(src, promise);
+
+  resourcePreloader.loading.set(
+    src,
+    promise
+  );
+
 
   return promise;
 }
