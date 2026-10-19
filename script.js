@@ -2681,7 +2681,9 @@ function initStartGate() {
 
   const enterGame = async () => {
 
-    if (started) return;
+  alert("DEBUG 1：enterGame 有執行");
+
+  if (started) return;
 
     started = true;
 
@@ -2706,6 +2708,11 @@ function initStartGate() {
   "is-loading"
 );
 
+alert(
+  "DEBUG 2：" +
+  startGate.className
+);
+
 updateLoadingProgress(
   0,
   1,
@@ -2726,6 +2733,7 @@ await new Promise(resolve => {
 
 
 try {
+  alert("DEBUG 3：準備開始 preload");
   await preloadInitialGameResources(
         (
           completed,
