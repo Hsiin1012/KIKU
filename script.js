@@ -944,6 +944,15 @@ function collectListeningSectionResources(
 function getInitialGameResources() {
 
   const resources = [
+/*
+  Title 首頁 BGM
+  必須在 Start Loading 階段完成
+*/
+{
+  type: "audio",
+  path: MAIN_AUDIO.bgmNewIdea
+},
+
     /*
       第一段劇情
       001–014
