@@ -9,15 +9,53 @@
 <body>
 
     <!-- ==========================================================================
-     START GATE / AUDIO UNLOCK
+     START GATE / AUDIO UNLOCK + INITIAL LOADING
      ========================================================================== -->
 <div id="start-gate">
+
     <div class="start-gate-bg"></div>
 
-    <button id="btn-start-gate" type="button" aria-label="Tap to Start">
-        <span class="start-gate-main">TAP TO START</span>
-        <span class="start-gate-sub">點擊畫面開始</span>
+    <!-- TAP TO START -->
+    <button
+        id="btn-start-gate"
+        type="button"
+        aria-label="Tap to Start"
+    >
+        <span class="start-gate-main">
+            TAP TO START
+        </span>
+
+        <span class="start-gate-sub">
+            點擊畫面開始
+        </span>
     </button>
+
+
+    <!-- INITIAL LOADING -->
+    <div
+        id="start-loading"
+        class="start-loading"
+        aria-live="polite"
+    >
+        <div class="start-loading-title">
+            LOADING
+        </div>
+
+        <div class="start-loading-bar">
+            <div
+                id="start-loading-fill"
+                class="start-loading-fill"
+            ></div>
+        </div>
+
+        <div
+            id="start-loading-percent"
+            class="start-loading-percent"
+        >
+            0%
+        </div>
+    </div>
+
 </div>
 
     <!-- ==========================================================================
