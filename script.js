@@ -2702,17 +2702,15 @@ function initStartGate() {
       TAP → LOADING
     */
 
-    sstartGate.classList.add(
+    startGate.classList.add(
   "is-loading"
 );
-
 
 updateLoadingProgress(
   0,
   1,
   0
 );
-
 
 /*
   先讓瀏覽器真正完成一次畫面更新，
@@ -2725,41 +2723,26 @@ await new Promise(resolve => {
   });
 });
 
-
 try {
-  alert("DEBUG 3：準備開始 preload");
   await preloadInitialGameResources(
-        (
-          completed,
-          total,
-          percent
-        ) => {
-
-          updateLoadingProgress(
-            completed,
-            total,
-            percent
-          );
-
-        }
+    (
+      completed,
+      total,
+      percent
+    ) => {
+      updateLoadingProgress(
+        completed,
+        total,
+        percent
       );
-
-    } catch (err) {
-
-      /*
-        Preloader 本身已經設計成：
-        單一資源失敗不阻塞遊戲。
-
-        這裡再做最後保護，
-        避免特殊瀏覽器讓 Start Gate 卡死。
-      */
-
-      console.warn(
-        "[INITIAL PRELOAD] failed:",
-        err
-      );
-
     }
+  );
+} catch (err) {
+  console.warn(
+    "[INITIAL PRELOAD] failed:",
+    err
+  );
+}
 
 
     /*
