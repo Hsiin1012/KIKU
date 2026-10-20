@@ -153,6 +153,7 @@ const EXTRA_AUDIO = {
 
 let extraBgmAudio = null;
 let extraBgmFadeTimer = null;
+const extraSePool = new Set();
 
 function playExtraSe(path, onEnded = null) {
   if (!path) {
@@ -174,17 +175,22 @@ function playExtraSe(path, onEnded = null) {
 
   try {
     const audio = new Audio(cleanPath);
-    audio.volume = volume;
-    audio.loop = false;
+
+extraSePool.add(audio);
+
+audio.volume = volume;
+audio.loop = false;
 
     let finished = false;
 
     const finishOnce = () => {
-      if (finished) return;
-      finished = true;
+  if (finished) return;
+  finished = true;
 
-      audio.onended = null;
-      audio.onerror = null;
+  extraSePool.delete(audio);
+
+  audio.onended = null;
+  audio.onerror = null;
 
       if (typeof onEnded === "function") {
         onEnded();
@@ -3223,6 +3229,61 @@ function closeConfigScreen() {
 let titleBgmWaitingForGesture = false;
 
 function startTitleBgm() {
+  let titleBgmPrimedAudio = null;
+
+function primeTitleBgmFromGesture() {
+  // BGM = 0 時完全不建立播放
+  if ((gameSettings.bgmVolume ?? 0) <= 0) {
+    return;
+  }
+
+  // 避免重複建立
+  if (titleBgmPrimedAudio) {
+    return;
+  }
+
+  const cleanPath =
+    normalizeMainAudioPath(
+      MAIN_AUDIO.bgmNewIdea
+    );
+
+  if (!cleanPath) return;
+
+  const audio = new Audio();
+
+  audio.preload = "auto";
+  audio.loop = true;
+  audio.volume = 0;
+  audio.src = cleanPath;
+
+  /*
+   * 關鍵：
+   * 這個 play() 必須直接發生在
+   * TAP TO START 的 user gesture 裡。
+   *
+   * Loading 期間保持 volume = 0，
+   * 所以玩家不會聽到 BGM。
+   */
+  const playPromise = audio.play();
+
+  if (
+    playPromise &&
+    typeof playPromise.catch === "function"
+  ) {
+    playPromise.catch((err) => {
+      console.warn(
+        "[TITLE BGM] prime failed:",
+        err
+      );
+
+      if (titleBgmPrimedAudio === audio) {
+        titleBgmPrimedAudio = null;
+      }
+    });
+  }
+
+  titleBgmPrimedAudio = audio;
+}
   if (
     !screens.title ||
     !screens.title.classList.contains("active")
@@ -3334,6 +3395,7 @@ function initStartGate() {
 
     unlockAudioContextIOS();
     unlockMainStoryAudio();
+    primeTitleBgmFromGesture();
 
 
     /*
@@ -4886,26 +4948,38 @@ document.addEventListener('click', (event) => {
         `${gameSettings.bgmVolume}%`;
     }
 
-    const volume =
-      Math.max(
-        0,
-        Math.min(
-          1,
-          (gameSettings.bgmVolume ?? 0) / 100
-        )
-      );
+    const volume = Math.max(
+      0,
+      Math.min(
+        1,
+        (gameSettings.bgmVolume ?? 0) / 100
+      )
+    );
 
-    // 主線 / Title BGM
+    /*
+     * 主線 / Title BGM
+     * slider 必須立即反映，不走 fade。
+     */
     if (mainBgmAudio) {
-      if (volume <= 0) {
-        mainBgmAudio.volume = 0;
-      } else {
-        mainBgmAudio.volume =
-          getMainBgmVolume();
-      }
+      mainBgmAudio.volume =
+        volume <= 0
+          ? 0
+          : getMainBgmVolume();
     }
 
-    // Extra Event BGM
+    /*
+     * Extra Event 實際使用中的 BGM。
+     * 現在程式同時存在 extraBgmAudio
+     * 與舊的 extraEventBgmAudio，
+     * 兩個都同步，避免任何漏網 channel。
+     */
+    if (
+      typeof extraBgmAudio !== "undefined" &&
+      extraBgmAudio
+    ) {
+      extraBgmAudio.volume = volume;
+    }
+
     if (
       typeof extraEventBgmAudio !== "undefined" &&
       extraEventBgmAudio
@@ -4913,39 +4987,11 @@ document.addEventListener('click', (event) => {
       extraEventBgmAudio.volume = volume;
     }
 
-    saveGameData();
-  };
-}
-
-  if (elements.cfgSeSlider) {
-  elements.cfgSeSlider.oninput = (e) => {
-    gameSettings.seVolume = parseInt(e.target.value, 10);
-
-    if (elements.cfgSeVal) {
-      elements.cfgSeVal.innerText =
-        `${gameSettings.seVolume}%`;
-    }
-
-    // 環境音
-    if (morningAmbientAudio) {
-      morningAmbientAudio.volume =
-        getMorningAmbientVolume();
-    }
-
-    // 正在使用中的主線 SE channels
-    if (
-      typeof mainSePool !== "undefined" &&
-      Array.isArray(mainSePool)
-    ) {
-      const volume = getMainSeVolume();
-
-      mainSePool.forEach((audio) => {
-        if (audio) {
-          audio.volume = volume;
-        }
-      });
-    }
-
+    /*
+     * 0% 時不要 pause。
+     * 保留播放位置，只做真正靜音；
+     * 之後從 0% 拉回來可以立即恢復聲音。
+     */
     saveGameData();
   };
 }
@@ -4994,8 +5040,72 @@ function stopAllGameAudioForPageExit() {
         audio.pause();
         audio.currentTime = 0;
       });
+      /*
+ * Extra Event 正在播放中的 SE
+ */
+if (
+  typeof extraSePool !== "undefined" &&
+  extraSePool
+) {
+  const volume = getMainSeVolume();
+
+  extraSePool.forEach((audio) => {
+    if (audio) {
+      audio.volume = volume;
+    }
+  });
+}
     }
   } catch (e) {}
+/*
+ * Extra Event SE
+ */
+try {
+  if (
+    typeof extraSePool !== "undefined" &&
+    extraSePool
+  ) {
+    extraSePool.forEach((audio) => {
+      if (!audio) return;
+
+      try {
+        audio.pause();
+        audio.currentTime = 0;
+        audio.src = "";
+        audio.load();
+      } catch (e) {}
+    });
+
+    extraSePool.clear();
+  }
+} catch (e) {}
+
+/*
+ * 舊 Extra Event BGM channel
+ */
+try {
+  if (
+    typeof extraEventBgmAudio !== "undefined" &&
+    extraEventBgmAudio
+  ) {
+    extraEventBgmAudio.pause();
+    extraEventBgmAudio.currentTime = 0;
+    extraEventBgmAudio.src = "";
+    extraEventBgmAudio.load();
+    extraEventBgmAudio = null;
+  }
+} catch (e) {}
+
+try {
+  if (titleBgmPrimedAudio) {
+    titleBgmPrimedAudio.pause();
+    titleBgmPrimedAudio.currentTime = 0;
+    titleBgmPrimedAudio.src = "";
+    titleBgmPrimedAudio.load();
+    titleBgmPrimedAudio = null;
+  }
+} catch (e) {}
+
 }
 
 window.addEventListener(
