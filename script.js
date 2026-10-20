@@ -5360,18 +5360,23 @@ updateMainBgmGain();
     }
 
     /*
-     * Main Story SE
-     */
-    if (
-      typeof mainSePool !== "undefined" &&
-      Array.isArray(mainSePool)
-    ) {
-      mainSePool.forEach((audio) => {
-        if (!audio) return;
+ * Main Story SE
+ * HTML Audio 固定 100%
+ * 使用者音量只交給 Web Audio GainNode
+ */
+if (
+  typeof mainSePool !== "undefined" &&
+  Array.isArray(mainSePool)
+) {
+  mainSePool.forEach((audio) => {
+    if (!audio) return;
 
-        audio.volume = volume;
-      });
-    }
+    audio.volume = 1;
+    ensureMainSeWebAudio(audio);
+  });
+}
+
+updateMainSeGain();
 
     /*
      * Extra Event SE
