@@ -5858,10 +5858,23 @@ function pauseGameAudioForBackground() {
 
 async function resumeGameAudioFromBackground() {
   /*
-   * 這個函式現在只會在
-   * 回到頁面後的第一次使用者操作中執行。
+   * iOS Safari：
+   * 不重建 AudioContext。
+   * 保留最初由 TAP 解鎖的 Context，
+   * 在使用者回到遊戲並再次操作時恢復它。
    */
-  rebuildMainAudioContext();
+  if (
+    mainBgmAudioContext &&
+    mainBgmAudioContext.state === "suspended"
+  ) {
+    try {
+      mainBgmAudioContext.resume().catch(() => {});
+    } catch (e) {}
+  }
+
+  /*
+   * Main BGM
+   */
 
   /*
    * Main BGM
