@@ -5548,17 +5548,18 @@ if (elements.cfgVoiceSlider) {
 
 function pauseGameAudioForBackground() {
   /*
-   * Main BGM
-   */
-  backgroundAudioState.mainBgm =
-    !!mainBgmAudio &&
-    !mainBgmAudio.paused;
+ * Voice
+ *
+ * 進入背景後直接停止，
+ * 回到頁面時不自動續播。
+ */
+backgroundAudioState.voice = false;
 
-  if (backgroundAudioState.mainBgm) {
-    try {
-      mainBgmAudio.pause();
-    } catch (e) {}
-  }
+if (activeAudioInstance) {
+  try {
+    activeAudioInstance.pause();
+  } catch (e) {}
+}
 
 
   /*
@@ -5655,18 +5656,6 @@ function pauseGameAudioForBackground() {
 }
 
 function resumeGameAudioFromBackground() {
-  /*
-   * Web Audio Context 在手機從背景回來後
-   * 可能進入 suspended 狀態。
-   */
-  if (
-    mainBgmAudioContext &&
-    mainBgmAudioContext.state === "suspended"
-  ) {
-    mainBgmAudioContext
-      .resume()
-      .catch(() => {});
-  }
 
 
   /*
