@@ -1236,13 +1236,15 @@ function getInitialGameResources() {
 
 
   /* =========================================================
-     EXTRA EVENT
-     CG01 / CG02
-     Voice 001–031
-     BGM / SE
+     preloadResourceBatch() 本身會自動去除重複 path
+     所以這裡不需要另外 dedupe
      ========================================================= */
 
-  resources.push(
+  return resources;
+}
+
+function preloadExtraEventInBackground() {
+  const resources = [
     {
       type: "image",
       path: getExtraEventCgSource("cg01")
@@ -1273,15 +1275,15 @@ function getInitialGameResources() {
       1,
       31
     )
-  );
+  ];
 
-
-  /* =========================================================
-     preloadResourceBatch() 本身會自動去除重複 path
-     所以這裡不需要另外 dedupe
-     ========================================================= */
-
-  return resources;
+  preloadResourceBatch(resources)
+    .catch(err => {
+      console.warn(
+        "[EXTRA EVENT PRELOAD] failed:",
+        err
+      );
+    });
 }
 
 async function preloadInitialGameResources(
@@ -3696,7 +3698,14 @@ function initStartGate() {
     */
     startTitleBgm();
 
-    window.setTimeout(() => {
+/*
+ * Initial Loading 已完成。
+ * Extra Event 從現在開始在背景預載，
+ * 不阻塞 Title / 正篇操作。
+ */
+preloadExtraEventInBackground();
+
+window.setTimeout(() => {
       startGate.classList.add(
         "is-closing"
       );
