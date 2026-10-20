@@ -2313,7 +2313,10 @@ function unlockMainStoryAudio() {
 
   try {
     /*
-     * BGM channel
+     * Main BGM channel
+     * TAP 時先建立正式的 mainBgmAudio。
+     * 後續 playMainBgm() 必須沿用這個 instance，
+     * 不再另外建立第二個 Audio。
      */
     if (!mainBgmAudio) {
       mainBgmAudio = new Audio();
@@ -2334,7 +2337,6 @@ function unlockMainStoryAudio() {
 
     /*
      * SE channels
-     * 預先建立幾個，避免每次點擊才建立。
      */
     if (mainSePool.length === 0) {
       for (let i = 0; i < 4; i++) {
@@ -2346,15 +2348,10 @@ function unlockMainStoryAudio() {
 
     mainAudioUnlocked = true;
 
-    console.log(
-      "[MAIN AUDIO] channels ready"
-    );
+    console.log("[MAIN AUDIO] channels ready");
 
   } catch (e) {
-    console.warn(
-      "[MAIN AUDIO] channel init failed",
-      e
-    );
+    console.warn("[MAIN AUDIO] channel init failed", e);
   }
 }
 
@@ -2427,15 +2424,15 @@ function playMainBgm(path, fadeMs = 700) {
   /*
    * 新 BGM channel
    */
-  const audio = new Audio();
+  const audio = mainBgmAudio || new Audio();
 
-  audio.preload = "auto";
-  audio.loop = true;
-  audio.volume = 0;
-  audio.src = cleanPath;
+audio.preload = "auto";
+audio.loop = true;
+audio.volume = 0;
+audio.src = cleanPath;
 
-  mainBgmAudio = audio;
-  mainBgmPath = cleanPath;
+mainBgmAudio = audio;
+mainBgmPath = cleanPath;
 
   console.log(
     "[MAIN BGM] load:",
@@ -3241,30 +3238,6 @@ function startTitleBgm() {
     return;
   }
 
-  /*
-   * TAP 時已經啟動的 Title BGM
-   * 直接交給 Main BGM 系統管理。
-   */
-  if (titleBgmPrimedAudio) {
-    mainBgmAudio = titleBgmPrimedAudio;
-
-    mainBgmPath =
-      normalizeMainAudioPath(
-        MAIN_AUDIO.bgmNewIdea
-      );
-
-    titleBgmPrimedAudio = null;
-
-    mainBgmAudio.loop = true;
-    mainBgmAudio.volume =
-      getMainBgmVolume();
-
-    return;
-  }
-
-  /*
-   * 之後從其他畫面返回 Title。
-   */
   playMainBgm(
     MAIN_AUDIO.bgmNewIdea,
     700
@@ -3294,69 +3267,11 @@ function armTitleBgm() {
   startTitleBgm();
 }
 function initStartGate() {
-  let titleBgmPrimedAudio = null;
-
-function primeTitleBgmFromGesture() {
-  if ((gameSettings.bgmVolume ?? 0) <= 0) {
-    return;
-  }
-
-  try {
-    if (titleBgmPrimedAudio) {
-      titleBgmPrimedAudio.pause();
-      titleBgmPrimedAudio.currentTime = 0;
-      titleBgmPrimedAudio.src = "";
-      titleBgmPrimedAudio.load();
-    }
-
-    const audio = new Audio(
-      normalizeMainAudioPath(
-        MAIN_AUDIO.bgmNewIdea
-      )
-    );
-
-    audio.preload = "auto";
-    audio.loop = true;
-
-    // Loading 期間完全靜音。
-    audio.volume =
-      getMainBgmVolume();
-
-    const playPromise = audio.play();
-
-    if (
-      playPromise &&
-      typeof playPromise.catch === "function"
-    ) {
-      playPromise.catch((err) => {
-        console.warn(
-          "[TITLE BGM] prime failed:",
-          err
-        );
-
-        if (titleBgmPrimedAudio === audio) {
-          titleBgmPrimedAudio = null;
-        }
-      });
-    }
-
-    titleBgmPrimedAudio = audio;
-
-  } catch (err) {
-    console.warn(
-      "[TITLE BGM] prime error:",
-      err
-    );
-  }
-}
   const startGate =
     document.getElementById("start-gate");
 
   const startButton =
     document.getElementById("btn-start-gate");
-
-  const loadingPanel =
-    document.getElementById("start-loading");
 
   const loadingFill =
     document.getElementById("start-loading-fill");
@@ -3364,33 +3279,27 @@ function primeTitleBgmFromGesture() {
   const loadingPercent =
     document.getElementById("start-loading-percent");
 
-
   if (!startGate || !startButton) {
     return;
   }
 
-
   let started = false;
-
 
   const updateLoadingProgress = (
     completed,
     total,
     percent
   ) => {
-
     const safePercent =
       Math.max(
         0,
         Math.min(100, percent || 0)
       );
 
-
     if (loadingFill) {
       loadingFill.style.width =
         `${safePercent}%`;
     }
-
 
     if (loadingPercent) {
       loadingPercent.textContent =
@@ -3398,128 +3307,123 @@ function primeTitleBgmFromGesture() {
     }
   };
 
-
   const enterGame = async () => {
-
-  if (started) return;
+    if (started) return;
 
     started = true;
-
     startButton.disabled = true;
 
-
     /*
-      這個 tap 是瀏覽器允許音訊啟動的
-      user gesture。
-
-      必須在 await 之前執行。
+      必須在第一個 await 之前執行。
+      這裡仍然屬於 TAP TO START 的 user gesture。
     */
-
     unlockAudioContextIOS();
     unlockMainStoryAudio();
-    primeTitleBgmFromGesture();
 
+    /*
+      直接使用正式 mainBgmAudio 播放 Title BGM。
+      不建立第二個 Audio，因此 Loading → Title
+      全程都是同一個 BGM instance。
+    */
+    if ((gameSettings.bgmVolume ?? 0) > 0) {
+      playMainBgm(
+        MAIN_AUDIO.bgmNewIdea,
+        0
+      );
+    }
 
     /*
       TAP → LOADING
     */
-
     startGate.classList.add(
-  "is-loading"
-);
+      "is-loading"
+    );
 
-updateLoadingProgress(
-  0,
-  1,
-  0
-);
-
-/*
-  先讓瀏覽器真正完成一次畫面更新，
-  確保手機 / 平板能看到 LOADING，
-  再開始資源預載。
-*/
-await new Promise(resolve => {
-  requestAnimationFrame(() => {
-    requestAnimationFrame(resolve);
-  });
-});
-
-try {
-  await preloadInitialGameResources(
-    (
-      completed,
-      total,
-      percent
-    ) => {
-      updateLoadingProgress(
-        completed,
-        total,
-        percent
-      );
-    }
-  );
-} catch (err) {
-  console.warn(
-    "[INITIAL PRELOAD] failed:",
-    err
-  );
-}
-
+    updateLoadingProgress(
+      0,
+      1,
+      0
+    );
 
     /*
-      強制完成 UI
+      先讓瀏覽器完成畫面更新，
+      再開始完整資源預載。
     */
+    await new Promise(resolve => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(resolve);
+      });
+    });
 
+    try {
+      await preloadInitialGameResources(
+        (
+          completed,
+          total,
+          percent
+        ) => {
+          updateLoadingProgress(
+            completed,
+            total,
+            percent
+          );
+        }
+      );
+    } catch (err) {
+      console.warn(
+        "[INITIAL PRELOAD] failed:",
+        err
+      );
+    }
+
+    /*
+      強制完成 Loading UI
+    */
     updateLoadingProgress(
       1,
       1,
       100
     );
 
+    /*
+      讓 100% 在實機上可見一下。
+    */
+    await new Promise(resolve => {
+      window.setTimeout(
+        resolve,
+        350
+      );
+    });
+
+    startGate.classList.add(
+      "is-ready"
+    );
 
     /*
-  Loading 完成。
+      這裡保留。
+      playMainBgm() 偵測到同一首 BGM 時，
+      只會沿用既有 mainBgmAudio，
+      不會重新建立 Audio。
+    */
+    startTitleBgm();
 
-  至少讓 100% 在實機上可見一下，
-  避免手機直接從 TAP 跳到 Title。
-*/
-await new Promise(resolve => {
-  window.setTimeout(resolve, 350);
-});
+    window.setTimeout(() => {
+      startGate.classList.add(
+        "is-closing"
+      );
 
+      window.setTimeout(() => {
+        startGate.remove();
+      }, 750);
 
-startGate.classList.add(
-  "is-ready"
-);
-
-
-startTitleBgm();
-
-
-window.setTimeout(() => {
-
-  startGate.classList.add(
-    "is-closing"
-  );
-
-
-  window.setTimeout(() => {
-
-    startGate.remove();
-
-  }, 750);
-
-}, 350);
-
+    }, 350);
   };
 
-
   startButton.addEventListener(
-  "click",
-  enterGame,
-  { once: true }
-);
+    "click",
+    enterGame,
+    { once: true }
+  );
 }
 
 function showScreen(screenKey) {
@@ -5003,17 +4907,6 @@ document.addEventListener('click', (event) => {
 
     if (mainBgmAudio) {
       mainBgmAudio.volume =
-        volume <= 0
-          ? 0
-          : getMainBgmVolume();
-    }
-
-    /*
-     * 如果設定畫面是在首次 Loading
-     * 特殊情況開啟，也同步 primed audio。
-     */
-    if (titleBgmPrimedAudio) {
-      titleBgmPrimedAudio.volume =
         volume <= 0
           ? 0
           : getMainBgmVolume();
