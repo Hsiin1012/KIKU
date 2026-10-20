@@ -1800,6 +1800,13 @@ let mainBgmAudioContext = null;
  * 例如 slider = 30% → 0.3
  */
 let mainBgmGainNode = null;
+/*
+ * SE Master Gain
+ * 手機 / 平板的 SE 音量統一由 Web Audio 控制
+ */
+let mainSeGainNode = null;
+
+const mainSeAudioNodes = new WeakMap();
 
 /*
  * 每一個 Main BGM Audio 都有自己的 Fade Gain。
@@ -2554,6 +2561,82 @@ function updateMainBgmGain() {
   mainBgmGainNode.gain.value = volume;
 }
 
+function ensureMainSeWebAudio(audio) {
+  if (!audio) return null;
+
+  try {
+    /*
+     * AudioContext 會由 Main BGM 初始化。
+     * 如果還沒有，就先讓 BGM Web Audio 建立它。
+     */
+    if (!mainBgmAudioContext) {
+      if (mainBgmAudio) {
+        ensureMainBgmWebAudio(mainBgmAudio);
+      }
+    }
+
+    if (!mainBgmAudioContext) {
+      return null;
+    }
+
+    /*
+     * 建立共用 SE Master Gain
+     */
+    if (!mainSeGainNode) {
+      mainSeGainNode =
+        mainBgmAudioContext.createGain();
+
+      mainSeGainNode.connect(
+        mainBgmAudioContext.destination
+      );
+    }
+
+    /*
+     * 同一個 Audio 只能建立一次 MediaElementSource
+     */
+    if (mainSeAudioNodes.has(audio)) {
+      return mainSeAudioNodes.get(audio);
+    }
+
+    const source =
+      mainBgmAudioContext
+        .createMediaElementSource(audio);
+
+    source.connect(mainSeGainNode);
+
+    mainSeAudioNodes.set(
+      audio,
+      source
+    );
+
+    /*
+     * HTML Audio 固定 100%
+     * 真正 SE 音量交給 GainNode
+     */
+    audio.volume = 1;
+
+    updateMainSeGain();
+
+    return source;
+
+  } catch (err) {
+    console.warn(
+      "[MAIN SE] Web Audio init failed:",
+      err
+    );
+
+    return null;
+  }
+}
+
+
+function updateMainSeGain() {
+  if (!mainSeGainNode) return;
+
+  mainSeGainNode.gain.value =
+    getMainSeVolume();
+}
+
 /* ---------- audio unlock ---------- */
 
 function unlockMainStoryAudio() {
@@ -2602,12 +2685,18 @@ if (
      * SE channels
      */
     if (mainSePool.length === 0) {
-      for (let i = 0; i < 4; i++) {
-        const seAudio = new Audio();
-        seAudio.preload = "auto";
-        mainSePool.push(seAudio);
-      }
-    }
+  for (let i = 0; i < 4; i++) {
+    const seAudio = new Audio();
+    seAudio.preload = "auto";
+    seAudio.volume = 1;
+
+    mainSePool.push(seAudio);
+
+    ensureMainSeWebAudio(seAudio);
+  }
+}
+
+updateMainSeGain();
 
     mainAudioUnlocked = true;
 
@@ -2875,7 +2964,9 @@ function playMainSe(path, onEnded = null) {
 
     audio.src = cleanPath;
     audio.loop = false;
-    audio.volume = volume;
+    audio.volume = 1;
+    ensureMainSeWebAudio(audio);
+    updateMainSeGain();
 
     let finished = false;
     const finishOnce = () => {
@@ -5251,6 +5342,7 @@ updateMainBgmGain();
 
     const volume =
       getMainSeVolume();
+      updateMainSeGain();
 
     /*
      * 校園早晨環境音
