@@ -4906,11 +4906,28 @@ document.addEventListener('click', (event) => {
     }
 
     if (mainBgmAudio) {
-      mainBgmAudio.volume =
-        volume <= 0
-          ? 0
-          : getMainBgmVolume();
+  const targetVolume =
+    volume <= 0
+      ? 0
+      : getMainBgmVolume();
+
+  mainBgmAudio.volume = targetVolume;
+
+  /*
+   * Mobile Safari / mobile browser：
+   * slider 操作時再次確認播放中的 BGM 使用最新音量。
+   */
+  if (!mainBgmAudio.paused) {
+    const playPromise = mainBgmAudio.play();
+
+    if (
+      playPromise &&
+      typeof playPromise.catch === "function"
+    ) {
+      playPromise.catch(() => {});
     }
+  }
+}
 
     /*
      * Extra Event BGM
@@ -5133,6 +5150,8 @@ window.addEventListener(
   "beforeunload",
   stopAllGameAudioForPageExit
 );
+
+
 
 document.addEventListener("DOMContentLoaded", () => {
   initEventListeners();
