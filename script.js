@@ -3807,6 +3807,9 @@ function renderDialogueStep(stepData) {
   removeReplayAudioButton("renderDialogueStep");
   stopAllTypewriters();
   stopActiveAudio("renderDialogueStep", stepData.id);
+    // 玩家正在觀看目前 Section 時，
+  // 背景提前準備下一個 Listening Section
+  preloadNextListeningSection(stepData.listeningSection);
 
 
   if (stepData.listeningSection === 1) {
