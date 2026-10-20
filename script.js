@@ -5706,16 +5706,31 @@ function pauseGameAudioForBackground() {
 
 async function resumeGameAudioFromBackground() {
   /*
-   * 先恢復 Web Audio Context。
-   */
-  if (
-    mainBgmAudioContext &&
-    mainBgmAudioContext.state === "suspended"
-  ) {
-    try {
-      await mainBgmAudioContext.resume();
-    } catch (e) {}
+ * iOS Safari：
+ * 從背景回到前景後，Web Audio Context
+ * 有時看起來已恢復，實際上仍然沒有聲音。
+ *
+ * 先 suspend，再稍微延遲 resume，
+ * 讓 iOS 重新建立音訊輸出。
+ */
+if (mainBgmAudioContext) {
+  try {
+    await mainBgmAudioContext.suspend();
+  } catch (e) {}
+
+  await new Promise(resolve => {
+    setTimeout(resolve, 300);
+  });
+
+  try {
+    await mainBgmAudioContext.resume();
+  } catch (e) {
+    console.warn(
+      "[BACKGROUND] AudioContext resume failed:",
+      e
+    );
   }
+}
 
 
   /*
