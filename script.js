@@ -1765,11 +1765,9 @@ let currentPlaybackToken = 0;
  * Page Background Audio Pause / Resume
  */
 const backgroundAudioState = {
-  mainBgm: false,
-  morningAmbient: false,
-  voice: false,
-  extraBgm: false,
-  parallelVoices: []
+  mainBgm: null,
+  morningAmbient: null,
+  extraBgm: null
 };
 
 /* =========================================================
@@ -5548,46 +5546,59 @@ if (elements.cfgVoiceSlider) {
 
 function pauseGameAudioForBackground() {
   /*
- * Voice
- *
- * 進入背景後直接停止，
- * 回到頁面時不自動續播。
- */
-backgroundAudioState.voice = false;
-
-if (activeAudioInstance) {
-  try {
-    activeAudioInstance.pause();
-  } catch (e) {}
-}
-
-
-  /*
-   * Morning Ambient
+   * Main BGM
+   * 記錄播放資訊後，完全卸載 HTML Audio。
    */
-  backgroundAudioState.morningAmbient =
-    !!morningAmbientAudio &&
-    !morningAmbientAudio.paused;
+  backgroundAudioState.mainBgm = null;
 
-  if (backgroundAudioState.morningAmbient) {
+  if (mainBgmAudio && mainBgmPath) {
+    backgroundAudioState.mainBgm = {
+      path: mainBgmPath,
+      time: Number.isFinite(mainBgmAudio.currentTime)
+        ? mainBgmAudio.currentTime
+        : 0,
+      wasPlaying: !mainBgmAudio.paused
+    };
+
+    const audio = mainBgmAudio;
+
+    mainBgmAudio = null;
+    mainBgmPath = "";
+
     try {
-      morningAmbientAudio.pause();
+      audio.pause();
+      audio.removeAttribute("src");
+      audio.load();
     } catch (e) {}
   }
 
 
   /*
-   * Main / Extra Voice
-   *
-   * activeAudioInstance 是你目前主要 Voice channel。
+   * Morning Ambient
+   * 同樣記錄位置後完全卸載。
    */
-  backgroundAudioState.voice =
-    !!activeAudioInstance &&
-    !activeAudioInstance.paused;
+  backgroundAudioState.morningAmbient = null;
 
-  if (backgroundAudioState.voice) {
+  if (morningAmbientAudio) {
+    const ambientPath =
+      morningAmbientAudio.dataset?.mainPath || "";
+
+    backgroundAudioState.morningAmbient = {
+      path: ambientPath,
+      time: Number.isFinite(morningAmbientAudio.currentTime)
+        ? morningAmbientAudio.currentTime
+        : 0,
+      wasPlaying: !morningAmbientAudio.paused
+    };
+
+    const audio = morningAmbientAudio;
+
+    morningAmbientAudio = null;
+
     try {
-      activeAudioInstance.pause();
+      audio.pause();
+      audio.removeAttribute("src");
+      audio.load();
     } catch (e) {}
   }
 
@@ -5595,143 +5606,308 @@ if (activeAudioInstance) {
   /*
    * Extra Event BGM
    */
-  backgroundAudioState.extraBgm =
-    !!extraBgmAudio &&
-    !extraBgmAudio.paused;
+  backgroundAudioState.extraBgm = null;
 
-  if (backgroundAudioState.extraBgm) {
+  if (extraBgmAudio) {
+    const audio = extraBgmAudio;
+
+    backgroundAudioState.extraBgm = {
+      path:
+        audio.currentSrc ||
+        audio.src ||
+        "",
+      time: Number.isFinite(audio.currentTime)
+        ? audio.currentTime
+        : 0,
+      wasPlaying: !audio.paused
+    };
+
+    extraBgmAudio = null;
+
+    if (extraBgmFadeTimer) {
+      clearInterval(extraBgmFadeTimer);
+      extraBgmFadeTimer = null;
+    }
+
     try {
-      extraBgmAudio.pause();
+      audio.pause();
+      audio.removeAttribute("src");
+      audio.load();
     } catch (e) {}
-  }
-
-
-  /*
-   * Extra Event 雙人同時說話
-   */
-  backgroundAudioState.parallelVoices = [];
-
-  if (
-    Array.isArray(parallelAudioInstances)
-  ) {
-    parallelAudioInstances.forEach(
-      (audio) => {
-        if (!audio || audio.paused) return;
-
-        backgroundAudioState
-          .parallelVoices
-          .push(audio);
-
-        try {
-          audio.pause();
-        } catch (e) {}
-      }
-    );
-  }
-
-
-  /*
-   * SE 是一次性音效。
-   * 進背景後只暫停，不記錄、不恢復。
-   */
-  if (Array.isArray(mainSePool)) {
-    mainSePool.forEach((audio) => {
-      if (!audio || audio.paused) return;
-
-      try {
-        audio.pause();
-      } catch (e) {}
-    });
-  }
-
-  if (extraSePool) {
-    extraSePool.forEach((audio) => {
-      if (!audio || audio.paused) return;
-
-      try {
-        audio.pause();
-      } catch (e) {}
-    });
-  }
-}
-
-function resumeGameAudioFromBackground() {
-
-
-  /*
-   * Main BGM
-   */
-  if (
-    backgroundAudioState.mainBgm &&
-    mainBgmAudio
-  ) {
-    mainBgmAudio
-      .play()
-      .catch(() => {});
-  }
-
-
-  /*
-   * Morning Ambient
-   */
-  if (
-    backgroundAudioState.morningAmbient &&
-    morningAmbientAudio
-  ) {
-    morningAmbientAudio
-      .play()
-      .catch(() => {});
   }
 
 
   /*
    * Voice
+   *
+   * Voice 不保存播放位置。
+   * 直接正常清掉目前 instance，
+   * 回到頁面後也不自動播放。
+   */
+  try {
+    stopActiveAudio(
+      "pageBackground",
+      "pageBackground"
+    );
+  } catch (e) {}
+
+
+  /*
+   * Extra Event 雙人 Voice
+   */
+  try {
+    stopParallelVoices();
+  } catch (e) {}
+
+
+  /*
+   * Main Story SE
+   * 一次性音效不需要恢復。
+   */
+  if (Array.isArray(mainSePool)) {
+    mainSePool.forEach((audio) => {
+      if (!audio) return;
+
+      try {
+        audio.pause();
+        audio.currentTime = 0;
+      } catch (e) {}
+    });
+  }
+
+
+  /*
+   * Extra Event SE
+   */
+  if (extraSePool) {
+    extraSePool.forEach((audio) => {
+      if (!audio) return;
+
+      try {
+        audio.pause();
+        audio.currentTime = 0;
+      } catch (e) {}
+    });
+  }
+
+
+  /*
+   * Web Audio Context 本身也暫停。
    */
   if (
-    backgroundAudioState.voice &&
-    activeAudioInstance
+    mainBgmAudioContext &&
+    mainBgmAudioContext.state === "running"
   ) {
-    activeAudioInstance
-      .play()
+    mainBgmAudioContext
+      .suspend()
       .catch(() => {});
+  }
+}
+
+async function resumeGameAudioFromBackground() {
+  /*
+   * 先恢復 Web Audio Context。
+   */
+  if (
+    mainBgmAudioContext &&
+    mainBgmAudioContext.state === "suspended"
+  ) {
+    try {
+      await mainBgmAudioContext.resume();
+    } catch (e) {}
+  }
+
+
+  /*
+   * Main BGM
+   */
+  const savedBgm =
+    backgroundAudioState.mainBgm;
+
+  backgroundAudioState.mainBgm = null;
+
+  if (
+    savedBgm &&
+    savedBgm.wasPlaying &&
+    savedBgm.path
+  ) {
+    try {
+      const audio = new Audio();
+
+      audio.preload = "auto";
+      audio.loop = true;
+      audio.src = savedBgm.path;
+
+      mainBgmAudio = audio;
+      mainBgmPath = savedBgm.path;
+
+      const nodes =
+        ensureMainBgmWebAudio(audio);
+
+      if (nodes?.fadeGain) {
+        nodes.fadeGain.gain.value = 1;
+      }
+
+      const restoreTime = () => {
+        try {
+          if (
+            Number.isFinite(savedBgm.time) &&
+            savedBgm.time >= 0
+          ) {
+            audio.currentTime =
+              savedBgm.time;
+          }
+        } catch (e) {}
+      };
+
+      if (audio.readyState >= 1) {
+        restoreTime();
+      } else {
+        audio.addEventListener(
+          "loadedmetadata",
+          restoreTime,
+          { once: true }
+        );
+      }
+
+      await audio.play();
+
+      updateMainBgmGain();
+
+    } catch (err) {
+      console.warn(
+        "[BACKGROUND] Main BGM resume failed:",
+        err
+      );
+    }
+  }
+
+
+  /*
+   * Morning Ambient
+   */
+  const savedAmbient =
+    backgroundAudioState.morningAmbient;
+
+  backgroundAudioState.morningAmbient = null;
+
+  if (
+    savedAmbient &&
+    savedAmbient.wasPlaying &&
+    savedAmbient.path
+  ) {
+    try {
+      const audio = new Audio();
+
+      audio.preload = "auto";
+      audio.loop = true;
+      audio.volume = 1;
+      audio.src = savedAmbient.path;
+
+      audio.dataset.mainPath =
+        savedAmbient.path;
+
+      morningAmbientAudio = audio;
+
+      ensureMorningAmbientWebAudio(audio);
+      updateMorningAmbientGain();
+
+      const restoreTime = () => {
+        try {
+          if (
+            Number.isFinite(savedAmbient.time) &&
+            savedAmbient.time >= 0
+          ) {
+            audio.currentTime =
+              savedAmbient.time;
+          }
+        } catch (e) {}
+      };
+
+      if (audio.readyState >= 1) {
+        restoreTime();
+      } else {
+        audio.addEventListener(
+          "loadedmetadata",
+          restoreTime,
+          { once: true }
+        );
+      }
+
+      await audio.play();
+
+    } catch (err) {
+      console.warn(
+        "[BACKGROUND] Ambient resume failed:",
+        err
+      );
+    }
   }
 
 
   /*
    * Extra Event BGM
    */
+  const savedExtraBgm =
+    backgroundAudioState.extraBgm;
+
+  backgroundAudioState.extraBgm = null;
+
   if (
-    backgroundAudioState.extraBgm &&
-    extraBgmAudio
+    savedExtraBgm &&
+    savedExtraBgm.wasPlaying &&
+    savedExtraBgm.path
   ) {
-    extraBgmAudio
-      .play()
-      .catch(() => {});
+    try {
+      const audio =
+        new Audio(savedExtraBgm.path);
+
+      audio.preload = "auto";
+      audio.loop = true;
+
+      extraBgmAudio = audio;
+
+      const restoreTime = () => {
+        try {
+          if (
+            Number.isFinite(savedExtraBgm.time) &&
+            savedExtraBgm.time >= 0
+          ) {
+            audio.currentTime =
+              savedExtraBgm.time;
+          }
+        } catch (e) {}
+      };
+
+      if (audio.readyState >= 1) {
+        restoreTime();
+      } else {
+        audio.addEventListener(
+          "loadedmetadata",
+          restoreTime,
+          { once: true }
+        );
+      }
+
+      audio.volume =
+        Math.max(
+          0,
+          Math.min(
+            1,
+            ((gameSettings.bgmVolume ?? 50) / 100) *
+            MAIN_BGM_VOLUME_FACTOR
+          )
+        );
+
+      await audio.play();
+
+    } catch (err) {
+      console.warn(
+        "[BACKGROUND] Extra BGM resume failed:",
+        err
+      );
+    }
   }
-
-
-  /*
-   * Extra Event 雙人 Voice
-   */
-  backgroundAudioState
-    .parallelVoices
-    .forEach((audio) => {
-      if (!audio) return;
-
-      audio
-        .play()
-        .catch(() => {});
-    });
-
-
-  /*
-   * 清空暫存狀態
-   */
-  backgroundAudioState.mainBgm = false;
-  backgroundAudioState.morningAmbient = false;
-  backgroundAudioState.voice = false;
-  backgroundAudioState.extraBgm = false;
-  backgroundAudioState.parallelVoices = [];
 }
 
 function stopAllGameAudioForPageExit() {
