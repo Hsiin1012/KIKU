@@ -599,8 +599,6 @@ function startExtraEvent() {
   extraEventState.stepIndex = 0;
   extraEventState.currentCgKey = null;
 
-  preloadExtraEventFirstHalf();
-
   if (elements.quizOverlay) elements.quizOverlay.classList.add('hidden');
   if (elements.feedbackModal) elements.feedbackModal.classList.add('hidden');
 
@@ -658,8 +656,7 @@ function renderExtraEventStep() {
   playExtraBgm(
     EXTRA_AUDIO.bgmComedy
   );
-
-  preloadExtraEventSecondHalf();
+}
 }
 
   const cgUrl = getExtraEventCgSource(step.cgKey);
@@ -701,8 +698,9 @@ if (step.type === "blackout") {
   }
 
   if (step.type === "title_card") {
+  if (step.type === "title_card") {
   playExtraSe(EXTRA_AUDIO.seTitle);
-    playMainSe(MAIN_AUDIO.seExtraTitle);
+
     if (elements.bgNameTag) elements.bgNameTag.innerText = "【EXTRA EVENT】";
     if (elements.speakerName) elements.speakerName.innerText = step.title;
     if (elements.speakerTitle) elements.speakerTitle.innerText = "特別劇本";
@@ -722,9 +720,6 @@ if (step.type === "blackout") {
 
   if (step.type === "narrative") {
 
-  if (step.text === "――文化祭当日。") {
-    playExtraSe(EXTRA_AUDIO.seImagination);
-  }
     if (elements.bgNameTag) elements.bgNameTag.innerText = "【場景】";
     if (elements.speakerName) elements.speakerName.innerText = "旁白";
     if (elements.speakerTitle) elements.speakerTitle.innerText = "";
@@ -1074,32 +1069,44 @@ function collectListeningSectionResources(
    ========================================================= */
 
 function getInitialGameResources() {
+  const resources = [];
 
-  const resources = [
-/*
-  Title 首頁 BGM
-  必須在 Start Loading 階段完成
-*/
-{
-  type: "audio",
-  path: MAIN_AUDIO.bgmNewIdea
-},
+  /* =========================================================
+     CHAPTER 1
+     全部 Listening Section 一次載入
+     會包含：
+     - Background
+     - Character Sprite
+     - Voice 001–063
+     ========================================================= */
 
-    /*
-      第一段劇情
-      001–014
-    */
-    ...collectListeningSectionResources(
-      1,
-      1
-    ),
+  for (let section = 1; section <= 5; section++) {
+    resources.push(
+      ...collectListeningSectionResources(
+        1,
+        section
+      )
+    );
+  }
 
-    /*
-      第一段立即需要的 BGM / Ambient
-    */
+
+  /* =========================================================
+     MAIN STORY AUDIO
+     BGM / Ambient / SE 全部一次載入
+     ========================================================= */
+
+  resources.push(
     {
       type: "audio",
       path: MAIN_AUDIO.bgmDaily
+    },
+    {
+      type: "audio",
+      path: MAIN_AUDIO.bgmSchoolDay
+    },
+    {
+      type: "audio",
+      path: MAIN_AUDIO.bgmNewIdea
     },
 
     {
@@ -1107,29 +1114,81 @@ function getInitialGameResources() {
       path: MAIN_AUDIO.ambSchoolMorning
     },
 
-    /*
-      Q1 會用到的 SE
-    */
+    // Q1 → 015 的上課鐘聲
+    // 手機版特別重要，必須在遊戲開始前完成
+    {
+      type: "audio",
+      path: MAIN_AUDIO.seSchoolBell
+    },
+
     {
       type: "audio",
       path: MAIN_AUDIO.seChoiceOpen
     },
-
     {
       type: "audio",
       path: MAIN_AUDIO.seChoiceSelect
     },
-
     {
       type: "audio",
       path: MAIN_AUDIO.seCorrect
     },
-
     {
       type: "audio",
       path: MAIN_AUDIO.seWrong
+    },
+    {
+      type: "audio",
+      path: MAIN_AUDIO.seChapterClear
     }
-  ];
+  );
+
+
+  /* =========================================================
+     EXTRA EVENT
+     CG01 / CG02
+     Voice 001–031
+     BGM / SE
+     ========================================================= */
+
+  resources.push(
+    {
+      type: "image",
+      path: getExtraEventCgSource("cg01")
+    },
+    {
+      type: "image",
+      path: getExtraEventCgSource("cg02")
+    },
+
+    {
+      type: "audio",
+      path: EXTRA_AUDIO.seTrigger
+    },
+    {
+      type: "audio",
+      path: EXTRA_AUDIO.seTitle
+    },
+    {
+      type: "audio",
+      path: EXTRA_AUDIO.seImagination
+    },
+    {
+      type: "audio",
+      path: EXTRA_AUDIO.bgmComedy
+    },
+
+    ...collectExtraEventVoiceResources(
+      1,
+      31
+    )
+  );
+
+
+  /* =========================================================
+     preloadResourceBatch() 本身會自動去除重複 path
+     所以這裡不需要另外 dedupe
+     ========================================================= */
 
   return resources;
 }
@@ -3316,9 +3375,6 @@ function renderDialogueStep(stepData) {
   stopAllTypewriters();
   stopActiveAudio("renderDialogueStep", stepData.id);
 
-  preloadNextListeningSection(
-    stepData.listeningSection
-  );
 
   if (stepData.listeningSection === 1) {
     startMorningAmbient();
