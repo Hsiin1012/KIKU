@@ -1908,19 +1908,20 @@ function preloadAudio(path) {
     return resourcePreloader.loading.get(src);
   }
 
-
   const promise = new Promise(resolve => {
-
     const audio = new Audio();
 
     let finished = false;
     let timeoutId = null;
 
-
     const cleanup = () => {
+      audio.removeEventListener(
+        "loadeddata",
+        finish
+      );
 
       audio.removeEventListener(
-        "canplaythrough",
+        "canplay",
         finish
       );
 
@@ -1933,44 +1934,44 @@ function preloadAudio(path) {
         clearTimeout(timeoutId);
         timeoutId = null;
       }
-
     };
 
-
     const finish = () => {
-
       if (finished) return;
 
       finished = true;
-
       cleanup();
 
       resourcePreloader.loaded.add(src);
-
       resourcePreloader.loading.delete(src);
 
       resolve();
-
     };
 
-
     /*
-      不使用 loadeddata 當完成條件。
-
-      手機 Safari 的 loadeddata
-      只代表已經取得第一段可播放資料，
-      不代表整個音訊已經準備好。
-    */
-
+     * 不再等待 canplaythrough。
+     *
+     * loadeddata：
+     * 已經取得可播放的媒體資料。
+     *
+     * canplay：
+     * 瀏覽器已經可以開始播放。
+     *
+     * 兩者任一先到就視為 preload ready。
+     */
     audio.preload = "auto";
 
-
     audio.addEventListener(
-      "canplaythrough",
+      "loadeddata",
       finish,
       { once: true }
     );
 
+    audio.addEventListener(
+      "canplay",
+      finish,
+      { once: true }
+    );
 
     audio.addEventListener(
       "error",
@@ -1978,9 +1979,7 @@ function preloadAudio(path) {
       { once: true }
     );
 
-
     audio.src = src;
-
 
     try {
       audio.load();
@@ -1990,32 +1989,25 @@ function preloadAudio(path) {
         src,
         err
       );
+
+      finish();
+      return;
     }
 
-
     /*
-      iOS Safari 不保證觸發 canplaythrough。
-
-      所以仍保留 timeout，
-      避免 Loading 永久卡住。
-
-      手機網路通常比桌機慢，
-      這裡給 12 秒。
-    */
-
+     * 最後保險。
+     * 避免某些手機瀏覽器完全不回報 media event。
+     */
     timeoutId = window.setTimeout(
       finish,
-      12000
+      5000
     );
-
   });
-
 
   resourcePreloader.loading.set(
     src,
     promise
   );
-
 
   return promise;
 }
