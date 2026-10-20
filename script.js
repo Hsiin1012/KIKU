@@ -1198,11 +1198,6 @@ function getInitialGameResources() {
     },
     {
       type: "audio",
-      path: MAIN_AUDIO.bgmNewIdea
-    },
-
-    {
-      type: "audio",
       path: MAIN_AUDIO.ambSchoolMorning
     },
 
@@ -1840,10 +1835,6 @@ const MORNING_AMBIENT_FACTOR = 0.28;
 const resourcePreloader = {
   loaded: new Set(),
   loading: new Map(),
-
-  // 保存已經預載完成的 Audio 實例
-  // 正式播放 Voice 時可以直接重用
-  audioCache: new Map()
 };
 
 
@@ -1877,9 +1868,11 @@ function preloadImage(path) {
 
   const promise = new Promise(resolve => {
     const img = new Image();
+    let finished = false;
 
     const finish = () => {
   if (finished) return;
+  finished = true;
 
   finished = true;
   cleanup();
@@ -1962,7 +1955,7 @@ function preloadAudio(path) {
       resourcePreloader.loading.delete(src);
 
       resolve();
-    };
+};
 
     /*
      * 不再等待 canplaythrough。
@@ -3291,17 +3284,7 @@ function playVoiceAudio(audioPath, dialogueId = "unknown", onEndedCallback) {
   }
 
   try {
-  let audio = resourcePreloader.audioCache.get(cleanPath);
-
-  if (audio) {
-    // 使用 Initial Loading 已經準備好的 Audio
-    audio.pause();
-    audio.currentTime = 0;
-  } else {
-    // 沒有預載過才建立新的 Audio
-    audio = new Audio(cleanPath);
-  }
-
+  const audio = new Audio(cleanPath);
   audio.volume = currentVol;
   activeAudioInstance = audio;
 
