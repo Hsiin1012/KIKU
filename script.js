@@ -1871,20 +1871,14 @@ function preloadImage(path) {
     let finished = false;
 
     const finish = () => {
-  if (finished) return;
-  finished = true;
+      if (finished) return;
+      finished = true;
 
-  finished = true;
-  cleanup();
+      resourcePreloader.loaded.add(src);
+      resourcePreloader.loading.delete(src);
 
-  resourcePreloader.loaded.add(src);
-  resourcePreloader.loading.delete(src);
-
-  // 保存這個已經預載過的 Audio
-  resourcePreloader.audioCache.set(src, audio);
-
-  resolve();
-};
+      resolve();
+    };
 
     img.onload = finish;
 
@@ -1898,7 +1892,6 @@ function preloadImage(path) {
 
   return promise;
 }
-
 
 /* ---------- audio ---------- */
 
