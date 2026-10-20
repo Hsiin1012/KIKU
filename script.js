@@ -1826,6 +1826,20 @@ const mainBgmAudioNodes = new WeakMap();
 let morningAmbientAudio = null;
 let morningAmbientFadeTimer = null;
 
+/*
+ * Morning Ambient Web Audio
+ *
+ * audio
+ *   ↓
+ * fadeGain
+ *   ↓
+ * masterGain
+ *   ↓
+ * speakers
+ */
+let morningAmbientMasterGain = null;
+const morningAmbientAudioNodes = new WeakMap();
+
 let mainAudioUnlocked = false;
 
 const mainSePool = [];
@@ -2198,6 +2212,89 @@ function getMorningAmbientVolume() {
 }
 
 
+function ensureMorningAmbientWebAudio(audio) {
+  if (!audio) return null;
+
+  try {
+    if (!mainBgmAudioContext) {
+      if (mainBgmAudio) {
+        ensureMainBgmWebAudio(mainBgmAudio);
+      }
+    }
+
+    if (!mainBgmAudioContext) {
+      return null;
+    }
+
+    /*
+     * Ambient Master Gain
+     * 負責 SE Slider × 0.28
+     */
+    if (!morningAmbientMasterGain) {
+      morningAmbientMasterGain =
+        mainBgmAudioContext.createGain();
+
+      morningAmbientMasterGain.connect(
+        mainBgmAudioContext.destination
+      );
+    }
+
+    /*
+     * 同一個 Audio 只能建立一次 MediaElementSource
+     */
+    if (morningAmbientAudioNodes.has(audio)) {
+      return morningAmbientAudioNodes.get(audio);
+    }
+
+    const source =
+      mainBgmAudioContext.createMediaElementSource(audio);
+
+    const fadeGain =
+      mainBgmAudioContext.createGain();
+
+    fadeGain.gain.value = 0;
+
+    source.connect(fadeGain);
+    fadeGain.connect(morningAmbientMasterGain);
+
+    const nodes = {
+      source,
+      fadeGain
+    };
+
+    morningAmbientAudioNodes.set(
+      audio,
+      nodes
+    );
+
+    /*
+     * HTML Audio 固定 100%
+     */
+    audio.volume = 1;
+
+    updateMorningAmbientGain();
+
+    return nodes;
+
+  } catch (err) {
+    console.warn(
+      "[MORNING AMBIENT] Web Audio init failed:",
+      err
+    );
+
+    return null;
+  }
+}
+
+
+function updateMorningAmbientGain() {
+  if (!morningAmbientMasterGain) return;
+
+  morningAmbientMasterGain.gain.value =
+    getMorningAmbientVolume();
+}
+
+
 /* ---------- fade ---------- */
 
 function fadeMainAudio(
@@ -2305,36 +2402,51 @@ function fadeMainAudio(
   }
 
   /*
-   * =========================
-   * Morning Ambient
-   * =========================
-   *
-   * Ambient 目前沒有手機音量問題，
-   * 所以保留原本 HTMLAudioElement.volume。
-   */
-  if (
-    type === "ambient" &&
-    morningAmbientFadeTimer
-  ) {
-    clearInterval(
-      morningAmbientFadeTimer
-    );
-
+ * =========================
+ * Morning Ambient
+ * =========================
+ */
+if (type === "ambient") {
+  if (morningAmbientFadeTimer) {
+    clearInterval(morningAmbientFadeTimer);
     morningAmbientFadeTimer = null;
   }
 
-  const startVolume =
-    Number.isFinite(audio.volume)
-      ? audio.volume
-      : 0;
+  const nodes =
+    ensureMorningAmbientWebAudio(audio);
 
-  const safeTarget = Math.max(
-    0,
-    Math.min(1, targetVolume)
-  );
+  /*
+   * Web Audio 不可用時 fallback
+   */
+  if (!nodes || !nodes.fadeGain) {
+    audio.volume = Math.max(
+      0,
+      Math.min(1, targetVolume)
+    );
+
+    if (onComplete) onComplete();
+    return;
+  }
+
+  const fadeGain = nodes.fadeGain;
+
+  const startVolume =
+    fadeGain.gain.value;
+
+  /*
+   * 注意：
+   * targetVolume 裡原本包含 SE × 0.28。
+   * 現在這部分交給 Master Gain，
+   * 所以 fadeGain 只負責 0 → 1 的淡入淡出。
+   */
+  const safeTarget =
+    targetVolume > 0 ? 1 : 0;
 
   if (duration <= 0) {
-    audio.volume = safeTarget;
+    fadeGain.gain.value =
+      safeTarget;
+
+    updateMorningAmbientGain();
 
     if (onComplete) onComplete();
     return;
@@ -2355,7 +2467,7 @@ function fadeMainAudio(
           elapsed / duration
         );
 
-      audio.volume =
+      fadeGain.gain.value =
         startVolume +
         (safeTarget - startVolume) *
         progress;
@@ -2364,14 +2476,15 @@ function fadeMainAudio(
         clearInterval(timer);
 
         if (
-          type === "ambient" &&
           morningAmbientFadeTimer === timer
         ) {
           morningAmbientFadeTimer = null;
         }
 
-        audio.volume =
+        fadeGain.gain.value =
           safeTarget;
+
+        updateMorningAmbientGain();
 
         if (onComplete) {
           onComplete();
@@ -2379,10 +2492,10 @@ function fadeMainAudio(
       }
     }, 40);
 
-  if (type === "ambient") {
-    morningAmbientFadeTimer =
-      timer;
-  }
+  morningAmbientFadeTimer = timer;
+
+  return;
+}
 }
 
 function fadeDetachedMainAudioOut(
@@ -3101,8 +3214,11 @@ function startMorningAmbient(
 
   audio.preload = "auto";
   audio.loop = true;
-  audio.volume = 0;
+  audio.volume = 1;
   audio.src = cleanPath;
+
+  ensureMorningAmbientWebAudio(audio);
+  updateMorningAmbientGain();
 
   audio.dataset.mainPath = cleanPath;
 
@@ -5347,18 +5463,7 @@ updateMainBgmGain();
     /*
      * 校園早晨環境音
      */
-    if (morningAmbientAudio) {
-      if (morningAmbientFadeTimer) {
-        clearInterval(
-          morningAmbientFadeTimer
-        );
-        morningAmbientFadeTimer = null;
-      }
-
-      morningAmbientAudio.volume =
-        getMorningAmbientVolume();
-    }
-
+    updateMorningAmbientGain();
     /*
  * Main Story SE
  * HTML Audio 固定 100%
