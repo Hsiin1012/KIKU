@@ -3236,35 +3236,17 @@ function startTitleBgm() {
     return;
   }
 
-  const targetVolume =
-    getMainBgmVolume();
-
-  if (targetVolume <= 0) {
-    if (titleBgmPrimedAudio) {
-      try {
-        titleBgmPrimedAudio.pause();
-        titleBgmPrimedAudio.currentTime = 0;
-        titleBgmPrimedAudio.src = "";
-        titleBgmPrimedAudio.load();
-      } catch (e) {}
-
-      titleBgmPrimedAudio = null;
-    }
-
+  if ((gameSettings.bgmVolume ?? 0) <= 0) {
     stopMainBgm(0);
     return;
   }
 
   /*
-   * 首次進站：
-   * 直接接手 TAP 時已經成功 play() 的 Audio。
-   * 不重新建立另一個 BGM。
+   * TAP 時已經啟動的 Title BGM
+   * 直接交給 Main BGM 系統管理。
    */
   if (titleBgmPrimedAudio) {
-    stopMainBgm(0);
-
-    mainBgmAudio =
-      titleBgmPrimedAudio;
+    mainBgmAudio = titleBgmPrimedAudio;
 
     mainBgmPath =
       normalizeMainAudioPath(
@@ -3274,20 +3256,14 @@ function startTitleBgm() {
     titleBgmPrimedAudio = null;
 
     mainBgmAudio.loop = true;
-
-    fadeMainAudio(
-      mainBgmAudio,
-      targetVolume,
-      700,
-      "bgm"
-    );
+    mainBgmAudio.volume =
+      getMainBgmVolume();
 
     return;
   }
 
   /*
-   * 之後從遊戲返回 Title：
-   * 使用正常 Main BGM 系統。
+   * 之後從其他畫面返回 Title。
    */
   playMainBgm(
     MAIN_AUDIO.bgmNewIdea,
@@ -3343,7 +3319,8 @@ function primeTitleBgmFromGesture() {
     audio.loop = true;
 
     // Loading 期間完全靜音。
-    audio.volume = 0;
+    audio.volume =
+      getMainBgmVolume();
 
     const playPromise = audio.play();
 
