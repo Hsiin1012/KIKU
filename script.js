@@ -2864,11 +2864,6 @@ function playMainSe(path, onEnded = null) {
 
   const volume = getMainSeVolume();
 
-  if (volume <= 0) {
-    if (typeof onEnded === "function") onEnded();
-    return;
-  }
-
   const cleanPath =
     normalizeMainAudioPath(path);
 
