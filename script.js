@@ -616,86 +616,172 @@ function renderExtraEventStep() {
   stopParallelVoices();
   removeReplayAudioButton("extraEventStep");
 
-  const step = EXTRA_EVENT_STEPS[extraEventState.stepIndex];
+  const step =
+    EXTRA_EVENT_STEPS[
+      extraEventState.stepIndex
+    ];
 
-  // Extra Event CG 持續顯示
-  // cg step 設定 currentCgKey 後，後續角色台詞也持續重新套用 CG
+  /*
+    Extra Event CG 持續顯示
+    cg step 設定 currentCgKey 後，
+    後續角色台詞也持續重新套用 CG
+  */
   if (
     extraEventState.currentCgKey &&
     step &&
     step.type !== "blackout"
   ) {
     const currentCgUrl =
-      getExtraEventCgSource(extraEventState.currentCgKey);
+      getExtraEventCgSource(
+        extraEventState.currentCgKey
+      );
 
-    if (elements.bgLayer && currentCgUrl) {
+    if (
+      elements.bgLayer &&
+      currentCgUrl
+    ) {
       elements.bgLayer.style.backgroundImage =
         `url('${currentCgUrl}')`;
 
-      elements.bgLayer.style.backgroundSize = "cover";
-      elements.bgLayer.style.backgroundPosition = "center";
-      elements.bgLayer.style.backgroundColor = "";
-      elements.bgLayer.classList.remove("dimmed", "memory");
+      elements.bgLayer.style.backgroundSize =
+        "cover";
+
+      elements.bgLayer.style.backgroundPosition =
+        "center";
+
+      elements.bgLayer.style.backgroundColor =
+        "";
+
+      elements.bgLayer.classList.remove(
+        "dimmed",
+        "memory"
+      );
     }
   }
+
   if (!step) {
     finishExtraEvent();
     return;
   }
 
   // Hide standing sprites during Extra Event
-  if (elements.spriteLeft) elements.spriteLeft.classList.add('hidden');
-  if (elements.spriteCenter) elements.spriteCenter.classList.add('hidden');
-  if (elements.spriteRight) elements.spriteRight.classList.add('hidden');
-
- if (step.type === "cg") {
-  extraEventState.currentCgKey = step.cgKey;
-
-  // CG01 開始時播放 Extra Event comedy BGM
-  if (step.cgKey === "cg01") {
-  playExtraBgm(
-    EXTRA_AUDIO.bgmComedy
-  );
-}
-}
-
-  const cgUrl = getExtraEventCgSource(step.cgKey);
-
-  if (elements.bgLayer) {
-    elements.bgLayer.style.backgroundImage = `url('${cgUrl}')`;
-    elements.bgLayer.style.backgroundSize = "cover";
-    elements.bgLayer.style.backgroundPosition = "center";
-    elements.bgLayer.style.backgroundColor = "";
-    elements.bgLayer.classList.remove("dimmed", "memory");
+  if (elements.spriteLeft) {
+    elements.spriteLeft.classList.add(
+      "hidden"
+    );
   }
 
-  extraEventState.stepIndex++;
-  renderExtraEventStep();
-  return;
-}
+  if (elements.spriteCenter) {
+    elements.spriteCenter.classList.add(
+      "hidden"
+    );
+  }
 
-if (step.type === "blackout") {
-    extraEventState.currentCgKey = null;
-    if (elements.bgLayer) {
-      elements.bgLayer.style.backgroundImage = "none";
-      elements.bgLayer.style.backgroundColor = "#000000";
+  if (elements.spriteRight) {
+    elements.spriteRight.classList.add(
+      "hidden"
+    );
+  }
+
+  /* =========================================================
+     CG
+     ========================================================= */
+
+  if (step.type === "cg") {
+    extraEventState.currentCgKey =
+      step.cgKey;
+
+    // CG01 開始時播放 Extra Event comedy BGM
+    if (step.cgKey === "cg01") {
+      playExtraBgm(
+        EXTRA_AUDIO.bgmComedy
+      );
     }
-    if (elements.bgNameTag) elements.bgNameTag.innerText = "";
-    if (elements.speakerName) elements.speakerName.innerText = "";
-    if (elements.speakerTitle) elements.speakerTitle.innerText = "";
-    if (elements.vnNameplate) elements.vnNameplate.style.backgroundColor = "transparent";
-    if (elements.dialogueJp) {
-      elements.dialogueJp.innerHTML = "";
-      elements.dialogueJp.style.display = "none";
+
+    const cgUrl =
+      getExtraEventCgSource(
+        step.cgKey
+      );
+
+    if (
+      elements.bgLayer &&
+      cgUrl
+    ) {
+      elements.bgLayer.style.backgroundImage =
+        `url('${cgUrl}')`;
+
+      elements.bgLayer.style.backgroundSize =
+        "cover";
+
+      elements.bgLayer.style.backgroundPosition =
+        "center";
+
+      elements.bgLayer.style.backgroundColor =
+        "";
+
+      elements.bgLayer.classList.remove(
+        "dimmed",
+        "memory"
+      );
     }
-    if (elements.dialogueZh) {
-      elements.dialogueZh.innerHTML = "";
-      elements.dialogueZh.style.display = "none";
-    }
+
     extraEventState.stepIndex++;
     renderExtraEventStep();
     return;
   }
+
+  /* =========================================================
+     BLACKOUT
+     ========================================================= */
+
+  if (step.type === "blackout") {
+    extraEventState.currentCgKey = null;
+
+    if (elements.bgLayer) {
+      elements.bgLayer.style.backgroundImage =
+        "none";
+
+      elements.bgLayer.style.backgroundColor =
+        "#000000";
+    }
+
+    if (elements.bgNameTag) {
+      elements.bgNameTag.innerText = "";
+    }
+
+    if (elements.speakerName) {
+      elements.speakerName.innerText = "";
+    }
+
+    if (elements.speakerTitle) {
+      elements.speakerTitle.innerText = "";
+    }
+
+    if (elements.vnNameplate) {
+      elements.vnNameplate.style.backgroundColor =
+        "transparent";
+    }
+
+    if (elements.dialogueJp) {
+      elements.dialogueJp.innerHTML = "";
+      elements.dialogueJp.style.display =
+        "none";
+    }
+
+    if (elements.dialogueZh) {
+      elements.dialogueZh.innerHTML = "";
+      elements.dialogueZh.style.display =
+        "none";
+    }
+
+    extraEventState.stepIndex++;
+    renderExtraEventStep();
+    return;
+  }
+
+  // ↓ 你原本 renderExtraEventStep()
+  // blackout 後面的 title_card / narrative /
+  // dialogue / if_end 等程式碼繼續接在這裡
 
   if (step.type === "title_card") {
   if (step.type === "title_card") {
@@ -820,7 +906,7 @@ if (step.type === "blackout") {
   }
 
   showScreen('gameplay');
-}
+}}
 
 function advanceExtraEvent() {
   const currentStep =
@@ -1933,7 +2019,6 @@ async function preloadResourceBatch(
     if (onProgress) {
       onProgress(1, 1, 100);
     }
-
     return;
   }
 
@@ -1942,10 +2027,9 @@ async function preloadResourceBatch(
   const reportProgress = () => {
     completed++;
 
-    const percent =
-      Math.round(
-        (completed / total) * 100
-      );
+    const percent = Math.round(
+      (completed / total) * 100
+    );
 
     if (onProgress) {
       onProgress(
@@ -1956,17 +2040,77 @@ async function preloadResourceBatch(
     }
   };
 
-  await Promise.all(
-    uniqueResources.map(async resource => {
-      if (resource.type === "image") {
-        await preloadImage(resource.path);
-      } else {
-        await preloadAudio(resource.path);
+
+  /* =========================================================
+     Mobile-safe preload queue
+
+     不再 Promise.all() 同時載入全部資源。
+     iPhone Safari 同時建立大量 Audio / Image
+     容易造成卡死或記憶體壓力。
+
+     一次最多 4 個。
+     ========================================================= */
+
+  const MAX_CONCURRENT = 4;
+  let nextIndex = 0;
+
+  async function worker() {
+    while (true) {
+      const index = nextIndex++;
+
+      if (index >= total) {
+        return;
       }
 
-      reportProgress();
-    })
-  );
+      const resource =
+        uniqueResources[index];
+
+      try {
+        if (resource.type === "image") {
+          await preloadImage(
+            resource.path
+          );
+        } else {
+          await preloadAudio(
+            resource.path
+          );
+        }
+      } catch (err) {
+        /*
+         單一素材失敗不能讓整個 Start Loading 卡死。
+         繼續載下一個。
+        */
+        console.warn(
+          "[PRELOAD] resource failed:",
+          resource.path,
+          err
+        );
+      } finally {
+        reportProgress();
+      }
+    }
+  }
+
+
+  const workerCount =
+    Math.min(
+      MAX_CONCURRENT,
+      total
+    );
+
+  const workers = [];
+
+  for (
+    let i = 0;
+    i < workerCount;
+    i++
+  ) {
+    workers.push(
+      worker()
+    );
+  }
+
+  await Promise.all(workers);
 }
 
 /* ---------- path ---------- */
@@ -3300,10 +3444,10 @@ window.setTimeout(() => {
 
 
   startButton.addEventListener(
-    "click",
-    enterGame,
-    { once: true }
-  );
+  "click",
+  enterGame,
+  { once: true }
+);
 }
 
 function showScreen(screenKey) {
