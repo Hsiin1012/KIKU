@@ -3707,8 +3707,6 @@ function initStartGate() {
  */
 
 
-preloadExtraEventInBackground();
-
 window.setTimeout(() => {
       startGate.classList.add(
         "is-closing"
@@ -4932,8 +4930,13 @@ document.addEventListener('click', (event) => {
     if (qNum === 1) {
       nextStepIdx = chapterData.steps.findIndex(s => s.id === "ch1_s02_015_sato");
     } else if (qNum === 2) {
-      nextStepIdx = chapterData.steps.findIndex(s => s.id === "ch1_s02_028_ren");
-    } else if (qNum === 3) {
+  nextStepIdx = chapterData.steps.findIndex(s => s.id === "ch1_s02_028_ren");
+
+  // Q2 結束後，Q3 開始前：
+  // 背景預載 Extra Event 前半段
+  preloadExtraEventFirstHalf();
+
+} else if (qNum === 3) {
       nextStepIdx = chapterData.steps.findIndex(s => s.id === "ch1_s03_033_sato");
     } else if (qNum === 4) {
       nextStepIdx = chapterData.steps.findIndex(s => s.id === "ch1_s03_055_ren");
