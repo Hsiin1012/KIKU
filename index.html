@@ -85,12 +85,125 @@
                     <button id="btn-start" class="vn-btn primary large"><span class="btn-zh">開始新遊戲</span> <span class="btn-en">(New Game)</span></button>
                     <button id="btn-continue" class="vn-btn secondary hidden"><span class="btn-zh">繼續遊戲</span> <span class="btn-en">(Continue)</span></button>
                     <button id="btn-how-to-play" class="vn-btn secondary"><span class="btn-zh">使用說明</span> <span class="btn-en">(How to Play)</span></button>
+                    <button id="btn-extra-collection" class="vn-btn secondary"><span class="btn-zh">Extra Event 收藏</span><span class="btn-en">(Collection)</span></button>
                     <button id="btn-title-config" class="vn-btn secondary"><span class="btn-zh">設定</span> <span class="btn-en">(Config)</span></button>
                     <button id="btn-review" class="vn-btn secondary hidden"><span class="btn-zh">聽力回顧</span> <span class="btn-en">(Review)</span></button>
                 </div>
             </div>
         </div>
 
+        <!-- ==========================================================================
+     EXTRA EVENT COLLECTION
+     ========================================================================== -->
+<div id="screen-extra-collection" class="vn-screen">
+
+    <div class="extra-collection-shell">
+
+        <header class="extra-collection-header">
+            <div>
+                <span class="extra-collection-kicker">SPECIAL ARCHIVE</span>
+                <h2>EXTRA EVENT COLLECTION</h2>
+            </div>
+
+            <button
+                id="btn-extra-collection-back"
+                class="vn-btn secondary extra-collection-back"
+                type="button"
+            >
+                返回標題
+            </button>
+        </header>
+
+        <div class="extra-collection-grid">
+
+            <!-- 幻の焼きそばラリー -->
+            <button
+                id="extra-card-yakisoba"
+                class="extra-collection-card"
+                type="button"
+            >
+                <div class="extra-card-visual">
+
+                    <img
+                        id="extra-card-yakisoba-image"
+                        class="extra-card-thumbnail hidden"
+                        alt=""
+                    >
+
+                    <div
+                        id="extra-card-yakisoba-lock"
+                        class="extra-card-lock"
+                        aria-hidden="true"
+                    >
+                        ？
+                    </div>
+
+                </div>
+
+                <div class="extra-card-info">
+
+                    <div
+                        id="extra-card-yakisoba-title"
+                        class="extra-card-title"
+                    >
+                        ??????
+                    </div>
+
+                    <div
+                        id="extra-card-yakisoba-status"
+                        class="extra-card-status"
+                    >
+                        LOCKED
+                    </div>
+
+                </div>
+            </button>
+
+
+            <!-- Future Extra Event 02 -->
+            <div class="extra-collection-card is-locked">
+
+                <div class="extra-card-visual">
+                    <div class="extra-card-lock">？</div>
+                </div>
+
+                <div class="extra-card-info">
+                    <div class="extra-card-title">
+                        ??????
+                    </div>
+
+                    <div class="extra-card-status">
+                        LOCKED
+                    </div>
+                </div>
+
+            </div>
+
+
+            <!-- Future Extra Event 03 -->
+            <div class="extra-collection-card is-locked">
+
+                <div class="extra-card-visual">
+                    <div class="extra-card-lock">？</div>
+                </div>
+
+                <div class="extra-card-info">
+                    <div class="extra-card-title">
+                        ??????
+                    </div>
+
+                    <div class="extra-card-status">
+                        LOCKED
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
         <!-- ==========================================================================
            2. INSTRUCTIONS SCREEN (使用說明畫面)
            ========================================================================== -->

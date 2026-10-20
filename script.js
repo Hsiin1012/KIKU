@@ -454,6 +454,132 @@ function getExtraEventCgSource(cgKey) {
   return "";
 }
 
+/* =========================================================
+   EXTRA EVENT STAGED PRELOAD
+   ========================================================= */
+
+const extraEventPreloadState = {
+  firstHalf: false,
+  secondHalf: false
+};
+
+function collectExtraEventVoiceResources(
+  startNumber,
+  endNumber
+) {
+  const resources = [];
+
+  EXTRA_EVENT_STEPS.forEach(step => {
+    if (!step.audio) return;
+
+    const paths =
+      Array.isArray(step.audio)
+        ? step.audio
+        : [step.audio];
+
+    paths.forEach(path => {
+      const match =
+        path.match(
+          /voice_ch1_extra_(\d{3})_/
+        );
+
+      if (!match) return;
+
+      const number =
+        Number(match[1]);
+
+      if (
+        number >= startNumber &&
+        number <= endNumber
+      ) {
+        resources.push({
+          type: "audio",
+          path
+        });
+      }
+    });
+  });
+
+  return resources;
+}
+
+
+function preloadExtraEventFirstHalf() {
+  if (
+    extraEventPreloadState.firstHalf
+  ) {
+    return;
+  }
+
+  extraEventPreloadState.firstHalf = true;
+
+  const resources = [
+    {
+      type: "image",
+      path: getExtraEventCgSource("cg01")
+    },
+
+    {
+      type: "audio",
+      path: EXTRA_AUDIO.seTitle
+    },
+
+    {
+      type: "audio",
+      path: EXTRA_AUDIO.seImagination
+    },
+
+    {
+      type: "audio",
+      path: EXTRA_AUDIO.bgmComedy
+    },
+
+    ...collectExtraEventVoiceResources(
+      1,
+      23
+    )
+  ];
+
+  preloadResourceBatch(resources)
+    .catch(err => {
+      console.warn(
+        "[EXTRA PRELOAD FIRST HALF] failed:",
+        err
+      );
+    });
+}
+
+
+function preloadExtraEventSecondHalf() {
+  if (
+    extraEventPreloadState.secondHalf
+  ) {
+    return;
+  }
+
+  extraEventPreloadState.secondHalf = true;
+
+  const resources = [
+    {
+      type: "image",
+      path: getExtraEventCgSource("cg02")
+    },
+
+    ...collectExtraEventVoiceResources(
+      24,
+      31
+    )
+  ];
+
+  preloadResourceBatch(resources)
+    .catch(err => {
+      console.warn(
+        "[EXTRA PRELOAD SECOND HALF] failed:",
+        err
+      );
+    });
+}
+
 function handleExtraEventResize() {
   if (!extraEventState.active) return;
   if (!extraEventState.currentCgKey) return;
@@ -472,6 +598,8 @@ function startExtraEvent() {
   extraEventState.active = true;
   extraEventState.stepIndex = 0;
   extraEventState.currentCgKey = null;
+
+  preloadExtraEventFirstHalf();
 
   if (elements.quizOverlay) elements.quizOverlay.classList.add('hidden');
   if (elements.feedbackModal) elements.feedbackModal.classList.add('hidden');
@@ -527,8 +655,12 @@ function renderExtraEventStep() {
 
   // CG01 開始時播放 Extra Event comedy BGM
   if (step.cgKey === "cg01") {
-    playExtraBgm(EXTRA_AUDIO.bgmComedy);
-  }
+  playExtraBgm(
+    EXTRA_AUDIO.bgmComedy
+  );
+
+  preloadExtraEventSecondHalf();
+}
 
   const cgUrl = getExtraEventCgSource(step.cgKey);
 
@@ -1221,6 +1353,230 @@ const QUIZZES = {
     }
   }
 };
+
+/* =========================================================
+   EXTRA EVENT GALLERY COLLECTION
+   與主線存檔分離
+   ========================================================= */
+
+const EXTRA_GALLERY_STORAGE_KEY =
+  "furyo_vn_extra_gallery";
+
+const extraGalleryState = {
+  unlocked: {
+    yakisobaRally: false
+  }
+};
+
+
+function loadExtraGalleryData() {
+  const raw =
+    localStorage.getItem(
+      EXTRA_GALLERY_STORAGE_KEY
+    );
+
+  if (!raw) {
+    return;
+  }
+
+  try {
+    const data = JSON.parse(raw);
+
+    if (
+      data &&
+      data.unlocked
+    ) {
+      extraGalleryState.unlocked.yakisobaRally =
+        data.unlocked.yakisobaRally === true;
+    }
+  } catch (err) {
+    console.warn(
+      "[EXTRA GALLERY] load failed:",
+      err
+    );
+  }
+}
+
+
+function saveExtraGalleryData() {
+  const data = {
+    unlocked: {
+      yakisobaRally:
+        extraGalleryState.unlocked
+          .yakisobaRally === true
+    }
+  };
+
+  try {
+    localStorage.setItem(
+      EXTRA_GALLERY_STORAGE_KEY,
+      JSON.stringify(data)
+    );
+  } catch (err) {
+    console.warn(
+      "[EXTRA GALLERY] save failed:",
+      err
+    );
+  }
+}
+
+
+function unlockExtraEvent(eventKey) {
+  if (
+    !Object.prototype.hasOwnProperty.call(
+      extraGalleryState.unlocked,
+      eventKey
+    )
+  ) {
+    console.warn(
+      "[EXTRA GALLERY] unknown event:",
+      eventKey
+    );
+
+    return;
+  }
+
+  if (
+    extraGalleryState.unlocked[eventKey] ===
+    true
+  ) {
+    return;
+  }
+
+  extraGalleryState.unlocked[eventKey] = true;
+
+  saveExtraGalleryData();
+
+  console.log(
+    "[EXTRA GALLERY] unlocked:",
+    eventKey
+  );
+}
+
+
+function isExtraEventUnlocked(eventKey) {
+  return (
+    extraGalleryState.unlocked[eventKey] ===
+    true
+  );
+}
+
+/* =========================================================
+   EXTRA EVENT COLLECTION UI
+   ========================================================= */
+
+function renderExtraCollection() {
+  const card =
+    document.getElementById(
+      "extra-card-yakisoba"
+    );
+
+  const image =
+    document.getElementById(
+      "extra-card-yakisoba-image"
+    );
+
+  const lock =
+    document.getElementById(
+      "extra-card-yakisoba-lock"
+    );
+
+  const title =
+    document.getElementById(
+      "extra-card-yakisoba-title"
+    );
+
+  const status =
+    document.getElementById(
+      "extra-card-yakisoba-status"
+    );
+
+  if (
+    !card ||
+    !image ||
+    !lock ||
+    !title ||
+    !status
+  ) {
+    return;
+  }
+
+
+  const unlocked =
+    isExtraEventUnlocked(
+      "yakisobaRally"
+    );
+
+
+  if (unlocked) {
+
+    card.classList.remove(
+      "is-locked"
+    );
+
+    card.disabled = false;
+
+
+    /*
+      只有已解鎖時才指定 src。
+
+      所以 LOCKED 狀態完全不會載入縮圖。
+    */
+    if (!image.src) {
+      image.src =
+        "assets/gallery/extra_yakisoba_rally.webp";
+    }
+
+    image.classList.remove(
+      "hidden"
+    );
+
+    lock.classList.add(
+      "hidden"
+    );
+
+    title.innerHTML =
+      "幻の焼きそば<br>ラリー";
+
+    status.textContent =
+      "CLEAR";
+
+  } else {
+
+    card.classList.add(
+      "is-locked"
+    );
+
+    card.disabled = true;
+
+    image.removeAttribute(
+      "src"
+    );
+
+    image.classList.add(
+      "hidden"
+    );
+
+    lock.classList.remove(
+      "hidden"
+    );
+
+    title.textContent =
+      "??????";
+
+    status.textContent =
+      "LOCKED";
+  }
+}
+
+
+function openExtraCollection() {
+  renderExtraCollection();
+
+  showScreen(
+    "extraCollection"
+  );
+}
 
 /* ==========================================================================
    4. 遊戲狀態與 CONFIG 全局設定資料庫
@@ -3192,6 +3548,11 @@ function handleAnswer(selectedOpt, quizData, optionIndex) {
     elements.quizOverlay.classList.add('hidden');
   }
 
+  // 永久解鎖 Gallery 收藏
+  unlockExtraEvent(
+    "yakisobaRally"
+  );
+
   // 記錄 Extra Event 尚未完成
   gameState.extraEventPending = true;
   saveGameData();
@@ -3835,6 +4196,11 @@ function initEventListeners() {
   screens.review = document.getElementById('screen-review');
   screens.config = document.getElementById('screen-config');
 
+  screens.extraCollection =
+    document.getElementById(
+    'screen-extra-collection'
+  );
+
   elements = {
     vnHud: document.getElementById('vn-hud'),
     trustRen: document.getElementById('trust-ren'),
@@ -3935,11 +4301,37 @@ function initEventListeners() {
 
   
   bindClick('btn-start', () => startNewGame());
-  bindClick('btn-continue', () => continueGame());
-  bindClick('btn-how-to-play', () => showScreen('instructions'));
-  bindClick('btn-title-config', () => openConfigScreen('title'));
-  bindClick('btn-review', () => renderWrongReviewScreen());
-  bindClick('vn-btn-review', () => renderWrongReviewScreen());
+bindClick('btn-continue', () => continueGame());
+
+bindClick(
+  'btn-how-to-play',
+  () => showScreen('instructions')
+);
+
+bindClick(
+  'btn-extra-collection',
+  () => openExtraCollection()
+);
+
+bindClick(
+  'btn-extra-collection-back',
+  () => showScreen('title')
+);
+
+bindClick(
+  'btn-title-config',
+  () => openConfigScreen('title')
+);
+
+bindClick(
+  'btn-review',
+  () => renderWrongReviewScreen()
+);
+
+bindClick(
+  'vn-btn-review',
+  () => renderWrongReviewScreen()
+);
 
   bindClick('hud-mobile-menu-btn', (event) => {
   event.stopPropagation();
@@ -4333,6 +4725,7 @@ document.addEventListener('click', (event) => {
 
 document.addEventListener("DOMContentLoaded", () => {
   initEventListeners();
+  loadExtraGalleryData();
   loadGameData();
   updateTitleScreenButtons();
   initStartGate();

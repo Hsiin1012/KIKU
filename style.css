@@ -2781,3 +2781,359 @@ and (orientation: portrait) {
   }
 
 }
+
+/* ==========================================================================
+   EXTRA EVENT COLLECTION
+   ========================================================================== */
+
+#screen-extra-collection {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  background:
+    linear-gradient(
+      180deg,
+      #f7f5f1 0%,
+      #eef1f3 100%
+    );
+  color: #263746;
+}
+
+
+.extra-collection-shell {
+  width: min(1120px, calc(100% - 64px));
+  min-height: 100%;
+  margin: 0 auto;
+  padding:
+    clamp(54px, 8vh, 90px)
+    0
+    60px;
+}
+
+
+.extra-collection-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 30px;
+  margin-bottom: 42px;
+  padding-bottom: 18px;
+  border-bottom:
+    1px solid rgba(38, 55, 70, 0.18);
+}
+
+
+.extra-collection-kicker {
+  display: block;
+  margin-bottom: 8px;
+
+  color: #6f8fa8;
+
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+}
+
+
+.extra-collection-header h2 {
+  margin: 0;
+
+  color: #263746;
+
+  font-size:
+    clamp(1.65rem, 3vw, 2.5rem);
+
+  font-weight: 800;
+  letter-spacing: 0.055em;
+}
+
+
+.extra-collection-back {
+  flex: 0 0 auto;
+}
+
+
+/* =========================
+   CARD GRID
+   ========================= */
+
+.extra-collection-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  gap: clamp(20px, 3vw, 34px);
+
+  align-items: start;
+}
+
+
+/* =========================
+   CARD
+   ========================= */
+
+.extra-collection-card {
+  appearance: none;
+  -webkit-appearance: none;
+
+  display: flex;
+  flex-direction: column;
+
+  width: 100%;
+  min-width: 0;
+
+  padding: 0;
+
+  overflow: hidden;
+
+  background: rgba(255, 255, 255, 0.72);
+
+  border:
+    1px solid rgba(111, 143, 168, 0.32);
+
+  border-radius: 12px;
+
+  color: #263746;
+
+  font: inherit;
+  text-align: inherit;
+
+  box-shadow:
+    0 8px 24px rgba(38, 55, 70, 0.08);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+
+button.extra-collection-card:not(.is-locked) {
+  cursor: pointer;
+}
+
+
+button.extra-collection-card:not(.is-locked):hover {
+  transform: translateY(-4px);
+
+  border-color:
+    rgba(111, 143, 168, 0.72);
+
+  box-shadow:
+    0 14px 30px rgba(38, 55, 70, 0.14);
+}
+
+
+/* =========================
+   THUMBNAIL
+   ========================= */
+
+.extra-card-visual {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 100%;
+  aspect-ratio: 16 / 9;
+
+  overflow: hidden;
+
+  background:
+    linear-gradient(
+      145deg,
+      #e1e5e8,
+      #cdd4d9
+    );
+}
+
+
+.extra-card-thumbnail {
+  position: absolute;
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+  object-position: center;
+
+  display: block;
+}
+
+
+.extra-card-lock {
+  position: relative;
+  z-index: 2;
+
+  color: rgba(38, 55, 70, 0.42);
+
+  font-size:
+    clamp(2.8rem, 6vw, 4.5rem);
+
+  font-weight: 300;
+  line-height: 1;
+}
+
+
+/* =========================
+   TEXT
+   ========================= */
+
+.extra-card-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 132px;
+
+  padding: 20px 16px 18px;
+
+  text-align: center;
+}
+
+
+.extra-card-title {
+  min-height: 3em;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: #263746;
+
+  font-size:
+    clamp(1rem, 1.5vw, 1.18rem);
+
+  font-weight: 700;
+  line-height: 1.45;
+  letter-spacing: 0.035em;
+}
+
+
+.extra-card-status {
+  margin-top: 10px;
+
+  color: #6f8fa8;
+
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+}
+
+
+/* =========================
+   LOCKED
+   ========================= */
+
+.extra-collection-card.is-locked {
+  cursor: default;
+
+  background:
+    rgba(235, 237, 238, 0.76);
+
+  border-color:
+    rgba(38, 55, 70, 0.12);
+
+  box-shadow: none;
+
+  opacity: 0.78;
+}
+
+
+.extra-collection-card.is-locked
+.extra-card-title {
+  color: rgba(38, 55, 70, 0.48);
+}
+
+
+.extra-collection-card.is-locked
+.extra-card-status {
+  color: rgba(38, 55, 70, 0.4);
+}
+
+
+/* =========================
+   TABLET
+   ========================= */
+
+@media (max-width: 900px) {
+
+  .extra-collection-shell {
+    width: min(760px, calc(100% - 40px));
+  }
+
+  .extra-collection-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+}
+
+
+/* =========================
+   PHONE
+   ========================= */
+
+@media (max-width: 600px) {
+
+  .extra-collection-shell {
+    width: min(360px, calc(100% - 32px));
+
+    padding:
+      36px
+      0
+      40px;
+  }
+
+
+  .extra-collection-header {
+    align-items: flex-start;
+    gap: 14px;
+
+    margin-bottom: 28px;
+  }
+
+
+  .extra-collection-header h2 {
+    max-width: 210px;
+
+    font-size: 1.45rem;
+    line-height: 1.18;
+  }
+
+
+  .extra-collection-back {
+    padding: 9px 12px;
+    font-size: 0.8rem;
+  }
+
+
+  .extra-collection-grid {
+    grid-template-columns: 1fr;
+
+    gap: 22px;
+  }
+
+
+  .extra-collection-card {
+    width: min(280px, 100%);
+    margin: 0 auto;
+  }
+
+
+  .extra-card-info {
+    min-height: 116px;
+    padding: 16px 14px;
+  }
+
+
+  .extra-card-title {
+    font-size: 1rem;
+  }
+
+}
