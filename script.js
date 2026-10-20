@@ -1770,6 +1770,9 @@ const backgroundAudioState = {
   extraBgm: null
 };
 
+let backgroundAudioRestorePending = false;
+let backgroundAudioRestoreRunning = false;
+
 /* =========================================================
    CHAPTER 1 MAIN STORY AUDIO
    ※ EXTRA EVENT 暫時不處理
@@ -2709,6 +2712,15 @@ function rebuildMainAudioContext() {
 
       ensureMainSeWebAudio(seAudio);
     }
+
+    if (
+  mainBgmAudioContext &&
+  mainBgmAudioContext.state === "suspended"
+) {
+  mainBgmAudioContext
+    .resume()
+    .catch(() => {});
+}
 
     mainAudioUnlocked = true;
 
@@ -5846,21 +5858,10 @@ function pauseGameAudioForBackground() {
 
 async function resumeGameAudioFromBackground() {
   /*
-   * iOS Safari：
-   * 不再嘗試恢復舊 AudioContext。
-   * 回到前景後直接建立全新的 Context。
+   * 這個函式現在只會在
+   * 回到頁面後的第一次使用者操作中執行。
    */
   rebuildMainAudioContext();
-
-  /*
-   * 給 Safari 一點時間完成新的
-   * AudioContext / output route 初始化。
-   */
-  await new Promise(resolve => {
-    setTimeout(resolve, 150);
-  });
-
-
 
   /*
    * Main BGM
@@ -6161,14 +6162,59 @@ document.addEventListener(
   "visibilitychange",
   () => {
     if (document.hidden) {
+      backgroundAudioRestorePending = false;
       pauseGameAudioForBackground();
     } else {
-      resumeGameAudioFromBackground();
+      /*
+       * iOS Safari：
+       * 回到前景時先不要重建／播放。
+       * 等待下一次真正的使用者操作。
+       */
+      backgroundAudioRestorePending = true;
     }
   }
 );
 
+async function restoreBackgroundAudioOnUserGesture() {
+  if (!backgroundAudioRestorePending) return;
+  if (backgroundAudioRestoreRunning) return;
+  if (document.hidden) return;
 
+  backgroundAudioRestorePending = false;
+  backgroundAudioRestoreRunning = true;
+
+  try {
+    await resumeGameAudioFromBackground();
+  } catch (err) {
+    console.warn(
+      "[BACKGROUND] user gesture restore failed:",
+      err
+    );
+  } finally {
+    backgroundAudioRestoreRunning = false;
+  }
+}
+
+
+/*
+ * iPhone / iPad：
+ * 回到遊戲後的第一次真正操作，
+ * 用來重新解鎖並恢復音訊。
+ */
+document.addEventListener(
+  "pointerdown",
+  restoreBackgroundAudioOnUserGesture,
+  true
+);
+
+document.addEventListener(
+  "touchstart",
+  restoreBackgroundAudioOnUserGesture,
+  {
+    capture: true,
+    passive: true
+  }
+);
 
 document.addEventListener("DOMContentLoaded", () => {
   initEventListeners();
