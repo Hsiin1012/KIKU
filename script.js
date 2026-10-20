@@ -2929,6 +2929,14 @@ if (oldAudio) {
  * 後續真正切歌：
  * 建立新的 Audio。
  */
+const audio =
+  canReuseUnlockedChannel
+    ? mainBgmAudio
+    : new Audio();
+
+audio.preload = "auto";
+audio.loop = true;
+audio.src = cleanPath;
 audio.volume = 0;
 
 mainBgmAudio = audio;
