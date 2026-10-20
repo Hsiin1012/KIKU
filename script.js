@@ -1815,7 +1815,7 @@ let mainBgmGainNode = null;
  */
 let mainSeGainNode = null;
 
-const mainSeAudioNodes = new WeakMap();
+let mainSeAudioNodes = new WeakMap();
 
 /*
  * 每一個 Main BGM Audio 都有自己的 Fade Gain。
@@ -1830,7 +1830,7 @@ const mainSeAudioNodes = new WeakMap();
  *   ↓
  * speakers
  */
-const mainBgmAudioNodes = new WeakMap();
+let mainBgmAudioNodes = new WeakMap();
 
 let morningAmbientAudio = null;
 let morningAmbientFadeTimer = null;
@@ -1847,7 +1847,7 @@ let morningAmbientFadeTimer = null;
  * speakers
  */
 let morningAmbientMasterGain = null;
-const morningAmbientAudioNodes = new WeakMap();
+let morningAmbientAudioNodes = new WeakMap();
 
 let mainAudioUnlocked = false;
 
@@ -2586,6 +2586,146 @@ function fadeDetachedMainAudioOut(
         } catch (e) {}
       }
     }, 40);
+}
+
+function rebuildMainAudioContext() {
+  /*
+   * iOS Safari 從背景回來後，
+   * 舊 AudioContext 可能顯示正常，
+   * 但實際已經無法輸出聲音。
+   *
+   * 因此直接捨棄舊 Context，
+   * 建立全新的 AudioContext。
+   */
+
+  const oldContext = mainBgmAudioContext;
+
+  /*
+   * 先讓所有 Web Audio 相關變數
+   * 不再指向舊 Context 的節點。
+   */
+  mainBgmAudioContext = null;
+  mainBgmGainNode = null;
+  mainSeGainNode = null;
+  morningAmbientMasterGain = null;
+
+  /*
+   * 舊 MediaElementSource / GainNode
+   * 也全部丟棄。
+   */
+  mainBgmAudioNodes = new WeakMap();
+  mainSeAudioNodes = new WeakMap();
+  morningAmbientAudioNodes = new WeakMap();
+
+  /*
+   * unlockMainStoryAudio() 必須允許重新初始化。
+   */
+  mainAudioUnlocked = false;
+
+  /*
+   * 舊 SE Audio 已經綁定舊 Context，
+   * 不能拿去接新的 Context。
+   */
+  mainSePool.forEach((audio) => {
+    try {
+      audio.pause();
+      audio.currentTime = 0;
+      audio.removeAttribute("src");
+      audio.load();
+    } catch (e) {}
+  });
+
+  mainSePool.length = 0;
+
+  /*
+   * 舊 Context 不等待 close()。
+   * iOS 有可能讓 Promise 卡住。
+   */
+  if (oldContext) {
+    try {
+      oldContext.close().catch(() => {});
+    } catch (e) {}
+  }
+
+  /*
+   * 建立全新的 Context。
+   */
+  try {
+    const AudioContextClass =
+      window.AudioContext ||
+      window.webkitAudioContext;
+
+    if (!AudioContextClass) {
+      return false;
+    }
+
+    mainBgmAudioContext =
+      new AudioContextClass();
+
+    /*
+     * BGM Master Gain
+     */
+    mainBgmGainNode =
+      mainBgmAudioContext.createGain();
+
+    mainBgmGainNode.connect(
+      mainBgmAudioContext.destination
+    );
+
+    /*
+     * SE Master Gain
+     */
+    mainSeGainNode =
+      mainBgmAudioContext.createGain();
+
+    mainSeGainNode.connect(
+      mainBgmAudioContext.destination
+    );
+
+    /*
+     * Morning Ambient Master Gain
+     */
+    morningAmbientMasterGain =
+      mainBgmAudioContext.createGain();
+
+    morningAmbientMasterGain.connect(
+      mainBgmAudioContext.destination
+    );
+
+    updateMainBgmGain();
+    updateMainSeGain();
+    updateMorningAmbientGain();
+
+    /*
+     * 重新建立 Main SE channels。
+     */
+    for (let i = 0; i < 4; i++) {
+      const seAudio = new Audio();
+
+      seAudio.preload = "auto";
+      seAudio.volume = 1;
+
+      mainSePool.push(seAudio);
+
+      ensureMainSeWebAudio(seAudio);
+    }
+
+    mainAudioUnlocked = true;
+
+    console.log(
+      "[BACKGROUND] Main AudioContext rebuilt"
+    );
+
+    return true;
+
+  } catch (err) {
+    console.warn(
+      "[BACKGROUND] AudioContext rebuild failed:",
+      err
+    );
+
+    return false;
+  }
 }
 
 function ensureMainBgmWebAudio(audio) {
@@ -5706,38 +5846,20 @@ function pauseGameAudioForBackground() {
 
 async function resumeGameAudioFromBackground() {
   /*
- * iOS Safari：
- * AudioContext 從背景回來後，
- * suspend() / resume() 的 Promise 有可能卡住。
- *
- * 所以這裡不能 await 它們，
- * 否則後面的 BGM 恢復流程也會一起卡死。
- */
-if (mainBgmAudioContext) {
-  try {
-    mainBgmAudioContext
-      .suspend()
-      .catch(() => {});
-  } catch (e) {}
-
-  await new Promise(resolve => {
-    setTimeout(resolve, 300);
-  });
-
-  try {
-    mainBgmAudioContext
-      .resume()
-      .catch(() => {});
-  } catch (e) {}
+   * iOS Safari：
+   * 不再嘗試恢復舊 AudioContext。
+   * 回到前景後直接建立全新的 Context。
+   */
+  rebuildMainAudioContext();
 
   /*
-   * 再給 iOS 一點時間恢復 audio output，
-   * 但不要等待 resume() Promise。
+   * 給 Safari 一點時間完成新的
+   * AudioContext / output route 初始化。
    */
   await new Promise(resolve => {
-    setTimeout(resolve, 300);
+    setTimeout(resolve, 150);
   });
-}
+
 
 
   /*
