@@ -1746,7 +1746,7 @@ const gameState = {
 
 const gameSettings = {
   bgmVolume: 18,
-  seVolume: 50,
+  seVolume: 25,
   voiceVolume: 50,
   textSpeed: "normal",
   chineseSubtitle: "on"
@@ -3051,7 +3051,7 @@ function loadGameData() {
     
     if (data.settings) {
       gameSettings.bgmVolume = data.settings.bgmVolume ?? 50;
-      gameSettings.seVolume = data.settings.seVolume ?? 50;
+      gameSettings.seVolume = data.settings.seVolume ?? 25;
       gameSettings.voiceVolume = data.settings.voiceVolume ?? 50;
       gameSettings.textSpeed = data.settings.textSpeed || "normal";
       gameSettings.chineseSubtitle = data.settings.chineseSubtitle || "on";
@@ -3230,6 +3230,12 @@ function startTitleBgm() {
     return;
   }
 
+  // BGM 設為 0 時，不建立、不恢復任何 Title BGM
+  if ((gameSettings.bgmVolume ?? 0) <= 0) {
+    stopMainBgm(0);
+    return;
+  }
+
   playMainBgm(
     MAIN_AUDIO.bgmNewIdea,
     700
@@ -3326,6 +3332,7 @@ function initStartGate() {
       必須在 await 之前執行。
     */
 
+    unlockAudioContextIOS();
     unlockMainStoryAudio();
 
 
@@ -4871,17 +4878,31 @@ document.addEventListener('click', (event) => {
 
   if (elements.cfgBgmSlider) {
   elements.cfgBgmSlider.oninput = (e) => {
-    gameSettings.bgmVolume = parseInt(e.target.value, 10);
+    gameSettings.bgmVolume =
+      parseInt(e.target.value, 10);
 
     if (elements.cfgBgmVal) {
       elements.cfgBgmVal.innerText =
         `${gameSettings.bgmVolume}%`;
     }
 
-    // 主線 BGM
+    const volume =
+      Math.max(
+        0,
+        Math.min(
+          1,
+          (gameSettings.bgmVolume ?? 0) / 100
+        )
+      );
+
+    // 主線 / Title BGM
     if (mainBgmAudio) {
-      mainBgmAudio.volume =
-        getMainBgmVolume();
+      if (volume <= 0) {
+        mainBgmAudio.volume = 0;
+      } else {
+        mainBgmAudio.volume =
+          getMainBgmVolume();
+      }
     }
 
     // Extra Event BGM
@@ -4889,14 +4910,7 @@ document.addEventListener('click', (event) => {
       typeof extraEventBgmAudio !== "undefined" &&
       extraEventBgmAudio
     ) {
-      extraEventBgmAudio.volume =
-        Math.max(
-          0,
-          Math.min(
-            1,
-            (gameSettings.bgmVolume ?? 50) / 100
-          )
-        );
+      extraEventBgmAudio.volume = volume;
     }
 
     saveGameData();
@@ -4944,6 +4958,55 @@ document.addEventListener('click', (event) => {
     };
   }
 }
+
+function stopAllGameAudioForPageExit() {
+  try {
+    stopMainBgm(0);
+  } catch (e) {}
+
+  try {
+    stopMorningAmbient(0);
+  } catch (e) {}
+
+  try {
+    stopExtraBgm(0);
+  } catch (e) {}
+
+  try {
+    stopActiveAudio(
+      "pageExit",
+      "pageExit"
+    );
+  } catch (e) {}
+
+  try {
+    stopParallelVoices();
+  } catch (e) {}
+
+  try {
+    if (
+      typeof mainSePool !== "undefined" &&
+      Array.isArray(mainSePool)
+    ) {
+      mainSePool.forEach((audio) => {
+        if (!audio) return;
+
+        audio.pause();
+        audio.currentTime = 0;
+      });
+    }
+  } catch (e) {}
+}
+
+window.addEventListener(
+  "pagehide",
+  stopAllGameAudioForPageExit
+);
+
+window.addEventListener(
+  "beforeunload",
+  stopAllGameAudioForPageExit
+);
 
 document.addEventListener("DOMContentLoaded", () => {
   initEventListeners();
