@@ -2960,15 +2960,7 @@ function unlockAudioContextIOS() {
   unlockMainStoryAudio();
 
   try {
-    const bgmUnlock = new Audio(MAIN_AUDIO.bgmDaily);
-    bgmUnlock.volume = 0;
-    bgmUnlock.muted = true;
-    bgmUnlock.preload = "auto";
-    bgmUnlock.play().then(() => {
-      bgmUnlock.pause();
-      bgmUnlock.currentTime = 0;
-      bgmUnlock.muted = false;
-    }).catch(() => {});
+    
   } catch (e) {}
 
   try {
