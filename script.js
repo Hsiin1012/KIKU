@@ -1839,7 +1839,11 @@ const MORNING_AMBIENT_FACTOR = 0.28;
 
 const resourcePreloader = {
   loaded: new Set(),
-  loading: new Map()
+  loading: new Map(),
+
+  // 保存已經預載完成的 Audio 實例
+  // 正式播放 Voice 時可以直接重用
+  audioCache: new Map()
 };
 
 
@@ -1875,10 +1879,19 @@ function preloadImage(path) {
     const img = new Image();
 
     const finish = () => {
-      resourcePreloader.loaded.add(src);
-      resourcePreloader.loading.delete(src);
-      resolve();
-    };
+  if (finished) return;
+
+  finished = true;
+  cleanup();
+
+  resourcePreloader.loaded.add(src);
+  resourcePreloader.loading.delete(src);
+
+  // 保存這個已經預載過的 Audio
+  resourcePreloader.audioCache.set(src, audio);
+
+  resolve();
+};
 
     img.onload = finish;
 
@@ -3278,9 +3291,19 @@ function playVoiceAudio(audioPath, dialogueId = "unknown", onEndedCallback) {
   }
 
   try {
-    const audio = new Audio(cleanPath);
-    audio.volume = currentVol;
-    activeAudioInstance = audio;
+  let audio = resourcePreloader.audioCache.get(cleanPath);
+
+  if (audio) {
+    // 使用 Initial Loading 已經準備好的 Audio
+    audio.pause();
+    audio.currentTime = 0;
+  } else {
+    // 沒有預載過才建立新的 Audio
+    audio = new Audio(cleanPath);
+  }
+
+  audio.volume = currentVol;
+  activeAudioInstance = audio;
 
     audio.play().then(() => {}).catch(err => {
       console.warn("[iOS Audio Autoplay Blocked / NotAllowedError]", err);
@@ -3807,9 +3830,6 @@ function renderDialogueStep(stepData) {
   removeReplayAudioButton("renderDialogueStep");
   stopAllTypewriters();
   stopActiveAudio("renderDialogueStep", stepData.id);
-    // 玩家正在觀看目前 Section 時，
-  // 背景提前準備下一個 Listening Section
-  preloadNextListeningSection(stepData.listeningSection);
 
 
   if (stepData.listeningSection === 1) {
