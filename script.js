@@ -5841,19 +5841,6 @@ function pauseGameAudioForBackground() {
       } catch (e) {}
     });
   }
-
-
-  /*
-   * Web Audio Context 本身也暫停。
-   */
-  if (
-    mainBgmAudioContext &&
-    mainBgmAudioContext.state === "running"
-  ) {
-    mainBgmAudioContext
-      .suspend()
-      .catch(() => {});
-  }
 }
 
 async function resumeGameAudioFromBackground() {
