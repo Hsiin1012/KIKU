@@ -1749,8 +1749,8 @@ const gameState = {
 };
 
 const gameSettings = {
-  bgmVolume: 18,
-  seVolume: 25,
+  bgmVolume: 50,
+  seVolume: 50,
   voiceVolume: 50,
   textSpeed: "normal",
   chineseSubtitle: "on"
@@ -1847,6 +1847,8 @@ const mainSePool = [];
 const MAIN_BGM_DUCK_FACTOR = 0.35;
 const MORNING_AMBIENT_FACTOR = 0.28;
 
+const MAIN_BGM_VOLUME_FACTOR = 0.6;
+const MAIN_SE_VOLUME_FACTOR = 0.7;
 
 /* =========================================================
    RESOURCE PRELOADER
@@ -2671,7 +2673,8 @@ function updateMainBgmGain() {
     )
   );
 
-  mainBgmGainNode.gain.value = volume;
+  mainBgmGainNode.gain.value =
+  volume * MAIN_BGM_VOLUME_FACTOR;
 }
 
 function ensureMainSeWebAudio(audio) {
@@ -2747,7 +2750,8 @@ function updateMainSeGain() {
   if (!mainSeGainNode) return;
 
   mainSeGainNode.gain.value =
-    getMainSeVolume();
+    getMainSeVolume() *
+    MAIN_SE_VOLUME_FACTOR;
 }
 
 /* ---------- audio unlock ---------- */
@@ -3552,7 +3556,7 @@ function loadGameData() {
     
     if (data.settings) {
       gameSettings.bgmVolume = data.settings.bgmVolume ?? 50;
-      gameSettings.seVolume = data.settings.seVolume ?? 25;
+      gameSettings.seVolume = data.settings.seVolume ?? 50;
       gameSettings.voiceVolume = data.settings.voiceVolume ?? 50;
       gameSettings.textSpeed = data.settings.textSpeed || "normal";
       gameSettings.chineseSubtitle = data.settings.chineseSubtitle || "on";
