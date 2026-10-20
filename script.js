@@ -2962,17 +2962,7 @@ function unlockAudioContextIOS() {
     
   } catch (e) {}
 
-  try {
-    const seUnlock = new Audio(MAIN_AUDIO.seChoiceOpen);
-    seUnlock.volume = 0;
-    seUnlock.muted = true;
-    seUnlock.preload = "auto";
-    seUnlock.play().then(() => {
-      seUnlock.pause();
-      seUnlock.currentTime = 0;
-      seUnlock.muted = false;
-    }).catch(() => {});
-  } catch (e) {}
+  
 }
 
 function playVoiceAudio(audioPath, dialogueId = "unknown", onEndedCallback) {
@@ -4880,30 +4870,71 @@ document.addEventListener('click', (event) => {
   }
 
   if (elements.cfgBgmSlider) {
-    elements.cfgBgmSlider.oninput = (e) => {
-      gameSettings.bgmVolume = parseInt(e.target.value, 10);
-      if (elements.cfgBgmVal) {
-        elements.cfgBgmVal.innerText = `${gameSettings.bgmVolume}%`;
-      }
-      if (mainBgmAudio) {
-        mainBgmAudio.volume = getMainBgmVolume();
-      }
-      saveGameData();
-    };
-  }
+  elements.cfgBgmSlider.oninput = (e) => {
+    gameSettings.bgmVolume = parseInt(e.target.value, 10);
+
+    if (elements.cfgBgmVal) {
+      elements.cfgBgmVal.innerText =
+        `${gameSettings.bgmVolume}%`;
+    }
+
+    // 主線 BGM
+    if (mainBgmAudio) {
+      mainBgmAudio.volume =
+        getMainBgmVolume();
+    }
+
+    // Extra Event BGM
+    if (
+      typeof extraEventBgmAudio !== "undefined" &&
+      extraEventBgmAudio
+    ) {
+      extraEventBgmAudio.volume =
+        Math.max(
+          0,
+          Math.min(
+            1,
+            (gameSettings.bgmVolume ?? 50) / 100
+          )
+        );
+    }
+
+    saveGameData();
+  };
+}
 
   if (elements.cfgSeSlider) {
-    elements.cfgSeSlider.oninput = (e) => {
-      gameSettings.seVolume = parseInt(e.target.value, 10);
-      if (elements.cfgSeVal) {
-        elements.cfgSeVal.innerText = `${gameSettings.seVolume}%`;
-      }
-      if (morningAmbientAudio) {
-        morningAmbientAudio.volume = getMorningAmbientVolume();
-      }
-      saveGameData();
-    };
-  }
+  elements.cfgSeSlider.oninput = (e) => {
+    gameSettings.seVolume = parseInt(e.target.value, 10);
+
+    if (elements.cfgSeVal) {
+      elements.cfgSeVal.innerText =
+        `${gameSettings.seVolume}%`;
+    }
+
+    // 環境音
+    if (morningAmbientAudio) {
+      morningAmbientAudio.volume =
+        getMorningAmbientVolume();
+    }
+
+    // 正在使用中的主線 SE channels
+    if (
+      typeof mainSePool !== "undefined" &&
+      Array.isArray(mainSePool)
+    ) {
+      const volume = getMainSeVolume();
+
+      mainSePool.forEach((audio) => {
+        if (audio) {
+          audio.volume = volume;
+        }
+      });
+    }
+
+    saveGameData();
+  };
+}
 
   if (elements.cfgVoiceSlider) {
     elements.cfgVoiceSlider.oninput = (e) => {
