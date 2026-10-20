@@ -1164,14 +1164,15 @@ function getInitialGameResources() {
 
   /* =========================================================
      CHAPTER 1
-     全部 Listening Section 一次載入
+     Listening Section 1～2 於 Initial Loading 載入
+     Section 3～5 於 Title 畫面背景預載
      會包含：
      - Background
      - Character Sprite
      - Voice 001–063
      ========================================================= */
 
-  for (let section = 1; section <= 5; section++) {
+  for (let section = 1; section <= 2; section++) {
     resources.push(
       ...collectListeningSectionResources(
         1,
@@ -3700,9 +3701,14 @@ function initStartGate() {
 
 /*
  * Initial Loading 已完成。
- * Extra Event 從現在開始在背景預載，
+ * Section 3～5 與 Extra Event
+ * 從現在開始在背景預載，
  * 不阻塞 Title / 正篇操作。
  */
+preloadListeningSectionInBackground(1, 3);
+preloadListeningSectionInBackground(1, 4);
+preloadListeningSectionInBackground(1, 5);
+
 preloadExtraEventInBackground();
 
 window.setTimeout(() => {
