@@ -1761,6 +1761,17 @@ const typingTimers = new Map();
 let activeAudioInstance = null;
 let currentPlaybackToken = 0;
 
+/*
+ * Page Background Audio Pause / Resume
+ */
+const backgroundAudioState = {
+  mainBgm: false,
+  morningAmbient: false,
+  voice: false,
+  extraBgm: false,
+  parallelVoices: []
+};
+
 /* =========================================================
    CHAPTER 1 MAIN STORY AUDIO
    ※ EXTRA EVENT 暫時不處理
@@ -5535,6 +5546,205 @@ if (elements.cfgVoiceSlider) {
 }
 }
 
+function pauseGameAudioForBackground() {
+  /*
+   * Main BGM
+   */
+  backgroundAudioState.mainBgm =
+    !!mainBgmAudio &&
+    !mainBgmAudio.paused;
+
+  if (backgroundAudioState.mainBgm) {
+    try {
+      mainBgmAudio.pause();
+    } catch (e) {}
+  }
+
+
+  /*
+   * Morning Ambient
+   */
+  backgroundAudioState.morningAmbient =
+    !!morningAmbientAudio &&
+    !morningAmbientAudio.paused;
+
+  if (backgroundAudioState.morningAmbient) {
+    try {
+      morningAmbientAudio.pause();
+    } catch (e) {}
+  }
+
+
+  /*
+   * Main / Extra Voice
+   *
+   * activeAudioInstance 是你目前主要 Voice channel。
+   */
+  backgroundAudioState.voice =
+    !!activeAudioInstance &&
+    !activeAudioInstance.paused;
+
+  if (backgroundAudioState.voice) {
+    try {
+      activeAudioInstance.pause();
+    } catch (e) {}
+  }
+
+
+  /*
+   * Extra Event BGM
+   */
+  backgroundAudioState.extraBgm =
+    !!extraBgmAudio &&
+    !extraBgmAudio.paused;
+
+  if (backgroundAudioState.extraBgm) {
+    try {
+      extraBgmAudio.pause();
+    } catch (e) {}
+  }
+
+
+  /*
+   * Extra Event 雙人同時說話
+   */
+  backgroundAudioState.parallelVoices = [];
+
+  if (
+    Array.isArray(parallelAudioInstances)
+  ) {
+    parallelAudioInstances.forEach(
+      (audio) => {
+        if (!audio || audio.paused) return;
+
+        backgroundAudioState
+          .parallelVoices
+          .push(audio);
+
+        try {
+          audio.pause();
+        } catch (e) {}
+      }
+    );
+  }
+
+
+  /*
+   * SE 是一次性音效。
+   * 進背景後只暫停，不記錄、不恢復。
+   */
+  if (Array.isArray(mainSePool)) {
+    mainSePool.forEach((audio) => {
+      if (!audio || audio.paused) return;
+
+      try {
+        audio.pause();
+      } catch (e) {}
+    });
+  }
+
+  if (extraSePool) {
+    extraSePool.forEach((audio) => {
+      if (!audio || audio.paused) return;
+
+      try {
+        audio.pause();
+      } catch (e) {}
+    });
+  }
+}
+
+function resumeGameAudioFromBackground() {
+  /*
+   * Web Audio Context 在手機從背景回來後
+   * 可能進入 suspended 狀態。
+   */
+  if (
+    mainBgmAudioContext &&
+    mainBgmAudioContext.state === "suspended"
+  ) {
+    mainBgmAudioContext
+      .resume()
+      .catch(() => {});
+  }
+
+
+  /*
+   * Main BGM
+   */
+  if (
+    backgroundAudioState.mainBgm &&
+    mainBgmAudio
+  ) {
+    mainBgmAudio
+      .play()
+      .catch(() => {});
+  }
+
+
+  /*
+   * Morning Ambient
+   */
+  if (
+    backgroundAudioState.morningAmbient &&
+    morningAmbientAudio
+  ) {
+    morningAmbientAudio
+      .play()
+      .catch(() => {});
+  }
+
+
+  /*
+   * Voice
+   */
+  if (
+    backgroundAudioState.voice &&
+    activeAudioInstance
+  ) {
+    activeAudioInstance
+      .play()
+      .catch(() => {});
+  }
+
+
+  /*
+   * Extra Event BGM
+   */
+  if (
+    backgroundAudioState.extraBgm &&
+    extraBgmAudio
+  ) {
+    extraBgmAudio
+      .play()
+      .catch(() => {});
+  }
+
+
+  /*
+   * Extra Event 雙人 Voice
+   */
+  backgroundAudioState
+    .parallelVoices
+    .forEach((audio) => {
+      if (!audio) return;
+
+      audio
+        .play()
+        .catch(() => {});
+    });
+
+
+  /*
+   * 清空暫存狀態
+   */
+  backgroundAudioState.mainBgm = false;
+  backgroundAudioState.morningAmbient = false;
+  backgroundAudioState.voice = false;
+  backgroundAudioState.extraBgm = false;
+  backgroundAudioState.parallelVoices = [];
+}
+
 function stopAllGameAudioForPageExit() {
   try {
     stopMainBgm(0);
@@ -5636,6 +5846,17 @@ window.addEventListener(
 window.addEventListener(
   "beforeunload",
   stopAllGameAudioForPageExit
+);
+
+document.addEventListener(
+  "visibilitychange",
+  () => {
+    if (document.hidden) {
+      pauseGameAudioForBackground();
+    } else {
+      resumeGameAudioFromBackground();
+    }
+  }
 );
 
 
