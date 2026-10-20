@@ -3705,9 +3705,7 @@ function initStartGate() {
  * 從現在開始在背景預載，
  * 不阻塞 Title / 正篇操作。
  */
-preloadListeningSectionInBackground(1, 3);
-preloadListeningSectionInBackground(1, 4);
-preloadListeningSectionInBackground(1, 5);
+
 
 preloadExtraEventInBackground();
 
