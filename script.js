@@ -3236,11 +3236,59 @@ function startTitleBgm() {
     return;
   }
 
-  if ((gameSettings.bgmVolume ?? 0) <= 0) {
+  const targetVolume =
+    getMainBgmVolume();
+
+  if (targetVolume <= 0) {
+    if (titleBgmPrimedAudio) {
+      try {
+        titleBgmPrimedAudio.pause();
+        titleBgmPrimedAudio.currentTime = 0;
+        titleBgmPrimedAudio.src = "";
+        titleBgmPrimedAudio.load();
+      } catch (e) {}
+
+      titleBgmPrimedAudio = null;
+    }
+
     stopMainBgm(0);
     return;
   }
 
+  /*
+   * 首次進站：
+   * 直接接手 TAP 時已經成功 play() 的 Audio。
+   * 不重新建立另一個 BGM。
+   */
+  if (titleBgmPrimedAudio) {
+    stopMainBgm(0);
+
+    mainBgmAudio =
+      titleBgmPrimedAudio;
+
+    mainBgmPath =
+      normalizeMainAudioPath(
+        MAIN_AUDIO.bgmNewIdea
+      );
+
+    titleBgmPrimedAudio = null;
+
+    mainBgmAudio.loop = true;
+
+    fadeMainAudio(
+      mainBgmAudio,
+      targetVolume,
+      700,
+      "bgm"
+    );
+
+    return;
+  }
+
+  /*
+   * 之後從遊戲返回 Title：
+   * 使用正常 Main BGM 系統。
+   */
   playMainBgm(
     MAIN_AUDIO.bgmNewIdea,
     700
@@ -3270,6 +3318,60 @@ function armTitleBgm() {
   startTitleBgm();
 }
 function initStartGate() {
+  let titleBgmPrimedAudio = null;
+
+function primeTitleBgmFromGesture() {
+  if ((gameSettings.bgmVolume ?? 0) <= 0) {
+    return;
+  }
+
+  try {
+    if (titleBgmPrimedAudio) {
+      titleBgmPrimedAudio.pause();
+      titleBgmPrimedAudio.currentTime = 0;
+      titleBgmPrimedAudio.src = "";
+      titleBgmPrimedAudio.load();
+    }
+
+    const audio = new Audio(
+      normalizeMainAudioPath(
+        MAIN_AUDIO.bgmNewIdea
+      )
+    );
+
+    audio.preload = "auto";
+    audio.loop = true;
+
+    // Loading 期間完全靜音。
+    audio.volume = 0;
+
+    const playPromise = audio.play();
+
+    if (
+      playPromise &&
+      typeof playPromise.catch === "function"
+    ) {
+      playPromise.catch((err) => {
+        console.warn(
+          "[TITLE BGM] prime failed:",
+          err
+        );
+
+        if (titleBgmPrimedAudio === audio) {
+          titleBgmPrimedAudio = null;
+        }
+      });
+    }
+
+    titleBgmPrimedAudio = audio;
+
+  } catch (err) {
+    console.warn(
+      "[TITLE BGM] prime error:",
+      err
+    );
+  }
+}
   const startGate =
     document.getElementById("start-gate");
 
@@ -3338,6 +3440,7 @@ function initStartGate() {
 
     unlockAudioContextIOS();
     unlockMainStoryAudio();
+    primeTitleBgmFromGesture();
 
 
     /*
@@ -3449,7 +3552,20 @@ function showScreen(screenKey) {
   if (screens[screenKey]) screens[screenKey].classList.add('active');
 
   if (screenKey === "title") {
-  stopMainStoryAudioImmediately();
+  const titlePath =
+    normalizeMainAudioPath(
+      MAIN_AUDIO.bgmNewIdea
+    );
+
+  const isTitleBgmAlreadyPlaying =
+    mainBgmAudio &&
+    mainBgmPath === titlePath &&
+    !mainBgmAudio.paused;
+
+  if (!isTitleBgmAlreadyPlaying) {
+    stopMainStoryAudioImmediately();
+  }
+
   armTitleBgm();
 }
 
@@ -4899,9 +5015,15 @@ document.addEventListener('click', (event) => {
     );
 
     /*
-     * 主線 / Title BGM
-     * slider 必須立即反映，不走 fade。
+     * 先停止舊的 Main BGM fade，
+     * 否則 slider 剛設定的 volume
+     * 會被 fade timer 再寫回去。
      */
+    if (mainBgmFadeTimer) {
+      clearInterval(mainBgmFadeTimer);
+      mainBgmFadeTimer = null;
+    }
+
     if (mainBgmAudio) {
       mainBgmAudio.volume =
         volume <= 0
@@ -4910,18 +5032,34 @@ document.addEventListener('click', (event) => {
     }
 
     /*
-     * Extra Event 實際使用中的 BGM。
-     * 現在程式同時存在 extraBgmAudio
-     * 與舊的 extraEventBgmAudio，
-     * 兩個都同步，避免任何漏網 channel。
+     * 如果設定畫面是在首次 Loading
+     * 特殊情況開啟，也同步 primed audio。
+     */
+    if (titleBgmPrimedAudio) {
+      titleBgmPrimedAudio.volume =
+        volume <= 0
+          ? 0
+          : getMainBgmVolume();
+    }
+
+    /*
+     * Extra Event BGM
      */
     if (
       typeof extraBgmAudio !== "undefined" &&
       extraBgmAudio
     ) {
+      if (extraBgmFadeTimer) {
+        clearInterval(extraBgmFadeTimer);
+        extraBgmFadeTimer = null;
+      }
+
       extraBgmAudio.volume = volume;
     }
 
+    /*
+     * 相容舊 channel。
+     */
     if (
       typeof extraEventBgmAudio !== "undefined" &&
       extraEventBgmAudio
@@ -4929,22 +5067,98 @@ document.addEventListener('click', (event) => {
       extraEventBgmAudio.volume = volume;
     }
 
-    /*
-     * 0% 時不要 pause。
-     * 保留播放位置，只做真正靜音；
-     * 之後從 0% 拉回來可以立即恢復聲音。
-     */
     saveGameData();
   };
 }
 
-  if (elements.cfgVoiceSlider) {
-    elements.cfgVoiceSlider.oninput = (e) => {
-      gameSettings.voiceVolume = parseInt(e.target.value, 10);
-      if(elements.cfgVoiceVal) elements.cfgVoiceVal.innerText = `${gameSettings.voiceVolume}%`;
-      saveGameData();
-    };
-  }
+  if (elements.cfgSeSlider) {
+  elements.cfgSeSlider.oninput = (e) => {
+    gameSettings.seVolume =
+      parseInt(e.target.value, 10);
+
+    if (elements.cfgSeVal) {
+      elements.cfgSeVal.innerText =
+        `${gameSettings.seVolume}%`;
+    }
+
+    const volume =
+      getMainSeVolume();
+
+    /*
+     * 校園早晨環境音
+     */
+    if (morningAmbientAudio) {
+      if (morningAmbientFadeTimer) {
+        clearInterval(
+          morningAmbientFadeTimer
+        );
+        morningAmbientFadeTimer = null;
+      }
+
+      morningAmbientAudio.volume =
+        getMorningAmbientVolume();
+    }
+
+    /*
+     * Main Story SE
+     */
+    if (
+      typeof mainSePool !== "undefined" &&
+      Array.isArray(mainSePool)
+    ) {
+      mainSePool.forEach((audio) => {
+        if (!audio) return;
+
+        audio.volume = volume;
+      });
+    }
+
+    /*
+     * Extra Event SE
+     */
+    if (
+      typeof extraSePool !== "undefined" &&
+      extraSePool
+    ) {
+      extraSePool.forEach((audio) => {
+        if (!audio) return;
+
+        audio.volume = volume;
+      });
+    }
+
+    saveGameData();
+  };
+}
+
+if (elements.cfgVoiceSlider) {
+  elements.cfgVoiceSlider.oninput = (e) => {
+    gameSettings.voiceVolume =
+      parseInt(e.target.value, 10);
+
+    if (elements.cfgVoiceVal) {
+      elements.cfgVoiceVal.innerText =
+        `${gameSettings.voiceVolume}%`;
+    }
+
+    /*
+     * 正在播放中的主 Voice
+     * 也立即套用新音量。
+     */
+    if (activeAudioInstance) {
+      activeAudioInstance.volume =
+        Math.max(
+          0,
+          Math.min(
+            1,
+            (gameSettings.voiceVolume ?? 0) / 100
+          )
+        );
+    }
+
+    saveGameData();
+  };
+}
 }
 
 function stopAllGameAudioForPageExit() {
