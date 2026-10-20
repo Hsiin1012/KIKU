@@ -2190,15 +2190,20 @@ function normalizeMainAudioPath(path) {
 /* ---------- volume ---------- */
 
 function getMainBgmVolume() {
-  /*
-   * 使用者設定的 BGM 音量由 GainNode 負責。
-   * HTMLAudioElement.volume 只負責
-   * fade / duck。
-   */
+  const userVolume = Math.max(
+    0,
+    Math.min(
+      1,
+      (gameSettings.bgmVolume ?? 50) / 100
+    )
+  );
+
   return Math.max(
     0,
     Math.min(
       1,
+      userVolume *
+      MAIN_BGM_VOLUME_FACTOR *
       mainBgmDuckFactor
     )
   );
@@ -2323,193 +2328,90 @@ function fadeMainAudio(
     return;
   }
 
-  /*
-   * =========================
-   * Main BGM
-   * =========================
-   *
-   * BGM 不再修改 audio.volume。
-   * 改由 Web Audio fadeGain 控制。
-   */
+  let timerRef = null;
+
   if (type === "bgm") {
     if (mainBgmFadeTimer) {
       clearInterval(mainBgmFadeTimer);
       mainBgmFadeTimer = null;
     }
+  }
 
-    const nodes =
-      ensureMainBgmWebAudio(audio);
-
-    if (!nodes || !nodes.fadeGain) {
-      /*
-       * 極舊瀏覽器不支援 Web Audio 時的 fallback。
-       */
-      audio.volume = Math.max(
-        0,
-        Math.min(1, targetVolume)
-      );
-
-      if (onComplete) onComplete();
-      return;
+  if (type === "ambient") {
+    if (morningAmbientFadeTimer) {
+      clearInterval(morningAmbientFadeTimer);
+      morningAmbientFadeTimer = null;
     }
-
-    const fadeGain =
-      nodes.fadeGain;
-
-    const startVolume =
-      fadeGain.gain.value;
-
-    const safeTarget = Math.max(
-      0,
-      Math.min(1, targetVolume)
-    );
-
-    if (duration <= 0) {
-      fadeGain.gain.value =
-        safeTarget;
-
-      if (onComplete) onComplete();
-      return;
-    }
-
-    const startTime =
-      performance.now();
-
-    const timer =
-      setInterval(() => {
-        const elapsed =
-          performance.now() -
-          startTime;
-
-        const progress =
-          Math.min(
-            1,
-            elapsed / duration
-          );
-
-        fadeGain.gain.value =
-          startVolume +
-          (safeTarget - startVolume) *
-          progress;
-
-        if (progress >= 1) {
-          clearInterval(timer);
-
-          if (
-            mainBgmFadeTimer === timer
-          ) {
-            mainBgmFadeTimer = null;
-          }
-
-          fadeGain.gain.value =
-            safeTarget;
-
-          if (onComplete) {
-            onComplete();
-          }
-        }
-      }, 40);
-
-    mainBgmFadeTimer = timer;
-
-    return;
   }
-
-  /*
- * =========================
- * Morning Ambient
- * =========================
- */
-if (type === "ambient") {
-  if (morningAmbientFadeTimer) {
-    clearInterval(morningAmbientFadeTimer);
-    morningAmbientFadeTimer = null;
-  }
-
-  const nodes =
-    ensureMorningAmbientWebAudio(audio);
-
-  /*
-   * Web Audio 不可用時 fallback
-   */
-  if (!nodes || !nodes.fadeGain) {
-    audio.volume = Math.max(
-      0,
-      Math.min(1, targetVolume)
-    );
-
-    if (onComplete) onComplete();
-    return;
-  }
-
-  const fadeGain = nodes.fadeGain;
 
   const startVolume =
-    fadeGain.gain.value;
+    Number.isFinite(audio.volume)
+      ? audio.volume
+      : 0;
 
-  /*
-   * 注意：
-   * targetVolume 裡原本包含 SE × 0.28。
-   * 現在這部分交給 Master Gain，
-   * 所以 fadeGain 只負責 0 → 1 的淡入淡出。
-   */
-  const safeTarget =
-    targetVolume > 0 ? 1 : 0;
+  const safeTarget = Math.max(
+    0,
+    Math.min(1, targetVolume)
+  );
 
   if (duration <= 0) {
-    fadeGain.gain.value =
-      safeTarget;
+    audio.volume = safeTarget;
 
-    updateMorningAmbientGain();
+    if (onComplete) {
+      onComplete();
+    }
 
-    if (onComplete) onComplete();
     return;
   }
 
-  const startTime =
-    performance.now();
+  const startTime = performance.now();
 
-  const timer =
-    setInterval(() => {
-      const elapsed =
-        performance.now() -
-        startTime;
+  const timer = setInterval(() => {
+    const progress = Math.min(
+      1,
+      (performance.now() - startTime) /
+        Math.max(1, duration)
+    );
 
-      const progress =
-        Math.min(
-          1,
-          elapsed / duration
-        );
-
-      fadeGain.gain.value =
-        startVolume +
-        (safeTarget - startVolume) *
+    audio.volume =
+      startVolume +
+      (safeTarget - startVolume) *
         progress;
 
-      if (progress >= 1) {
-        clearInterval(timer);
+    if (progress >= 1) {
+      clearInterval(timer);
 
-        if (
-          morningAmbientFadeTimer === timer
-        ) {
-          morningAmbientFadeTimer = null;
-        }
+      audio.volume = safeTarget;
 
-        fadeGain.gain.value =
-          safeTarget;
-
-        updateMorningAmbientGain();
-
-        if (onComplete) {
-          onComplete();
-        }
+      if (
+        type === "bgm" &&
+        mainBgmFadeTimer === timer
+      ) {
+        mainBgmFadeTimer = null;
       }
-    }, 40);
 
-  morningAmbientFadeTimer = timer;
+      if (
+        type === "ambient" &&
+        morningAmbientFadeTimer === timer
+      ) {
+        morningAmbientFadeTimer = null;
+      }
 
-  return;
-}
+      if (onComplete) {
+        onComplete();
+      }
+    }
+  }, 40);
+
+  timerRef = timer;
+
+  if (type === "bgm") {
+    mainBgmFadeTimer = timerRef;
+  }
+
+  if (type === "ambient") {
+    morningAmbientFadeTimer = timerRef;
+  }
 }
 
 function fadeDetachedMainAudioOut(
@@ -2518,37 +2420,17 @@ function fadeDetachedMainAudioOut(
 ) {
   if (!audio) return;
 
-  const nodes =
-    ensureMainBgmWebAudio(audio);
-
-  /*
-   * Web Audio 不可用時 fallback。
-   */
-  if (!nodes || !nodes.fadeGain) {
-    try {
-      audio.pause();
-      audio.currentTime = 0;
-    } catch (e) {}
-
-    return;
-  }
-
-  const fadeGain =
-    nodes.fadeGain;
-
   const startVolume =
-    fadeGain.gain.value;
+    Number.isFinite(audio.volume)
+      ? audio.volume
+      : 0;
 
-  /*
-   * 已經沒有聲音，直接停止。
-   */
   if (
     duration <= 0 ||
     startVolume <= 0
   ) {
-    fadeGain.gain.value = 0;
-
     try {
+      audio.volume = 0;
       audio.pause();
       audio.currentTime = 0;
     } catch (e) {}
@@ -2556,39 +2438,30 @@ function fadeDetachedMainAudioOut(
     return;
   }
 
-  const startTime =
-    performance.now();
+  const startTime = performance.now();
 
-  const timer =
-    setInterval(() => {
-      const progress =
-        Math.min(
-          1,
-          (
-            performance.now() -
-            startTime
-          ) /
-          Math.max(1, duration)
-        );
+  const timer = setInterval(() => {
+    const progress = Math.min(
+      1,
+      (performance.now() - startTime) /
+        Math.max(1, duration)
+    );
 
-      fadeGain.gain.value =
-        Math.max(
-          0,
-          startVolume *
-          (1 - progress)
-        );
+    audio.volume = Math.max(
+      0,
+      startVolume * (1 - progress)
+    );
 
-      if (progress >= 1) {
-        clearInterval(timer);
+    if (progress >= 1) {
+      clearInterval(timer);
 
-        fadeGain.gain.value = 0;
-
-        try {
-          audio.pause();
-          audio.currentTime = 0;
-        } catch (e) {}
-      }
-    }, 40);
+      try {
+        audio.volume = 0;
+        audio.pause();
+        audio.currentTime = 0;
+      } catch (e) {}
+    }
+  }, 40);
 }
 
 function rebuildMainAudioContext() {
@@ -2922,35 +2795,17 @@ function unlockMainStoryAudio() {
 
   try {
     /*
-     * Main BGM channel
-     * TAP 時先建立正式的 mainBgmAudio。
-     * 後續 playMainBgm() 必須沿用這個 instance，
-     * 不再另外建立第二個 Audio。
+     * Main BGM
      */
     if (!mainBgmAudio) {
-  mainBgmAudio = new Audio();
-  mainBgmAudio.preload = "auto";
-  mainBgmAudio.loop = true;
-  mainBgmAudio.volume = 1;
-}
-
-/*
- * 將正式 Main BGM channel
- * 接到 Web Audio GainNode。
- */
-ensureMainBgmWebAudio(mainBgmAudio);
-
-if (
-  mainBgmAudioContext &&
-  mainBgmAudioContext.state === "suspended"
-) {
-  mainBgmAudioContext
-    .resume()
-    .catch(() => {});
-}
+      mainBgmAudio = new Audio();
+      mainBgmAudio.preload = "auto";
+      mainBgmAudio.loop = true;
+      mainBgmAudio.volume = 0;
+    }
 
     /*
-     * Morning ambience channel
+     * Morning Ambient
      */
     if (!morningAmbientAudio) {
       morningAmbientAudio = new Audio();
@@ -2960,28 +2815,32 @@ if (
     }
 
     /*
-     * SE channels
+     * Main SE Pool
      */
     if (mainSePool.length === 0) {
-  for (let i = 0; i < 4; i++) {
-    const seAudio = new Audio();
-    seAudio.preload = "auto";
-    seAudio.volume = 1;
+      for (let i = 0; i < 4; i++) {
+        const seAudio = new Audio();
 
-    mainSePool.push(seAudio);
+        seAudio.preload = "auto";
+        seAudio.volume =
+          getMainSeVolume() *
+          MAIN_SE_VOLUME_FACTOR;
 
-    ensureMainSeWebAudio(seAudio);
-  }
-}
-
-updateMainSeGain();
+        mainSePool.push(seAudio);
+      }
+    }
 
     mainAudioUnlocked = true;
 
-    console.log("[MAIN AUDIO] channels ready");
+    console.log(
+      "[MAIN AUDIO] HTMLAudio channels ready"
+    );
 
   } catch (e) {
-    console.warn("[MAIN AUDIO] channel init failed", e);
+    console.warn(
+      "[MAIN AUDIO] channel init failed",
+      e
+    );
   }
 }
 
@@ -3070,29 +2929,7 @@ if (oldAudio) {
  * 後續真正切歌：
  * 建立新的 Audio。
  */
-const audio =
-  canReuseUnlockedChannel
-    ? mainBgmAudio
-    : new Audio();
-
-audio.preload = "auto";
-audio.loop = true;
-audio.src = cleanPath;
-
-const bgmNodes =
-  ensureMainBgmWebAudio(audio);
-
-if (
-  bgmNodes &&
-  bgmNodes.fadeGain
-) {
-  bgmNodes.fadeGain.gain.value = 0;
-} else {
-  /*
-   * Web Audio fallback
-   */
-  audio.volume = 0;
-}
+audio.volume = 0;
 
 mainBgmAudio = audio;
 mainBgmPath = cleanPath;
@@ -3242,9 +3079,9 @@ function playMainSe(path, onEnded = null) {
 
     audio.src = cleanPath;
     audio.loop = false;
-    audio.volume = 1;
-    ensureMainSeWebAudio(audio);
-    updateMainSeGain();
+    audio.volume =
+    getMainSeVolume() *
+    MAIN_SE_VOLUME_FACTOR;
 
     let finished = false;
     const finishOnce = () => {
@@ -3379,11 +3216,8 @@ function startMorningAmbient(
 
   audio.preload = "auto";
   audio.loop = true;
-  audio.volume = 1;
+  audio.volume = 0;
   audio.src = cleanPath;
-
-  ensureMorningAmbientWebAudio(audio);
-  updateMorningAmbientGain();
 
   audio.dataset.mainPath = cleanPath;
 
@@ -5580,7 +5414,10 @@ document.addEventListener('click', (event) => {
  * Main BGM 的使用者音量
  * 統一交給 Web Audio GainNode。
  */
-updateMainBgmGain();
+if (mainBgmAudio) {
+  mainBgmAudio.volume =
+    getMainBgmVolume();
+}
 
     /*
      * Extra Event BGM
@@ -5622,17 +5459,18 @@ updateMainBgmGain();
     }
 
     const volume =
-      getMainSeVolume();
-      updateMainSeGain();
+  getMainSeVolume();
 
-    /*
-     * 校園早晨環境音
-     */
-    updateMorningAmbientGain();
-    /*
+/*
+ * Morning Ambient
+ */
+if (morningAmbientAudio) {
+  morningAmbientAudio.volume =
+    getMorningAmbientVolume();
+}
+
+/*
  * Main Story SE
- * HTML Audio 固定 100%
- * 使用者音量只交給 Web Audio GainNode
  */
 if (
   typeof mainSePool !== "undefined" &&
@@ -5641,12 +5479,11 @@ if (
   mainSePool.forEach((audio) => {
     if (!audio) return;
 
-    audio.volume = 1;
-    ensureMainSeWebAudio(audio);
+    audio.volume =
+      volume *
+      MAIN_SE_VOLUME_FACTOR;
   });
 }
-
-updateMainSeGain();
 
     /*
      * Extra Event SE
@@ -5886,12 +5723,8 @@ async function resumeGameAudioFromBackground() {
       mainBgmAudio = audio;
       mainBgmPath = savedBgm.path;
 
-      const nodes =
-        ensureMainBgmWebAudio(audio);
-
-      if (nodes?.fadeGain) {
-        nodes.fadeGain.gain.value = 1;
-      }
+      audio.volume =
+  getMainBgmVolume();
 
       const restoreTime = () => {
         try {
@@ -5916,8 +5749,6 @@ async function resumeGameAudioFromBackground() {
       }
 
       await audio.play();
-
-      updateMainBgmGain();
 
     } catch (err) {
       console.warn(
@@ -5946,16 +5777,15 @@ async function resumeGameAudioFromBackground() {
 
       audio.preload = "auto";
       audio.loop = true;
-      audio.volume = 1;
+      audio.volume =
+        getMorningAmbientVolume();
+
       audio.src = savedAmbient.path;
 
       audio.dataset.mainPath =
         savedAmbient.path;
 
       morningAmbientAudio = audio;
-
-      ensureMorningAmbientWebAudio(audio);
-      updateMorningAmbientGain();
 
       const restoreTime = () => {
         try {
