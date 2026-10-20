@@ -6224,3 +6224,5 @@ document.addEventListener("DOMContentLoaded", () => {
   initStartGate();
   showScreen('title');
 });
+
+/*end*/
