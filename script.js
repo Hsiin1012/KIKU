@@ -784,7 +784,6 @@ function renderExtraEventStep() {
   // dialogue / if_end 等程式碼繼續接在這裡
 
   if (step.type === "title_card") {
-  if (step.type === "title_card") {
   playExtraSe(EXTRA_AUDIO.seTitle);
 
     if (elements.bgNameTag) elements.bgNameTag.innerText = "【EXTRA EVENT】";
@@ -906,7 +905,7 @@ function renderExtraEventStep() {
   }
 
   showScreen('gameplay');
-}}
+}
 
 function advanceExtraEvent() {
   const currentStep =
