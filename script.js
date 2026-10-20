@@ -2997,6 +2997,18 @@ mainBgmPath = cleanPath;
 function stopMainBgm(fadeMs = 700) {
   const audio = mainBgmAudio;
 
+console.trace(
+  "[DEBUG BGM] background unload clearing BGM",
+  {
+    audio,
+    path: mainBgmPath,
+    hidden: document.hidden
+  }
+);
+
+mainBgmAudio = null;
+mainBgmPath = "";
+
   mainBgmAudio = null;
   mainBgmPath = "";
 
@@ -3327,14 +3339,23 @@ function stopMainStoryAudioImmediately() {
   }
 
   if (mainBgmAudio) {
-    try {
-      mainBgmAudio.pause();
-      mainBgmAudio.currentTime = 0;
-    } catch (e) {}
 
-    mainBgmAudio = null;
-    mainBgmPath = "";
-  }
+  console.trace(
+    "[DEBUG BGM] stopMainStoryAudioImmediately clearing BGM",
+    {
+      audio: mainBgmAudio,
+      path: mainBgmPath
+    }
+  );
+
+  try {
+    mainBgmAudio.pause();
+    mainBgmAudio.currentTime = 0;
+  } catch (e) {}
+
+  mainBgmAudio = null;
+  mainBgmPath = "";
+}
 
   if (morningAmbientAudio) {
     try {
