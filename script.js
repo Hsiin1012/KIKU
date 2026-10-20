@@ -3229,61 +3229,6 @@ function closeConfigScreen() {
 let titleBgmWaitingForGesture = false;
 
 function startTitleBgm() {
-  let titleBgmPrimedAudio = null;
-
-function primeTitleBgmFromGesture() {
-  // BGM = 0 時完全不建立播放
-  if ((gameSettings.bgmVolume ?? 0) <= 0) {
-    return;
-  }
-
-  // 避免重複建立
-  if (titleBgmPrimedAudio) {
-    return;
-  }
-
-  const cleanPath =
-    normalizeMainAudioPath(
-      MAIN_AUDIO.bgmNewIdea
-    );
-
-  if (!cleanPath) return;
-
-  const audio = new Audio();
-
-  audio.preload = "auto";
-  audio.loop = true;
-  audio.volume = 0;
-  audio.src = cleanPath;
-
-  /*
-   * 關鍵：
-   * 這個 play() 必須直接發生在
-   * TAP TO START 的 user gesture 裡。
-   *
-   * Loading 期間保持 volume = 0，
-   * 所以玩家不會聽到 BGM。
-   */
-  const playPromise = audio.play();
-
-  if (
-    playPromise &&
-    typeof playPromise.catch === "function"
-  ) {
-    playPromise.catch((err) => {
-      console.warn(
-        "[TITLE BGM] prime failed:",
-        err
-      );
-
-      if (titleBgmPrimedAudio === audio) {
-        titleBgmPrimedAudio = null;
-      }
-    });
-  }
-
-  titleBgmPrimedAudio = audio;
-}
   if (
     !screens.title ||
     !screens.title.classList.contains("active")
@@ -3291,7 +3236,6 @@ function primeTitleBgmFromGesture() {
     return;
   }
 
-  // BGM 設為 0 時，不建立、不恢復任何 Title BGM
   if ((gameSettings.bgmVolume ?? 0) <= 0) {
     stopMainBgm(0);
     return;
@@ -3302,7 +3246,7 @@ function primeTitleBgmFromGesture() {
     700
   );
 }
-
+  
 function armTitleBgm() {
   if (
     !screens.title ||
@@ -3325,7 +3269,6 @@ function armTitleBgm() {
   // 已經通過 Start Gate，例如遊戲內返回 Title。
   startTitleBgm();
 }
-
 function initStartGate() {
   const startGate =
     document.getElementById("start-gate");
@@ -3395,7 +3338,6 @@ function initStartGate() {
 
     unlockAudioContextIOS();
     unlockMainStoryAudio();
-    primeTitleBgmFromGesture();
 
 
     /*
@@ -5093,16 +5035,6 @@ try {
     extraEventBgmAudio.src = "";
     extraEventBgmAudio.load();
     extraEventBgmAudio = null;
-  }
-} catch (e) {}
-
-try {
-  if (titleBgmPrimedAudio) {
-    titleBgmPrimedAudio.pause();
-    titleBgmPrimedAudio.currentTime = 0;
-    titleBgmPrimedAudio.src = "";
-    titleBgmPrimedAudio.load();
-    titleBgmPrimedAudio = null;
   }
 } catch (e) {}
 
