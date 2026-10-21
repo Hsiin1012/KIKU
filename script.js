@@ -6211,110 +6211,116 @@ function bgmDbgAttach(audio) {
   }, 6000);
 }
 
-/* TEMP DEBUG：Main BGM foreground restore 診斷（只讀取狀態） */
-function bgmDbgAttach(audio, nodes) {
-  const startedAt = performance.now();
-  const events = [];
-  let peakMax = 0;
-  let analyser = null;
-  let buffer = null;
-  let peakTimer = null;
+/* TEMP DEBUG：獨立 AudioContext 輸出探針 */
+let bgmDbgHiddenAt = 0;
+let bgmDbgVisibleAt = 0;
 
-  [
-    "playing",
-    "pause",
-    "waiting",
-    "stalled",
-    "emptied",
-    "ended",
-    "error"
-  ].forEach((name) => {
-    audio.addEventListener(name, () => {
-      if (events.length < 14) {
-        events.push(
-          name + "@" +
-          Math.round(performance.now() - startedAt)
-        );
-      }
-    });
-  });
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+    bgmDbgHiddenAt = performance.now();
+  } else {
+    bgmDbgVisibleAt = performance.now();
+  }
+});
+
+function bgmDbgSessionText() {
+  try {
+    const session = navigator.audioSession;
+
+    if (!session) {
+      return "api=n/a";
+    }
+
+    return (
+      "api=yes type=" + session.type +
+      " state=" + session.state
+    );
+  } catch (e) {
+    return "api=err";
+  }
+}
+
+function bgmDbgOutputProbe() {
+  const clickAt = performance.now();
+
+  console.log(
+    "[BGM RESTORE] DBG probe click" +
+    " | hiddenMs=" +
+      Math.round(bgmDbgVisibleAt - bgmDbgHiddenAt) +
+    " sinceVisibleMs=" +
+      Math.round(clickAt - bgmDbgVisibleAt) +
+    " | session " +
+      bgmDbgSessionText()
+  );
 
   try {
-    if (nodes && nodes.source && mainBgmAudioContext) {
-      const ctx = mainBgmAudioContext;
+    const AudioContextClass =
+      window.AudioContext ||
+      window.webkitAudioContext;
 
-      analyser = ctx.createAnalyser();
-      analyser.fftSize = 256;
-
-      /*
-       * 靜音旁路：source → analyser → gain(0) → destination
-       * 不影響原本的 fadeGain / mainBgmGainNode 路徑。
-       */
-      const tap = ctx.createGain();
-      tap.gain.value = 0;
-
-      nodes.source.connect(analyser);
-      analyser.connect(tap);
-      tap.connect(ctx.destination);
-
-      buffer = new Uint8Array(analyser.fftSize);
-    }
-  } catch (e) {
-    analyser = null;
-    buffer = null;
-  }
-
-  if (analyser && buffer) {
-    peakTimer = setInterval(() => {
-      try {
-        analyser.getByteTimeDomainData(buffer);
-
-        for (let i = 0; i < buffer.length; i++) {
-          const d = Math.abs(buffer[i] - 128);
-
-          if (d > peakMax) {
-            peakMax = d;
-          }
-        }
-      } catch (e) {}
-    }, 100);
-  }
-
-  const snap = (label) => {
-    try {
+    if (!AudioContextClass) {
       console.log(
-        "[BGM RESTORE] DBG " + label +
-        " | ctx=" +
-          (mainBgmAudioContext ? mainBgmAudioContext.state : "none") +
-        " | current=" + (mainBgmAudio === audio) +
-        " | hidden=" + document.hidden +
-        " | paused=" + audio.paused +
-        " ended=" + audio.ended +
-        " rs=" + audio.readyState +
-        " ns=" + audio.networkState +
-        " t=" + audio.currentTime.toFixed(2) +
-        " dur=" + Math.round(audio.duration) +
-        " muted=" + audio.muted +
-        " err=" + (audio.error ? audio.error.code : "none") +
-        " | peakMax=" + (analyser ? peakMax : "n/a") +
-        " | as=" +
-          (navigator.audioSession
-            ? navigator.audioSession.type
-            : "n/a") +
-        " | ev=" + events.join(",")
+        "[BGM RESTORE] DBG probe no AudioContext"
       );
-    } catch (e) {}
-  };
-
-  setTimeout(() => snap("1s"), 1000);
-
-  setTimeout(() => {
-    snap("6s");
-
-    if (peakTimer) {
-      clearInterval(peakTimer);
+      return;
     }
-  }, 6000);
+
+    const probeCtx = new AudioContextClass();
+
+    const probeGain = probeCtx.createGain();
+    probeGain.gain.value = 0.1;
+    probeGain.connect(probeCtx.destination);
+
+    const osc = probeCtx.createOscillator();
+    osc.type = "sine";
+    osc.frequency.value = 880;
+    osc.connect(probeGain);
+
+    console.log(
+      "[BGM RESTORE] DBG probe created" +
+      " | state=" + probeCtx.state
+    );
+
+    osc.start(probeCtx.currentTime + 1.5);
+    osc.stop(probeCtx.currentTime + 2.0);
+
+    if (probeCtx.state === "suspended") {
+      probeCtx.resume()
+        .then(() => {
+          console.log(
+            "[BGM RESTORE] DBG probe resume resolved" +
+            " | state=" + probeCtx.state
+          );
+        })
+        .catch((e) => {
+          console.log(
+            "[BGM RESTORE] DBG probe resume failed",
+            e
+          );
+        });
+    }
+
+    setTimeout(() => {
+      console.log(
+        "[BGM RESTORE] DBG probe beep time" +
+        " | state=" + probeCtx.state +
+        " currentTime=" +
+          probeCtx.currentTime.toFixed(2)
+      );
+    }, 1500);
+
+    setTimeout(() => {
+      try {
+        probeCtx.close().catch(() => {});
+      } catch (e) {}
+    }, 3500);
+
+  } catch (e) {
+    console.log(
+      "[BGM RESTORE] DBG probe failed",
+      e
+    );
+  }
 }
 
 function pauseGameAudioForBackground() {
