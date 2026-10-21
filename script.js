@@ -178,7 +178,8 @@ function playExtraSe(path, onEnded = null) {
 
 extraSePool.add(audio);
 
-audio.volume = volume;
+audio.volume =
+  volume * MAIN_SE_VOLUME_FACTOR;
 audio.loop = false;
 
     let finished = false;
@@ -1964,10 +1965,10 @@ let mainAudioUnlocked = false;
 const mainSePool = [];
 
 const MAIN_BGM_DUCK_FACTOR = 0.35;
-const MORNING_AMBIENT_FACTOR = 0.28;
+const MORNING_AMBIENT_FACTOR = 0.35;
 
-const MAIN_BGM_VOLUME_FACTOR = 0.6;
-const MAIN_SE_VOLUME_FACTOR = 0.7;
+const MAIN_BGM_VOLUME_FACTOR = 0.5;
+const MAIN_SE_VOLUME_FACTOR = 0.35;
 
 /* =========================================================
    RESOURCE PRELOADER
@@ -3407,9 +3408,7 @@ audio.loop = false;
 audio.muted =
   gameSettings.seVolume <= 0;
 
-audio.volume =
-  getMainSeVolume() *
-  MAIN_SE_VOLUME_FACTOR;
+audio.volume = 1;
 
     let finished = false;
     const finishOnce = () => {
@@ -5894,10 +5893,10 @@ if (
   audio.muted =
     gameSettings.seVolume <= 0;
 
-  audio.volume =
-    volume *
-    MAIN_SE_VOLUME_FACTOR;
+  audio.volume = 1;
 });
+
+  updateMainSeGain();
 }
 
     /*
@@ -5913,7 +5912,8 @@ if (
   audio.muted =
     gameSettings.seVolume <= 0;
 
-  audio.volume = volume;
+  audio.volume =
+    volume * MAIN_SE_VOLUME_FACTOR;
 });
     }
 
