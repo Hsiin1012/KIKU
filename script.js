@@ -5489,6 +5489,36 @@ if (mainBgmAudio) {
     muted: mainBgmAudio.muted
   }
 );
+
+// iPhone 音量診斷：暫時顯示在畫面上
+let bgmVolumeDebug =
+  document.getElementById("bgm-volume-debug");
+
+if (!bgmVolumeDebug) {
+  bgmVolumeDebug = document.createElement("div");
+  bgmVolumeDebug.id = "bgm-volume-debug";
+
+  bgmVolumeDebug.style.position = "fixed";
+  bgmVolumeDebug.style.top = "10px";
+  bgmVolumeDebug.style.left = "10px";
+  bgmVolumeDebug.style.zIndex = "999999";
+  bgmVolumeDebug.style.padding = "10px";
+  bgmVolumeDebug.style.background = "rgba(0, 0, 0, 0.85)";
+  bgmVolumeDebug.style.color = "white";
+  bgmVolumeDebug.style.fontSize = "14px";
+  bgmVolumeDebug.style.fontFamily = "monospace";
+  bgmVolumeDebug.style.lineHeight = "1.5";
+  bgmVolumeDebug.style.pointerEvents = "none";
+
+  document.body.appendChild(bgmVolumeDebug);
+}
+
+bgmVolumeDebug.innerHTML =
+  "BGM TEST<br>" +
+  "Slider: " + gameSettings.bgmVolume + "<br>" +
+  "Target: " + getMainBgmVolume().toFixed(3) + "<br>" +
+  "Actual: " + mainBgmAudio.volume.toFixed(3) + "<br>" +
+  "Muted: " + mainBgmAudio.muted;
 }
 
     /*
