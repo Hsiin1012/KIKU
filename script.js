@@ -6369,29 +6369,43 @@ function ensureBackgroundPauseOverlay() {
     transition: "transform 300ms ease"
   });
 
-  const title = document.createElement("div");
-  title.textContent = "PAUSED";
-  Object.assign(title.style, {
-    fontSize: "clamp(28px, 7vw, 46px)",
-    fontWeight: "700",
-    letterSpacing: "0.16em",
-    lineHeight: "1"
-  });
-
   const continueButton = document.createElement("button");
   continueButton.type = "button";
-  continueButton.textContent = "點擊繼續";
+  continueButton.setAttribute("aria-label", "點擊繼續");
+
+  const pauseMain = document.createElement("span");
+  pauseMain.className = "start-gate-main";
+  pauseMain.textContent = "PAUSED";
+
+  const pauseSub = document.createElement("span");
+  pauseSub.className = "start-gate-sub";
+  pauseSub.textContent = "點擊繼續";
+
+  continueButton.appendChild(pauseMain);
+  continueButton.appendChild(pauseSub);
+
+  /*
+   * 與開頭 TAP TO START 使用同一套視覺語言：
+   * 無框、透明、雙層文字、呼吸動畫。
+   * 深色 PAUSED 遮罩上改用白字，確保可讀性。
+   */
   Object.assign(continueButton.style, {
-    minWidth: "150px",
-    minHeight: "48px",
-    padding: "11px 24px",
-    border: "1px solid rgba(255, 255, 255, 0.72)",
-    borderRadius: "8px",
-    background: "rgba(248, 244, 238, 0.94)",
-    color: "#242424",
-    fontSize: "16px",
-    fontWeight: "600",
-    cursor: "pointer"
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: "9px",
+    margin: "0",
+    padding: "28px 40px",
+    border: "0",
+    outline: "0",
+    background: "transparent",
+    color: "#ffffff",
+    fontFamily: "inherit",
+    textAlign: "center",
+    cursor: "pointer",
+    WebkitTapHighlightColor: "transparent",
+    animation: "startGateBreath 2.4s ease-in-out infinite",
+    transition: "opacity 0.4s ease, transform 0.4s ease"
   });
 
   continueButton.addEventListener("click", (event) => {
@@ -6432,7 +6446,6 @@ function ensureBackgroundPauseOverlay() {
     hideBackgroundPauseOverlay();
   });
 
-  content.appendChild(title);
   content.appendChild(continueButton);
   overlay.appendChild(content);
   document.body.appendChild(overlay);
