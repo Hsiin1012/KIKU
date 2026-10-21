@@ -5986,15 +5986,45 @@ async function resumeGameAudioFromBackground() {
     try {
       const audio = new Audio();
 
-      audio.preload = "auto";
-      audio.loop = true;
-      audio.src = savedBgm.path;
+audio.preload = "auto";
+audio.loop = true;
+audio.src = savedBgm.path;
 
-      mainBgmAudio = audio;
-      mainBgmPath = savedBgm.path;
+audio.muted =
+  gameSettings.bgmVolume <= 0;
 
-      audio.volume =
-  getMainBgmVolume();
+/*
+ * 背景恢復後建立的是全新的 Audio，
+ * 所以也必須重新接入 Main BGM Web Audio。
+ */
+const bgmNodes =
+  ensureMainBgmWebAudio(audio);
+
+if (bgmNodes) {
+  /*
+   * HTMLAudio 本身固定 100%。
+   * 實際使用者音量交給 Master Gain。
+   *
+   * 背景恢復不重新做淡入，
+   * 因此直接恢復正常 fade gain。
+   */
+  audio.volume = 1;
+
+  bgmNodes.fadeGain.gain.value =
+    mainBgmDuckFactor;
+
+  updateMainBgmGain();
+} else {
+  /*
+   * Web Audio 建立失敗時，
+   * 保留原本 HTMLAudio fallback。
+   */
+  audio.volume =
+    getMainBgmVolume();
+}
+
+mainBgmAudio = audio;
+mainBgmPath = savedBgm.path;
 
       const restoreTime = () => {
         try {
