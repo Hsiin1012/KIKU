@@ -2583,6 +2583,102 @@ function fadeDetachedMainAudioOut(
   }, 40);
 }
 
+/* =========================================================
+ * TEMP: iPhone BGM Restore Debug Panel
+ * ========================================================= */
+
+let bgmRestoreDebugPanel = null;
+
+function ensureBgmRestoreDebugPanel() {
+  if (bgmRestoreDebugPanel) {
+    return bgmRestoreDebugPanel;
+  }
+
+  const panel = document.createElement("div");
+
+  panel.id = "bgm-restore-debug-panel";
+
+  Object.assign(panel.style, {
+    position: "fixed",
+    buttom: "8px",
+    left: "8px",
+    right: "8px",
+    maxHeight: "45vh",
+    overflowY: "auto",
+    zIndex: "999999",
+    padding: "10px",
+    boxSizing: "border-box",
+
+    background: "rgba(0, 0, 0, 0.82)",
+    color: "#ffffff",
+
+    fontFamily: "monospace",
+    fontSize: "11px",
+    lineHeight: "1.4",
+
+    whiteSpace: "pre-wrap",
+    wordBreak: "break-word",
+
+    borderRadius: "8px",
+    pointerEvents: "none"
+  });
+
+  panel.textContent =
+    "=== BGM RESTORE DEBUG ===\n";
+
+  document.body.appendChild(panel);
+
+  bgmRestoreDebugPanel = panel;
+
+  return panel;
+}
+
+function addBgmRestoreDebugLine(...args) {
+  const panel =
+    ensureBgmRestoreDebugPanel();
+
+  const text = args
+    .map((value) => {
+      if (
+        typeof value === "object" &&
+        value !== null
+      ) {
+        try {
+          return JSON.stringify(
+            value,
+            null,
+            2
+          );
+        } catch (e) {
+          return String(value);
+        }
+      }
+
+      return String(value);
+    })
+    .join(" ");
+
+  panel.textContent +=
+    "\n" + text;
+
+  panel.scrollTop =
+    panel.scrollHeight;
+}
+
+const originalConsoleLogForBgmDebug =
+  console.log.bind(console);
+
+console.log = (...args) => {
+  originalConsoleLogForBgmDebug(...args);
+
+  if (
+    typeof args[0] === "string" &&
+    args[0].startsWith("[BGM RESTORE]")
+  ) {
+    addBgmRestoreDebugLine(...args);
+  }
+};
+
 function resetMainBgmContextForForeground() {
 console.log(
   "[BGM RESTORE] 1. reset start",
