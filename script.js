@@ -5480,6 +5480,15 @@ if (mainBgmAudio) {
 
   mainBgmAudio.volume =
     getMainBgmVolume();
+    console.log(
+  "[BGM VOLUME TEST]",
+  {
+    slider: gameSettings.bgmVolume,
+    targetVolume: getMainBgmVolume(),
+    actualVolume: mainBgmAudio.volume,
+    muted: mainBgmAudio.muted
+  }
+);
 }
 
     /*
