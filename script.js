@@ -2583,111 +2583,8 @@ function fadeDetachedMainAudioOut(
   }, 40);
 }
 
-/* =========================================================
- * TEMP: iPhone BGM Restore Debug Panel
- * ========================================================= */
-
-let bgmRestoreDebugPanel = null;
-
-function ensureBgmRestoreDebugPanel() {
-  if (bgmRestoreDebugPanel) {
-    return bgmRestoreDebugPanel;
-  }
-
-  const panel = document.createElement("div");
-
-  panel.id = "bgm-restore-debug-panel";
-
-  Object.assign(panel.style, {
-    position: "fixed",
-    top: "48vh",
-    left: "8px",
-    right: "8px",
-    maxHeight: "45vh",
-    overflowY: "auto",
-    zIndex: "999999",
-    padding: "10px",
-    boxSizing: "border-box",
-
-    background: "rgba(0, 0, 0, 0.82)",
-    color: "#ffffff",
-
-    fontFamily: "monospace",
-    fontSize: "11px",
-    lineHeight: "1.4",
-
-    whiteSpace: "pre-wrap",
-    wordBreak: "break-word",
-
-    borderRadius: "8px",
-    pointerEvents: "none"
-  });
-
-  panel.textContent =
-    "=== BGM RESTORE DEBUG ===\n";
-
-  document.body.appendChild(panel);
-
-  bgmRestoreDebugPanel = panel;
-
-  return panel;
-}
-
-function addBgmRestoreDebugLine(...args) {
-  const panel =
-    ensureBgmRestoreDebugPanel();
-
-  const text = args
-    .map((value) => {
-      if (
-        typeof value === "object" &&
-        value !== null
-      ) {
-        try {
-          return JSON.stringify(
-            value,
-            null,
-            2
-          );
-        } catch (e) {
-          return String(value);
-        }
-      }
-
-      return String(value);
-    })
-    .join(" ");
-
-  panel.textContent +=
-    "\n" + text;
-
-  panel.scrollTop =
-    panel.scrollHeight;
-}
-
-const originalConsoleLogForBgmDebug =
-  console.log.bind(console);
-
-console.log = (...args) => {
-  originalConsoleLogForBgmDebug(...args);
-
-  if (
-    typeof args[0] === "string" &&
-    args[0].startsWith("[BGM RESTORE]")
-  ) {
-    addBgmRestoreDebugLine(...args);
-  }
-};
 
 function resetMainBgmContextForForeground() {
-console.log(
-  "[BGM RESTORE] 1. reset start",
-  {
-    oldContextExists: !!mainBgmAudioContext,
-    oldContextState:
-      mainBgmAudioContext?.state ?? "none"
-  }
-);
 
   /*
    * iOS Safari foreground restore 專用。
@@ -2712,9 +2609,6 @@ console.log(
   mainBgmAudioContext = null;
   mainBgmGainNode = null;
   mainBgmAudioNodes = new WeakMap();
-  console.log(
-  "[BGM RESTORE] 2. old graph detached"
-);
 
   /*
    * 不等待 close()。
@@ -2726,13 +2620,6 @@ console.log(
     } catch (e) {}
   }
   
-  console.log(
-  "[BGM RESTORE] 3. old context close requested",
-  {
-    oldContextState:
-      oldContext?.state ?? "none"
-  }
-);
 
   /*
    * 不在這裡直接建立新的 Context。
@@ -3319,14 +3206,6 @@ mainBgmPath = cleanPath;
 function stopMainBgm(fadeMs = 700) {
   const audio = mainBgmAudio;
 
-console.trace(
-  "[DEBUG BGM] background unload clearing BGM",
-  {
-    audio,
-    path: mainBgmPath,
-    hidden: document.hidden
-  }
-);
 
 mainBgmAudio = null;
 mainBgmPath = "";
@@ -3672,13 +3551,6 @@ function stopMainStoryAudioImmediately() {
 
   if (mainBgmAudio) {
 
-  console.trace(
-    "[DEBUG BGM] stopMainStoryAudioImmediately clearing BGM",
-    {
-      audio: mainBgmAudio,
-      path: mainBgmPath
-    }
-  );
 
   try {
     mainBgmAudio.pause();
@@ -5811,35 +5683,6 @@ if (mainBgmAudio) {
       getMainBgmVolume();
   }
 
-// iPhone 音量診斷：暫時顯示在畫面上
-let bgmVolumeDebug =
-  document.getElementById("bgm-volume-debug");
-
-if (!bgmVolumeDebug) {
-  bgmVolumeDebug = document.createElement("div");
-  bgmVolumeDebug.id = "bgm-volume-debug";
-
-  bgmVolumeDebug.style.position = "fixed";
-  bgmVolumeDebug.style.top = "10px";
-  bgmVolumeDebug.style.left = "10px";
-  bgmVolumeDebug.style.zIndex = "999999";
-  bgmVolumeDebug.style.padding = "10px";
-  bgmVolumeDebug.style.background = "rgba(0, 0, 0, 0.85)";
-  bgmVolumeDebug.style.color = "white";
-  bgmVolumeDebug.style.fontSize = "14px";
-  bgmVolumeDebug.style.fontFamily = "monospace";
-  bgmVolumeDebug.style.lineHeight = "1.5";
-  bgmVolumeDebug.style.pointerEvents = "none";
-
-  document.body.appendChild(bgmVolumeDebug);
-}
-
-bgmVolumeDebug.innerHTML =
-  "BGM TEST<br>" +
-  "Slider: " + gameSettings.bgmVolume + "<br>" +
-  "Target: " + getMainBgmVolume().toFixed(3) + "<br>" +
-  "Actual: " + mainBgmAudio.volume.toFixed(3) + "<br>" +
-  "Muted: " + mainBgmAudio.muted;
 }
 
     /*
@@ -5968,385 +5811,12 @@ if (elements.cfgVoiceSlider) {
 }
 }
 
-  /* TEMP DEBUG：Main BGM foreground restore 診斷
- * 只監聽 HTMLAudio 狀態，不修改 Web Audio graph。
- */
-/* TEMP DEBUG：Main BGM foreground restore 雙測點診斷
- *
- * sourcePeak：
- * MediaElementSource 是否有音訊資料
- *
- * outputPeak：
- * 音訊經過 fadeGain + mainBgmGainNode 後，
- * 到達 destination 前是否仍有音訊資料
- *
- * 兩條診斷旁路皆使用 Gain(0)，不產生額外聲音。
- */
-function bgmDbgAttach(audio) {
-  const startedAt = performance.now();
-  const events = [];
-
-  let sourceAnalyser = null;
-  let sourceBuffer = null;
-  let sourcePeakMax = 0;
-
-  let outputAnalyser = null;
-  let outputBuffer = null;
-  let outputPeakMax = 0;
-
-  let peakTimer = null;
-
-  try {
-    const nodes = mainBgmAudioNodes.get(audio);
-
-    if (
-      nodes &&
-      nodes.source &&
-      mainBgmAudioContext &&
-      mainBgmGainNode
-    ) {
-      /*
-       * 測點 1：
-       * MediaElementSource 直接輸出的訊號
-       */
-      sourceAnalyser =
-        mainBgmAudioContext.createAnalyser();
-
-      sourceAnalyser.fftSize = 256;
-
-      const sourceSilentTap =
-        mainBgmAudioContext.createGain();
-
-      sourceSilentTap.gain.value = 0;
-
-      nodes.source.connect(sourceAnalyser);
-
-      sourceAnalyser.connect(
-        sourceSilentTap
-      );
-
-      sourceSilentTap.connect(
-        mainBgmAudioContext.destination
-      );
-
-      sourceBuffer = new Uint8Array(
-        sourceAnalyser.fftSize
-      );
-
-      /*
-       * 測點 2：
-       * mainBgmGainNode 輸出的訊號。
-       *
-       * 這代表音訊已經走過：
-       * source → fadeGain → mainBgmGainNode
-       */
-      outputAnalyser =
-        mainBgmAudioContext.createAnalyser();
-
-      outputAnalyser.fftSize = 256;
-
-      const outputSilentTap =
-        mainBgmAudioContext.createGain();
-
-      outputSilentTap.gain.value = 0;
-
-      mainBgmGainNode.connect(
-        outputAnalyser
-      );
-
-      outputAnalyser.connect(
-        outputSilentTap
-      );
-
-      outputSilentTap.connect(
-        mainBgmAudioContext.destination
-      );
-
-      outputBuffer = new Uint8Array(
-        outputAnalyser.fftSize
-      );
-
-      peakTimer = setInterval(() => {
-        try {
-          sourceAnalyser.getByteTimeDomainData(
-            sourceBuffer
-          );
-
-          for (
-            let i = 0;
-            i < sourceBuffer.length;
-            i++
-          ) {
-            const deviation = Math.abs(
-              sourceBuffer[i] - 128
-            );
-
-            if (deviation > sourcePeakMax) {
-              sourcePeakMax = deviation;
-            }
-          }
-
-          outputAnalyser.getByteTimeDomainData(
-            outputBuffer
-          );
-
-          for (
-            let i = 0;
-            i < outputBuffer.length;
-            i++
-          ) {
-            const deviation = Math.abs(
-              outputBuffer[i] - 128
-            );
-
-            if (deviation > outputPeakMax) {
-              outputPeakMax = deviation;
-            }
-          }
-        } catch (e) {}
-      }, 100);
-    }
-  } catch (e) {
-    console.log(
-      "[BGM RESTORE] DBG analyser setup failed",
-      e
-    );
-  }
-
-  [
-    "playing",
-    "pause",
-    "waiting",
-    "stalled",
-    "emptied",
-    "ended",
-    "error"
-  ].forEach((name) => {
-    audio.addEventListener(name, () => {
-      if (events.length < 14) {
-        events.push(
-          name +
-          "@" +
-          Math.round(
-            performance.now() - startedAt
-          )
-        );
-      }
-    });
-  });
-
-  const snap = (label) => {
-    try {
-      console.log(
-        "[BGM RESTORE] DBG " +
-        label +
-        " | ctx=" +
-          (mainBgmAudioContext
-            ? mainBgmAudioContext.state
-            : "none") +
-        " | current=" +
-          (mainBgmAudio === audio) +
-        " | hidden=" +
-          document.hidden +
-        " | paused=" +
-          audio.paused +
-        " ended=" +
-          audio.ended +
-        " rs=" +
-          audio.readyState +
-        " ns=" +
-          audio.networkState +
-        " t=" +
-          audio.currentTime.toFixed(2) +
-        " dur=" +
-          (Number.isFinite(audio.duration)
-            ? audio.duration.toFixed(2)
-            : "n/a") +
-        " muted=" +
-          audio.muted +
-        " err=" +
-          (audio.error
-            ? audio.error.code
-            : "none") +
-        " sourcePeak=" +
-          (sourceAnalyser
-            ? sourcePeakMax
-            : "n/a") +
-        " outputPeak=" +
-          (outputAnalyser
-            ? outputPeakMax
-            : "n/a") +
-        " master=" +
-          (mainBgmGainNode
-            ? mainBgmGainNode.gain.value
-            : "n/a") +
-        " fade=" +
-          (() => {
-            const nodes =
-              mainBgmAudioNodes.get(audio);
-
-            return (
-              nodes &&
-              nodes.fadeGain
-            )
-              ? nodes.fadeGain.gain.value
-              : "n/a";
-          })() +
-        " | ev=" +
-          events.join(",")
-      );
-    } catch (e) {}
-  };
-
-  setTimeout(() => {
-    snap("1s");
-  }, 1000);
-
-  setTimeout(() => {
-    snap("6s");
-
-    if (peakTimer) {
-      clearInterval(peakTimer);
-    }
-  }, 6000);
-}
-
-/* TEMP DEBUG：獨立 AudioContext 輸出探針 */
-let bgmDbgHiddenAt = 0;
-let bgmDbgVisibleAt = 0;
-
-document.addEventListener("visibilitychange", () => {
-  if (document.hidden) {
-    bgmDbgHiddenAt = performance.now();
-  } else {
-    bgmDbgVisibleAt = performance.now();
-  }
-});
-
-function bgmDbgSessionText() {
-  try {
-    const session = navigator.audioSession;
-
-    if (!session) {
-      return "api=n/a";
-    }
-
-    return (
-      "api=yes type=" + session.type +
-      " state=" + session.state
-    );
-  } catch (e) {
-    return "api=err";
-  }
-}
-
-function bgmDbgOutputProbe() {
-  const clickAt = performance.now();
-
-  console.log(
-    "[BGM RESTORE] DBG probe click" +
-    " | hiddenMs=" +
-      Math.round(bgmDbgVisibleAt - bgmDbgHiddenAt) +
-    " sinceVisibleMs=" +
-      Math.round(clickAt - bgmDbgVisibleAt) +
-    " | session " +
-      bgmDbgSessionText()
-  );
-
-  try {
-    const AudioContextClass =
-      window.AudioContext ||
-      window.webkitAudioContext;
-
-    if (!AudioContextClass) {
-      console.log(
-        "[BGM RESTORE] DBG probe no AudioContext"
-      );
-      return;
-    }
-
-    const probeCtx = new AudioContextClass();
-
-    const probeGain = probeCtx.createGain();
-    probeGain.gain.value = 0.1;
-    probeGain.connect(probeCtx.destination);
-
-    const osc = probeCtx.createOscillator();
-    osc.type = "sine";
-    osc.frequency.value = 880;
-    osc.connect(probeGain);
-
-    console.log(
-      "[BGM RESTORE] DBG probe created" +
-      " | state=" + probeCtx.state
-    );
-
-    osc.start(probeCtx.currentTime + 1.5);
-    osc.stop(probeCtx.currentTime + 2.0);
-
-    if (probeCtx.state === "suspended") {
-      probeCtx.resume()
-        .then(() => {
-          console.log(
-            "[BGM RESTORE] DBG probe resume resolved" +
-            " | state=" + probeCtx.state
-          );
-        })
-        .catch((e) => {
-          console.log(
-            "[BGM RESTORE] DBG probe resume failed",
-            e
-          );
-        });
-    }
-
-    setTimeout(() => {
-      console.log(
-        "[BGM RESTORE] DBG probe beep time" +
-        " | state=" + probeCtx.state +
-        " currentTime=" +
-          probeCtx.currentTime.toFixed(2)
-      );
-    }, 1500);
-
-    setTimeout(() => {
-      try {
-        probeCtx.close().catch(() => {});
-      } catch (e) {}
-    }, 3500);
-
-  } catch (e) {
-    console.log(
-      "[BGM RESTORE] DBG probe failed",
-      e
-    );
-  }
-}
 
 function pauseGameAudioForBackground() {
   /*
    * Main BGM
    * 記錄播放資訊後，完全卸載 HTML Audio。
    */
-  console.log(
-    "[BGM RESTORE] DBG pauseForBackground" +
-    " | hasAudio=" +
-      !!mainBgmAudio +
-    " path=" +
-      (mainBgmPath ? "yes" : "none") +
-    " paused=" +
-      (mainBgmAudio
-        ? mainBgmAudio.paused
-        : "n/a") +
-    " savedBefore=" +
-      (backgroundAudioState.mainBgm
-        ? "yes"
-        : "none") +
-    " ctx=" +
-      (mainBgmAudioContext
-        ? mainBgmAudioContext.state
-        : "none")
-  );
 
   backgroundAudioState.mainBgm = null;
 
@@ -6510,10 +5980,6 @@ async function resumeGameAudioFromBackground() {
   const savedBgm =
     backgroundAudioState.mainBgm;
 
-    console.log(
-  "[BGM RESTORE] 4. saved BGM",
-  savedBgm
-);
 
   backgroundAudioState.mainBgm = null;
 
@@ -6524,9 +5990,6 @@ async function resumeGameAudioFromBackground() {
   ) {
     try {
       const audio = new Audio();
-      console.log(
-  "[BGM RESTORE] 5. new Audio created"
-);
 
 audio.preload = "auto";
 audio.loop = true;
@@ -6542,16 +6005,6 @@ audio.muted =
 const bgmNodes =
   ensureMainBgmWebAudio(audio);
 
-console.log(
-  "[BGM RESTORE] 6. Web Audio graph result",
-  {
-    nodesCreated: !!bgmNodes,
-    contextExists: !!mainBgmAudioContext,
-    contextState:
-      mainBgmAudioContext?.state ?? "none",
-    gainExists: !!mainBgmGainNode
-  }
-);
 
 if (bgmNodes) {
   /*
@@ -6606,110 +6059,29 @@ mainBgmPath = savedBgm.path;
         );
       }
 
-      console.log(
-  "[BGM RESTORE] 9. before audio.play()",
-  {
-    paused: audio.paused,
-    readyState: audio.readyState,
-    currentTime: audio.currentTime,
-    muted: audio.muted,
-    volume: audio.volume,
-    contextState:
-      mainBgmAudioContext?.state ?? "none",
-    masterGain:
-      mainBgmGainNode?.gain?.value ?? null,
-    fadeGain:
-      bgmNodes?.fadeGain?.gain?.value ?? null
-  }
-);
 
 /*
  * iOS foreground restore：
  * 先啟動 HTMLAudio，
  * 再於同一次 user gesture 中立刻 resume Web Audio。
  */
-bgmDbgAttach(audio);
 const bgmPlayPromise = audio.play();
 
-console.log(
-  "[BGM RESTORE] 7. audio.play() requested before context.resume()"
-);
 
 if (
   mainBgmAudioContext &&
   mainBgmAudioContext.state === "suspended"
 ) {
-  console.log(
-    "[BGM RESTORE] 8. resume immediately after play()",
-    {
-      state: mainBgmAudioContext.state
-    }
-  );
-
   try {
-    mainBgmAudioContext
-      .resume()
-      .then(() => {
-        console.log(
-          "[BGM RESTORE] 8A. context.resume() resolved",
-          {
-            state:
-              mainBgmAudioContext?.state ?? "none"
-          }
-        );
-      })
-      .catch((e) => {
-        console.warn(
-          "[BGM RESTORE] 8A. context.resume() FAILED",
-          e
-        );
-      });
-  } catch (e) {
-    console.warn(
-      "[BGM RESTORE] 8A. context.resume() THREW",
-      e
-    );
-  }
+    /*
+     * 保持原本 restore 行為：
+     * resume() 不 await，避免 iOS Safari Promise 卡住。
+     */
+    mainBgmAudioContext.resume().catch(() => {});
+  } catch (e) {}
 }
-bgmDbgOutputProbe();
 await bgmPlayPromise;
 
-console.log(
-  "[BGM RESTORE] 10. audio.play() resolved",
-  {
-    paused: audio.paused,
-    readyState: audio.readyState,
-    currentTime: audio.currentTime,
-    muted: audio.muted,
-    volume: audio.volume,
-    contextState:
-      mainBgmAudioContext?.state ?? "none",
-    masterGain:
-      mainBgmGainNode?.gain?.value ?? null,
-    fadeGain:
-      bgmNodes?.fadeGain?.gain?.value ?? null
-  }
-);
-
-setTimeout(() => {
-  console.log(
-    "[BGM RESTORE] 11. one second later",
-    {
-      paused: audio.paused,
-      ended: audio.ended,
-      readyState: audio.readyState,
-      currentTime: audio.currentTime,
-      muted: audio.muted,
-      volume: audio.volume,
-      contextState:
-        mainBgmAudioContext?.state ?? "none",
-      masterGain:
-        mainBgmGainNode?.gain?.value ?? null,
-      fadeGain:
-        bgmNodes?.fadeGain?.gain?.value ?? null
-    }
-  );
-}, 1000);
 
     } catch (err) {
       console.warn(
@@ -6949,53 +6321,197 @@ window.addEventListener(
   stopAllGameAudioForPageExit
 );
 
+/* =========================================================
+ * Background Pause Overlay
+ *
+ * 回到前景後不自動恢復音訊。
+ * 顯示 PAUSED 畫面，等待玩家明確點擊「點擊繼續」。
+ * 這個 click 本身就是 iOS Safari 所需的 user gesture。
+ * ========================================================= */
+
+let backgroundPauseOverlay = null;
+let backgroundPauseShowTimer = null;
+let backgroundPauseWasHidden = false;
+
+function ensureBackgroundPauseOverlay() {
+  if (backgroundPauseOverlay) {
+    return backgroundPauseOverlay;
+  }
+
+  const overlay = document.createElement("div");
+  overlay.id = "background-pause-overlay";
+
+  Object.assign(overlay.style, {
+    position: "fixed",
+    inset: "0",
+    zIndex: "999998",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    background: "rgba(12, 14, 18, 0.58)",
+    opacity: "0",
+    visibility: "hidden",
+    transition: "opacity 300ms ease, visibility 300ms ease",
+    pointerEvents: "none",
+    boxSizing: "border-box",
+    padding: "24px"
+  });
+
+  const content = document.createElement("div");
+  Object.assign(content.style, {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: "18px",
+    textAlign: "center",
+    color: "#ffffff",
+    transform: "translateY(8px)",
+    transition: "transform 300ms ease"
+  });
+
+  const title = document.createElement("div");
+  title.textContent = "PAUSED";
+  Object.assign(title.style, {
+    fontSize: "clamp(28px, 7vw, 46px)",
+    fontWeight: "700",
+    letterSpacing: "0.16em",
+    lineHeight: "1"
+  });
+
+  const continueButton = document.createElement("button");
+  continueButton.type = "button";
+  continueButton.textContent = "點擊繼續";
+  Object.assign(continueButton.style, {
+    minWidth: "150px",
+    minHeight: "48px",
+    padding: "11px 24px",
+    border: "1px solid rgba(255, 255, 255, 0.72)",
+    borderRadius: "8px",
+    background: "rgba(248, 244, 238, 0.94)",
+    color: "#242424",
+    fontSize: "16px",
+    fontWeight: "600",
+    cursor: "pointer"
+  });
+
+  continueButton.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation();
+
+    if (!backgroundAudioRestorePending) {
+      hideBackgroundPauseOverlay();
+      return;
+    }
+
+    if (backgroundAudioRestoreRunning || document.hidden) {
+      return;
+    }
+
+    backgroundAudioRestorePending = false;
+    backgroundAudioRestoreRunning = true;
+    continueButton.disabled = true;
+
+    /*
+     * 不 await：讓 audio.play() / AudioContext.resume()
+     * 直接發生在這次 click 的 user gesture call stack 中。
+     * Overlay 同時淡出，不讓玩家被音訊 Promise 卡住。
+     */
+    resumeGameAudioFromBackground()
+      .catch((err) => {
+        console.warn(
+          "[BACKGROUND] continue restore failed:",
+          err
+        );
+      })
+      .finally(() => {
+        backgroundAudioRestoreRunning = false;
+        continueButton.disabled = false;
+      });
+
+    hideBackgroundPauseOverlay();
+  });
+
+  content.appendChild(title);
+  content.appendChild(continueButton);
+  overlay.appendChild(content);
+  document.body.appendChild(overlay);
+
+  overlay._pauseContent = content;
+  overlay._continueButton = continueButton;
+  backgroundPauseOverlay = overlay;
+
+  return overlay;
+}
+
+function showBackgroundPauseOverlay() {
+  const overlay = ensureBackgroundPauseOverlay();
+
+  if (overlay._continueButton) {
+    overlay._continueButton.disabled = false;
+  }
+
+  overlay.style.visibility = "visible";
+  overlay.style.pointerEvents = "auto";
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      overlay.style.opacity = "1";
+      if (overlay._pauseContent) {
+        overlay._pauseContent.style.transform = "translateY(0)";
+      }
+    });
+  });
+}
+
+function hideBackgroundPauseOverlay() {
+  if (!backgroundPauseOverlay) return;
+
+  const overlay = backgroundPauseOverlay;
+  overlay.style.opacity = "0";
+  overlay.style.pointerEvents = "none";
+
+  if (overlay._pauseContent) {
+    overlay._pauseContent.style.transform = "translateY(8px)";
+  }
+
+  setTimeout(() => {
+    if (overlay.style.opacity === "0") {
+      overlay.style.visibility = "hidden";
+    }
+  }, 300);
+}
+
 document.addEventListener(
   "visibilitychange",
   () => {
     if (document.hidden) {
+      if (backgroundPauseShowTimer) {
+        clearTimeout(backgroundPauseShowTimer);
+        backgroundPauseShowTimer = null;
+      }
+
+      backgroundPauseWasHidden = true;
       backgroundAudioRestorePending = false;
+      hideBackgroundPauseOverlay();
       pauseGameAudioForBackground();
-    } else {
-      /*
-       * iOS Safari：
-       * 回到前景時先不要重建／播放。
-       * 等待下一次真正的使用者操作。
-       */
+    } else if (backgroundPauseWasHidden) {
+      backgroundPauseWasHidden = false;
       backgroundAudioRestorePending = true;
+
+      /* 約 300ms 的視覺緩衝，只延遲 Overlay 顯示。 */
+      backgroundPauseShowTimer = setTimeout(() => {
+        backgroundPauseShowTimer = null;
+
+        if (
+          !document.hidden &&
+          backgroundAudioRestorePending
+        ) {
+          showBackgroundPauseOverlay();
+        }
+      }, 300);
     }
   }
-);
-
-async function restoreBackgroundAudioOnUserGesture() {
-  if (!backgroundAudioRestorePending) return;
-  if (backgroundAudioRestoreRunning) return;
-  if (document.hidden) return;
-
-  backgroundAudioRestorePending = false;
-  backgroundAudioRestoreRunning = true;
-
-  try {
-    await resumeGameAudioFromBackground();
-  } catch (err) {
-    console.warn(
-      "[BACKGROUND] user gesture restore failed:",
-      err
-    );
-  } finally {
-    backgroundAudioRestoreRunning = false;
-  }
-}
-
-
-/*
- * iPhone / iPad：
- * 回到遊戲後的第一次真正操作，
- * 用來重新解鎖並恢復音訊。
- */
-document.addEventListener(
-  "click",
-  restoreBackgroundAudioOnUserGesture,
-  true
 );
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -7007,233 +6523,3 @@ document.addEventListener("DOMContentLoaded", () => {
   showScreen('title');
 });
 
-/* =========================================================
- * iPhone Web Audio Gain Test
- * TEMPORARY TEST ONLY
- * ========================================================= */
-
-let iosGainTestContext = null;
-let iosGainTestOscillator = null;
-let iosGainTestGain = null;
-
-function createIOSGainTestPanel() {
-  // 避免重複建立
-  if (document.getElementById("ios-gain-test-panel")) {
-    return;
-  }
-
-  const panel = document.createElement("div");
-  panel.id = "ios-gain-test-panel";
-
-  Object.assign(panel.style, {
-    position: "fixed",
-    top: "15px",
-    right: "15px",
-    zIndex: "9999999",
-    width: "180px",
-    padding: "14px",
-    background: "rgba(0, 0, 0, 0.88)",
-    color: "#fff",
-    borderRadius: "10px",
-    fontFamily: "sans-serif",
-    fontSize: "14px",
-    textAlign: "center"
-  });
-
-  panel.innerHTML = `
-    <div style="font-weight:bold; margin-bottom:10px;">
-      iPhone Gain Test
-    </div>
-
-    <button id="ios-gain-start">
-      開始測試音
-    </button>
-
-    <div style="margin-top:12px;">
-      <button data-gain="1">100%</button>
-      <button data-gain="0.1">10%</button>
-      <button data-gain="0.01">1%</button>
-      <button data-gain="0.001">0.1%</button>
-      <button data-gain="0">0%</button>
-    </div>
-
-    <div
-      id="ios-gain-status"
-      style="margin-top:10px;"
-    >
-      尚未開始
-    </div>
-
-    <button
-      id="ios-gain-stop"
-      style="margin-top:10px;"
-    >
-      停止測試
-    </button>
-  `;
-
-  document.body.appendChild(panel);
-
-  const status =
-    document.getElementById("ios-gain-status");
-
-  /*
-   * 開始測試
-   */
-  document
-    .getElementById("ios-gain-start")
-    .addEventListener("click", async () => {
-
-      // 已經開始就不要重複建立
-      if (iosGainTestOscillator) {
-        return;
-      }
-
-      const AudioContextClass =
-        window.AudioContext ||
-        window.webkitAudioContext;
-
-      if (!AudioContextClass) {
-        status.textContent =
-          "此瀏覽器不支援 AudioContext";
-        return;
-      }
-
-      try {
-        iosGainTestContext =
-          new AudioContextClass();
-
-        iosGainTestGain =
-          iosGainTestContext.createGain();
-
-        /*
-         * 預設先用 25%，
-         * 避免測試音一開始太大聲。
-         */
-        iosGainTestGain.gain.value = 0.25;
-
-        iosGainTestGain.connect(
-          iosGainTestContext.destination
-        );
-
-        iosGainTestOscillator =
-          iosGainTestContext.createOscillator();
-
-        /*
-         * 440Hz 測試音
-         */
-        iosGainTestOscillator.frequency.value =
-          440;
-
-        iosGainTestOscillator.type =
-          "sine";
-
-        iosGainTestOscillator.connect(
-          iosGainTestGain
-        );
-
-        if (
-          iosGainTestContext.state ===
-          "suspended"
-        ) {
-          await iosGainTestContext.resume();
-        }
-
-        iosGainTestOscillator.start();
-
-        status.textContent =
-          "播放中：25%";
-
-      } catch (err) {
-        console.error(
-          "[iOS Gain Test]",
-          err
-        );
-
-        status.textContent =
-          "啟動失敗";
-      }
-    });
-
-  /*
-   * 音量按鈕
-   */
-  panel
-    .querySelectorAll("[data-gain]")
-    .forEach((button) => {
-
-      button.addEventListener(
-        "click",
-        () => {
-
-          if (!iosGainTestGain) {
-            status.textContent =
-              "請先按「開始測試音」";
-            return;
-          }
-
-          const gain =
-            Number(button.dataset.gain);
-
-          /*
-           * 直接修改 GainNode。
-           * 完全不碰 HTMLAudio.volume。
-           */
-          iosGainTestGain.gain.value =
-            gain;
-
-          status.textContent =
-            `Gain：${Math.round(gain * 100)}%`;
-        }
-      );
-    });
-
-  /*
-   * 停止測試
-   */
-  document
-    .getElementById("ios-gain-stop")
-    .addEventListener("click", async () => {
-
-      try {
-        if (iosGainTestOscillator) {
-          iosGainTestOscillator.stop();
-          iosGainTestOscillator.disconnect();
-        }
-      } catch (e) {}
-
-      iosGainTestOscillator = null;
-
-      try {
-        if (iosGainTestGain) {
-          iosGainTestGain.disconnect();
-        }
-      } catch (e) {}
-
-      iosGainTestGain = null;
-
-      try {
-        if (iosGainTestContext) {
-          await iosGainTestContext.close();
-        }
-      } catch (e) {}
-
-      iosGainTestContext = null;
-
-      status.textContent =
-        "已停止";
-    });
-}
-
-
-/*
- * 頁面載入完成後建立測試面板
- */
-if (document.readyState === "loading") {
-  document.addEventListener(
-    "DOMContentLoaded",
-    createIOSGainTestPanel
-  );
-} else {
-  createIOSGainTestPanel();
-}
