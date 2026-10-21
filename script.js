@@ -159,7 +159,7 @@ let extraBgmFadeTimer = null;
  * iPhone / iPad 上不依賴 HTMLAudio.volume。
  * Extra BGM 使用獨立 GainNode，並保留自己的音量倍率。
  */
-const EXTRA_BGM_VOLUME_FACTOR = 0.3;
+const EXTRA_BGM_VOLUME_FACTOR = 0.48;
 let extraBgmAudioContext = null;
 let extraBgmMasterGain = null;
 let extraBgmAudioNodes = new WeakMap();
