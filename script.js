@@ -6168,3 +6168,234 @@ document.addEventListener("DOMContentLoaded", () => {
   initStartGate();
   showScreen('title');
 });
+
+/* =========================================================
+ * iPhone Web Audio Gain Test
+ * TEMPORARY TEST ONLY
+ * ========================================================= */
+
+let iosGainTestContext = null;
+let iosGainTestOscillator = null;
+let iosGainTestGain = null;
+
+function createIOSGainTestPanel() {
+  // 避免重複建立
+  if (document.getElementById("ios-gain-test-panel")) {
+    return;
+  }
+
+  const panel = document.createElement("div");
+  panel.id = "ios-gain-test-panel";
+
+  Object.assign(panel.style, {
+    position: "fixed",
+    top: "15px",
+    right: "15px",
+    zIndex: "9999999",
+    width: "180px",
+    padding: "14px",
+    background: "rgba(0, 0, 0, 0.88)",
+    color: "#fff",
+    borderRadius: "10px",
+    fontFamily: "sans-serif",
+    fontSize: "14px",
+    textAlign: "center"
+  });
+
+  panel.innerHTML = `
+    <div style="font-weight:bold; margin-bottom:10px;">
+      iPhone Gain Test
+    </div>
+
+    <button id="ios-gain-start">
+      開始測試音
+    </button>
+
+    <div style="margin-top:12px;">
+      <button data-gain="1">100%</button>
+      <button data-gain="0.5">50%</button>
+      <button data-gain="0.25">25%</button>
+      <button data-gain="0.1">10%</button>
+      <button data-gain="0">0%</button>
+    </div>
+
+    <div
+      id="ios-gain-status"
+      style="margin-top:10px;"
+    >
+      尚未開始
+    </div>
+
+    <button
+      id="ios-gain-stop"
+      style="margin-top:10px;"
+    >
+      停止測試
+    </button>
+  `;
+
+  document.body.appendChild(panel);
+
+  const status =
+    document.getElementById("ios-gain-status");
+
+  /*
+   * 開始測試
+   */
+  document
+    .getElementById("ios-gain-start")
+    .addEventListener("click", async () => {
+
+      // 已經開始就不要重複建立
+      if (iosGainTestOscillator) {
+        return;
+      }
+
+      const AudioContextClass =
+        window.AudioContext ||
+        window.webkitAudioContext;
+
+      if (!AudioContextClass) {
+        status.textContent =
+          "此瀏覽器不支援 AudioContext";
+        return;
+      }
+
+      try {
+        iosGainTestContext =
+          new AudioContextClass();
+
+        iosGainTestGain =
+          iosGainTestContext.createGain();
+
+        /*
+         * 預設先用 25%，
+         * 避免測試音一開始太大聲。
+         */
+        iosGainTestGain.gain.value = 0.25;
+
+        iosGainTestGain.connect(
+          iosGainTestContext.destination
+        );
+
+        iosGainTestOscillator =
+          iosGainTestContext.createOscillator();
+
+        /*
+         * 440Hz 測試音
+         */
+        iosGainTestOscillator.frequency.value =
+          440;
+
+        iosGainTestOscillator.type =
+          "sine";
+
+        iosGainTestOscillator.connect(
+          iosGainTestGain
+        );
+
+        if (
+          iosGainTestContext.state ===
+          "suspended"
+        ) {
+          await iosGainTestContext.resume();
+        }
+
+        iosGainTestOscillator.start();
+
+        status.textContent =
+          "播放中：25%";
+
+      } catch (err) {
+        console.error(
+          "[iOS Gain Test]",
+          err
+        );
+
+        status.textContent =
+          "啟動失敗";
+      }
+    });
+
+  /*
+   * 音量按鈕
+   */
+  panel
+    .querySelectorAll("[data-gain]")
+    .forEach((button) => {
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          if (!iosGainTestGain) {
+            status.textContent =
+              "請先按「開始測試音」";
+            return;
+          }
+
+          const gain =
+            Number(button.dataset.gain);
+
+          /*
+           * 直接修改 GainNode。
+           * 完全不碰 HTMLAudio.volume。
+           */
+          iosGainTestGain.gain.value =
+            gain;
+
+          status.textContent =
+            `Gain：${Math.round(gain * 100)}%`;
+        }
+      );
+    });
+
+  /*
+   * 停止測試
+   */
+  document
+    .getElementById("ios-gain-stop")
+    .addEventListener("click", async () => {
+
+      try {
+        if (iosGainTestOscillator) {
+          iosGainTestOscillator.stop();
+          iosGainTestOscillator.disconnect();
+        }
+      } catch (e) {}
+
+      iosGainTestOscillator = null;
+
+      try {
+        if (iosGainTestGain) {
+          iosGainTestGain.disconnect();
+        }
+      } catch (e) {}
+
+      iosGainTestGain = null;
+
+      try {
+        if (iosGainTestContext) {
+          await iosGainTestContext.close();
+        }
+      } catch (e) {}
+
+      iosGainTestContext = null;
+
+      status.textContent =
+        "已停止";
+    });
+}
+
+
+/*
+ * 頁面載入完成後建立測試面板
+ */
+if (document.readyState === "loading") {
+  document.addEventListener(
+    "DOMContentLoaded",
+    createIOSGainTestPanel
+  );
+} else {
+  createIOSGainTestPanel();
+}
