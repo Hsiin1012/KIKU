@@ -2848,6 +2848,15 @@ function unlockMainStoryAudio() {
 /* ---------- BGM ---------- */
 
 function playMainBgm(path, fadeMs = 700) {
+  console.trace(
+  "[DEBUG BGM] playMainBgm called",
+  {
+    path,
+    fadeMs,
+    currentAudio: mainBgmAudio,
+    currentPath: mainBgmPath
+  }
+);
   if (
     typeof extraEventState !== "undefined" &&
     extraEventState.active
