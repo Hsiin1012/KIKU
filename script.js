@@ -1967,7 +1967,7 @@ const mainSePool = [];
 const MAIN_BGM_DUCK_FACTOR = 0.35;
 const MORNING_AMBIENT_FACTOR = 0.175;
 
-const MAIN_BGM_VOLUME_FACTOR = 0.5;
+const MAIN_BGM_VOLUME_FACTOR = 0.4;
 const MAIN_SE_VOLUME_FACTOR = 0.35;
 
 /* =========================================================
