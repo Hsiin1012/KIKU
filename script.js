@@ -5480,15 +5480,6 @@ if (mainBgmAudio) {
 
   mainBgmAudio.volume =
     getMainBgmVolume();
-    console.log(
-  "[BGM VOLUME TEST]",
-  {
-    slider: gameSettings.bgmVolume,
-    targetVolume: getMainBgmVolume(),
-    actualVolume: mainBgmAudio.volume,
-    muted: mainBgmAudio.muted
-  }
-);
 
 // iPhone 音量診斷：暫時顯示在畫面上
 let bgmVolumeDebug =
@@ -6213,9 +6204,9 @@ function createIOSGainTestPanel() {
 
     <div style="margin-top:12px;">
       <button data-gain="1">100%</button>
-      <button data-gain="0.5">50%</button>
-      <button data-gain="0.25">25%</button>
       <button data-gain="0.1">10%</button>
+      <button data-gain="0.01">1%</button>
+      <button data-gain="0.001">0.1%</button>
       <button data-gain="0">0%</button>
     </div>
 
