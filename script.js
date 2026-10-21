@@ -2600,7 +2600,7 @@ function ensureBgmRestoreDebugPanel() {
 
   Object.assign(panel.style, {
     position: "fixed",
-    top: "8px",
+    buttom: "8px",
     left: "8px",
     right: "8px",
     maxHeight: "45vh",
@@ -6207,37 +6207,36 @@ if (bgmNodes) {
   );
 
   try {
-    await mainBgmAudioContext.resume();
-
-    console.log(
-      "[BGM RESTORE] 8. context.resume() resolved",
-      {
-        state: mainBgmAudioContext.state
-      }
-    );
-  } catch (e) {
-    console.warn(
-      "[BGM RESTORE] 8. context.resume() FAILED",
-      e
-    );
-  }
-} else {
-  console.log(
-    "[BGM RESTORE] 7-8. resume not needed",
-    {
-      state:
-        mainBgmAudioContext?.state ?? "none"
-    }
+  mainBgmAudioContext
+    .resume()
+    .then(() => {
+      console.log(
+        "[BGM RESTORE] 8. context.resume() resolved",
+        {
+          state:
+            mainBgmAudioContext?.state ?? "none"
+        }
+      );
+    })
+    .catch((e) => {
+      console.warn(
+        "[BGM RESTORE] 8. context.resume() FAILED",
+        e
+      );
+    });
+} catch (e) {
+  console.warn(
+    "[BGM RESTORE] 8. context.resume() THREW",
+    e
   );
-}
-} else {
+}} else {
   /*
    * Web Audio 建立失敗時，
    * 保留 HTMLAudio fallback。
    */
   audio.volume =
     getMainBgmVolume();
-}
+}}
 
 mainBgmAudio = audio;
 mainBgmPath = savedBgm.path;
