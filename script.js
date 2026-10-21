@@ -153,6 +153,101 @@ const EXTRA_AUDIO = {
 
 let extraBgmAudio = null;
 let extraBgmFadeTimer = null;
+
+/*
+ * Extra Event BGM Web Audio
+ * iPhone / iPad 上不依賴 HTMLAudio.volume。
+ * Extra BGM 使用獨立 GainNode，並保留自己的音量倍率。
+ */
+const EXTRA_BGM_VOLUME_FACTOR = 0.20;
+let extraBgmAudioContext = null;
+let extraBgmMasterGain = null;
+let extraBgmAudioNodes = new WeakMap();
+
+function updateExtraBgmGain() {
+  if (!extraBgmMasterGain) return;
+
+  const volume = Math.max(
+    0,
+    Math.min(
+      1,
+      (gameSettings.bgmVolume ?? 0) / 100
+    )
+  );
+
+  try {
+    extraBgmMasterGain.gain.value =
+      volume * EXTRA_BGM_VOLUME_FACTOR;
+  } catch (e) {}
+}
+
+function ensureExtraBgmWebAudio(audio) {
+  if (!audio) return null;
+
+  try {
+    const AudioContextClass =
+      window.AudioContext ||
+      window.webkitAudioContext;
+
+    if (!AudioContextClass) return null;
+
+    if (!extraBgmAudioContext) {
+      extraBgmAudioContext =
+        new AudioContextClass();
+
+      extraBgmMasterGain =
+        extraBgmAudioContext.createGain();
+
+      extraBgmMasterGain.connect(
+        extraBgmAudioContext.destination
+      );
+
+      updateExtraBgmGain();
+    }
+
+    if (extraBgmAudioNodes.has(audio)) {
+      return extraBgmAudioNodes.get(audio);
+    }
+
+    const source =
+      extraBgmAudioContext
+        .createMediaElementSource(audio);
+
+    const fadeGain =
+      extraBgmAudioContext.createGain();
+
+    fadeGain.gain.value = 0;
+
+    source.connect(fadeGain);
+    fadeGain.connect(extraBgmMasterGain);
+
+    const nodes = { source, fadeGain };
+    extraBgmAudioNodes.set(audio, nodes);
+
+    audio.volume = 1;
+    updateExtraBgmGain();
+
+    return nodes;
+  } catch (err) {
+    console.warn(
+      "[EXTRA BGM] Web Audio init failed:",
+      err
+    );
+    return null;
+  }
+}
+
+function resumeExtraBgmAudioContext() {
+  if (
+    extraBgmAudioContext &&
+    extraBgmAudioContext.state === "suspended"
+  ) {
+    try {
+      extraBgmAudioContext.resume().catch(() => {});
+    } catch (e) {}
+  }
+}
+
 const extraSePool = new Set();
 
 function playExtraSe(path, onEnded = null) {
@@ -242,20 +337,25 @@ function playExtraBgm(path, fadeMs = 700) {
       extraBgmAudio.pause();
       extraBgmAudio.currentTime = 0;
     } catch (e) {}
-
     extraBgmAudio = null;
   }
 
   try {
     const audio = new Audio(cleanPath);
+    audio.preload = "auto";
+    audio.loop = true;
+    audio.muted = gameSettings.bgmVolume <= 0;
 
-audio.preload = "auto";
-audio.loop = true;
+    const nodes = ensureExtraBgmWebAudio(audio);
 
-audio.muted =
-  gameSettings.bgmVolume <= 0;
-
-audio.volume = 0;
+    if (nodes) {
+      audio.volume = 1;
+      nodes.fadeGain.gain.value = 0;
+      updateExtraBgmGain();
+      resumeExtraBgmAudioContext();
+    } else {
+      audio.volume = 0;
+    }
 
     extraBgmAudio = audio;
 
@@ -265,14 +365,36 @@ audio.volume = 0;
       .then(() => {
         console.log("[EXTRA BGM] playing:", cleanPath);
 
-        const targetVolume =
-          Math.max(
-            0,
-            Math.min(
+        if (nodes) {
+          if (fadeMs <= 0) {
+            nodes.fadeGain.gain.value = 1;
+            return;
+          }
+
+          const startTime = performance.now();
+          extraBgmFadeTimer = setInterval(() => {
+            const progress = Math.min(
               1,
-              (gameSettings.bgmVolume ?? 50) / 100
-            )
-          );
+              (performance.now() - startTime) / fadeMs
+            );
+
+            nodes.fadeGain.gain.value = progress;
+
+            if (progress >= 1) {
+              clearInterval(extraBgmFadeTimer);
+              extraBgmFadeTimer = null;
+              nodes.fadeGain.gain.value = 1;
+            }
+          }, 40);
+          return;
+        }
+
+        /* Web Audio 不可用時保留 HTMLAudio fallback。 */
+        const targetVolume =
+          Math.max(0, Math.min(1,
+            ((gameSettings.bgmVolume ?? 50) / 100) *
+            EXTRA_BGM_VOLUME_FACTOR
+          ));
 
         if (fadeMs <= 0) {
           audio.volume = targetVolume;
@@ -280,15 +402,12 @@ audio.volume = 0;
         }
 
         const startTime = performance.now();
-
         extraBgmFadeTimer = setInterval(() => {
           const progress = Math.min(
             1,
             (performance.now() - startTime) / fadeMs
           );
-
           audio.volume = targetVolume * progress;
-
           if (progress >= 1) {
             clearInterval(extraBgmFadeTimer);
             extraBgmFadeTimer = null;
@@ -307,7 +426,6 @@ audio.volume = 0;
 
 function stopExtraBgm(fadeMs = 700) {
   const audio = extraBgmAudio;
-
   extraBgmAudio = null;
 
   if (extraBgmFadeTimer) {
@@ -317,8 +435,42 @@ function stopExtraBgm(fadeMs = 700) {
 
   if (!audio) return;
 
-  const startVolume = audio.volume;
+  const nodes = extraBgmAudioNodes.get(audio);
 
+  if (nodes) {
+    const startGain = nodes.fadeGain.gain.value;
+
+    if (fadeMs <= 0 || startGain <= 0) {
+      try {
+        audio.pause();
+        audio.currentTime = 0;
+      } catch (e) {}
+      return;
+    }
+
+    const startTime = performance.now();
+    const timer = setInterval(() => {
+      const progress = Math.min(
+        1,
+        (performance.now() - startTime) / fadeMs
+      );
+
+      nodes.fadeGain.gain.value =
+        Math.max(0, startGain * (1 - progress));
+
+      if (progress >= 1) {
+        clearInterval(timer);
+        try {
+          audio.pause();
+          audio.currentTime = 0;
+        } catch (e) {}
+      }
+    }, 40);
+    return;
+  }
+
+  /* Web Audio fallback。 */
+  const startVolume = audio.volume;
   if (fadeMs <= 0 || startVolume <= 0) {
     try {
       audio.pause();
@@ -328,21 +480,17 @@ function stopExtraBgm(fadeMs = 700) {
   }
 
   const startTime = performance.now();
-
   const timer = setInterval(() => {
     const progress = Math.min(
       1,
       (performance.now() - startTime) / fadeMs
     );
-
     audio.volume = Math.max(
       0,
       startVolume * (1 - progress)
     );
-
     if (progress >= 1) {
       clearInterval(timer);
-
       try {
         audio.pause();
         audio.currentTime = 0;
@@ -5978,7 +6126,17 @@ if (mainBgmAudio) {
         extraBgmFadeTimer = null;
       }
 
-      extraBgmAudio.volume = volume;
+      extraBgmAudio.muted =
+        gameSettings.bgmVolume <= 0;
+
+      if (extraBgmAudioNodes.has(extraBgmAudio)) {
+        extraBgmAudio.volume = 1;
+        updateExtraBgmGain();
+        resumeExtraBgmAudioContext();
+      } else {
+        extraBgmAudio.volume =
+          volume * EXTRA_BGM_VOLUME_FACTOR;
+      }
     }
 
     /*
@@ -6529,15 +6687,28 @@ await bgmPlayPromise;
         );
       }
 
-      audio.volume =
-        Math.max(
-          0,
-          Math.min(
-            1,
-            ((gameSettings.bgmVolume ?? 50) / 100) *
-            MAIN_BGM_VOLUME_FACTOR
-          )
-        );
+      audio.muted =
+        gameSettings.bgmVolume <= 0;
+
+      const extraNodes =
+        ensureExtraBgmWebAudio(audio);
+
+      if (extraNodes) {
+        audio.volume = 1;
+        extraNodes.fadeGain.gain.value = 1;
+        updateExtraBgmGain();
+        resumeExtraBgmAudioContext();
+      } else {
+        audio.volume =
+          Math.max(
+            0,
+            Math.min(
+              1,
+              ((gameSettings.bgmVolume ?? 50) / 100) *
+              EXTRA_BGM_VOLUME_FACTOR
+            )
+          );
+      }
 
       await audio.play();
 
