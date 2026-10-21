@@ -1,18 +1,21 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
+
 <head>
   <meta charset="UTF-8">
+
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1.0"
   >
 
-  <title>iPhone Web Audio Test</title>
+  <title>iPhone Audio Volume Test</title>
 
   <style>
     body {
       margin: 0;
       min-height: 100vh;
+
       display: flex;
       justify-content: center;
       align-items: center;
@@ -24,281 +27,481 @@
     }
 
     .panel {
-      width: min(90vw, 360px);
+      width: min(90vw, 380px);
       text-align: center;
+      padding: 30px 0;
+    }
+
+    .section {
+      margin: 30px 0;
+      padding: 20px;
+
+      border: 1px solid #555;
+      border-radius: 14px;
     }
 
     button {
       display: block;
       width: 100%;
 
-      margin: 12px 0;
-      padding: 16px;
+      margin: 10px 0;
+      padding: 15px;
 
-      font-size: 18px;
+      font-size: 17px;
 
       border: none;
       border-radius: 10px;
     }
 
-    #status {
-      margin-top: 20px;
-      line-height: 1.7;
+    .status {
+      margin-top: 15px;
+
       font-family: monospace;
+      line-height: 1.6;
     }
   </style>
 </head>
 
+
 <body>
 
-  <div class="panel">
+<div class="panel">
 
-    <h2>iPhone Web Audio Test</h2>
+  <h2>iPhone Audio Volume Test</h2>
 
-    <button id="start">
-      開始測試音
+  <p>
+    bgm_daily.ogg
+  </p>
+
+
+  <!-- =========================================
+       TEST A
+       Native HTMLAudio
+       ========================================= -->
+
+  <div class="section">
+
+    <h3>
+      A：HTMLAudio
+    </h3>
+
+    <button id="native-play">
+      ▶ 播放
     </button>
 
-    <button data-gain="1">
-      Gain 1
+    <button id="native-stop">
+      ■ 停止
     </button>
 
-    <button data-gain="0.001">
-      Gain 0.001
-    </button>
-
-    <button data-gain="0">
-      Gain 0
-    </button>
-
-    <button id="stop">
-      停止
-    </button>
-
-    <div id="status">
-      尚未開始
+    <div
+      id="native-status"
+      class="status"
+    >
+      尚未播放
     </div>
 
   </div>
 
 
-  <script>
-    let context = null;
-    let oscillator = null;
-    let gainNode = null;
+  <!-- =========================================
+       TEST B
+       MediaElementSource + GainNode
+       ========================================= -->
 
-    const status =
-      document.getElementById("status");
+  <div class="section">
 
+    <h3>
+      B：Web Audio GainNode
+    </h3>
 
-    document
-      .getElementById("start")
-      .addEventListener(
-        "click",
-        async () => {
+    <button id="web-play">
+      ▶ 播放
+    </button>
 
-          /*
-           * 防止建立第二個 oscillator。
-           */
-          if (oscillator) {
-            status.innerHTML =
-              "測試音已經在播放";
-            return;
-          }
+    <button data-gain="1">
+      Gain 100%
+    </button>
 
+    <button data-gain="0.1">
+      Gain 10%
+    </button>
 
-          const AudioContextClass =
-            window.AudioContext ||
-            window.webkitAudioContext;
+    <button data-gain="0.01">
+      Gain 1%
+    </button>
 
+    <button data-gain="0">
+      Gain 0%
+    </button>
 
-          if (!AudioContextClass) {
-            status.innerHTML =
-              "AudioContext 不支援";
-            return;
-          }
+    <button id="web-stop">
+      ■ 停止
+    </button>
 
+    <div
+      id="web-status"
+      class="status"
+    >
+      尚未播放
+    </div>
 
-          try {
+  </div>
 
-            /*
-             * 建立完全獨立的 AudioContext。
-             */
-            context =
-              new AudioContextClass();
-
-
-            /*
-             * 建立 GainNode。
-             */
-            gainNode =
-              context.createGain();
-
-            gainNode.gain.value =
-              0.001;
+</div>
 
 
-            /*
-             * GainNode 是唯一連到
-             * destination 的節點。
-             */
-            gainNode.connect(
-              context.destination
-            );
+<script>
+
+  /*
+   * =========================================
+   * 共用測試音檔
+   * =========================================
+   */
+
+  const TEST_BGM =
+    "assets/bgm/bgm_daily.ogg";
 
 
-            /*
-             * 建立 oscillator。
-             */
-            oscillator =
-              context.createOscillator();
+  /*
+   * =========================================
+   * TEST A
+   * 原生 HTMLAudio
+   * =========================================
+   */
 
-            oscillator.type =
-              "sine";
+  const nativeAudio =
+    new Audio(TEST_BGM);
 
-            oscillator.frequency.value =
-              440;
+  nativeAudio.loop = true;
 
-
-            /*
-             * 唯一音訊路徑：
-             *
-             * Oscillator
-             *     ↓
-             * GainNode
-             *     ↓
-             * Destination
-             */
-            oscillator.connect(
-                context.destination
-            );
+  const nativeStatus =
+    document.getElementById(
+      "native-status"
+    );
 
 
-            if (
-              context.state ===
-              "suspended"
-            ) {
-              await context.resume();
-            }
+  document
+    .getElementById("native-play")
+    .addEventListener(
+      "click",
+      async () => {
 
+        try {
 
-            oscillator.start();
+          nativeAudio.currentTime = 0;
 
+          await nativeAudio.play();
 
-            status.innerHTML =
-              "播放中<br>" +
-              "Context: " +
-              context.state +
-              "<br>" +
-              "Gain: " +
-              gainNode.gain.value;
+          nativeStatus.textContent =
+            "HTMLAudio 播放中";
 
-          } catch (err) {
+        } catch (err) {
 
-            console.error(err);
+          console.error(
+            "[Native Audio]",
+            err
+          );
 
-            status.innerHTML =
-              "啟動失敗<br>" +
-              err.message;
-          }
+          nativeStatus.textContent =
+            "播放失敗：" +
+            err.message;
         }
-      );
+      }
+    );
 
 
-    document
-      .querySelectorAll(
-        "[data-gain]"
-      )
-      .forEach(button => {
+  document
+    .getElementById("native-stop")
+    .addEventListener(
+      "click",
+      () => {
 
-        button.addEventListener(
-          "click",
-          () => {
+        nativeAudio.pause();
 
-            if (!gainNode) {
-              status.innerHTML =
-                "請先按「開始測試音」";
-              return;
-            }
+        nativeAudio.currentTime = 0;
 
-
-            const value =
-              Number(
-                button.dataset.gain
-              );
+        nativeStatus.textContent =
+          "已停止";
+      }
+    );
 
 
-            /*
-             * 使用 setValueAtTime，
-             * 不只直接修改 .value。
-             */
-            gainNode.gain.setValueAtTime(
-              value,
-              context.currentTime
-            );
+
+  /*
+   * =========================================
+   * TEST B
+   * HTMLAudio
+   * →
+   * MediaElementSource
+   * →
+   * GainNode
+   * →
+   * Destination
+   * =========================================
+   */
+
+  let webContext = null;
+  let webAudio = null;
+  let webSource = null;
+  let webGain = null;
+
+  const webStatus =
+    document.getElementById(
+      "web-status"
+    );
 
 
-            status.innerHTML =
-              "播放中<br>" +
-              "Context: " +
-              context.state +
-              "<br>" +
-              "Gain: " +
-              gainNode.gain.value;
-          }
+  async function startWebAudioTest() {
+
+    /*
+     * 已經建立過的話，
+     * 不要重複 createMediaElementSource。
+     */
+    if (webAudio) {
+
+      if (
+        webContext &&
+        webContext.state === "suspended"
+      ) {
+        await webContext.resume();
+      }
+
+      webAudio.currentTime = 0;
+
+      await webAudio.play();
+
+      webStatus.innerHTML =
+        "Web Audio 播放中<br>" +
+        "Context: " +
+        webContext.state +
+        "<br>" +
+        "Gain: " +
+        webGain.gain.value;
+
+      return;
+    }
+
+
+    try {
+
+      const AudioContextClass =
+        window.AudioContext ||
+        window.webkitAudioContext;
+
+
+      if (!AudioContextClass) {
+
+        webStatus.textContent =
+          "不支援 AudioContext";
+
+        return;
+      }
+
+
+      /*
+       * 建立 AudioContext
+       */
+      webContext =
+        new AudioContextClass();
+
+
+      /*
+       * 建立另一個獨立 Audio。
+       *
+       * 不使用 TEST A 的 nativeAudio。
+       */
+      webAudio =
+        new Audio(TEST_BGM);
+
+      webAudio.loop = true;
+
+
+      /*
+       * HTMLAudio 本身維持 100%。
+       *
+       * 真正音量全部交給 GainNode。
+       */
+      webAudio.volume = 1;
+
+
+      /*
+       * HTMLAudio
+       * ↓
+       * MediaElementSource
+       */
+      webSource =
+        webContext.createMediaElementSource(
+          webAudio
         );
-      });
 
 
-    document
-      .getElementById("stop")
-      .addEventListener(
-        "click",
-        async () => {
+      /*
+       * GainNode
+       */
+      webGain =
+        webContext.createGain();
 
-          try {
-
-            if (oscillator) {
-              oscillator.stop();
-              oscillator.disconnect();
-            }
-
-          } catch (e) {}
+      webGain.gain.value = 1;
 
 
-          oscillator = null;
-
-
-          try {
-
-            if (gainNode) {
-              gainNode.disconnect();
-            }
-
-          } catch (e) {}
-
-
-          gainNode = null;
-
-
-          try {
-
-            if (context) {
-              await context.close();
-            }
-
-          } catch (e) {}
-
-
-          context = null;
-
-
-          status.innerHTML =
-            "已停止";
-        }
+      /*
+       * 完整路徑：
+       *
+       * webAudio
+       * ↓
+       * webSource
+       * ↓
+       * webGain
+       * ↓
+       * destination
+       */
+      webSource.connect(
+        webGain
       );
 
-  </script>
+      webGain.connect(
+        webContext.destination
+      );
+
+
+      /*
+       * iPhone user gesture 內 resume
+       */
+      if (
+        webContext.state === "suspended"
+      ) {
+        await webContext.resume();
+      }
+
+
+      /*
+       * 播放實際 BGM
+       */
+      await webAudio.play();
+
+
+      webStatus.innerHTML =
+        "Web Audio 播放中<br>" +
+        "Context: " +
+        webContext.state +
+        "<br>" +
+        "Gain: " +
+        webGain.gain.value;
+
+
+    } catch (err) {
+
+      console.error(
+        "[Web Audio Test]",
+        err
+      );
+
+      webStatus.innerHTML =
+        "播放失敗<br>" +
+        err.message;
+    }
+  }
+
+
+  document
+    .getElementById("web-play")
+    .addEventListener(
+      "click",
+      startWebAudioTest
+    );
+
+
+
+  /*
+   * =========================================
+   * Gain buttons
+   * =========================================
+   */
+
+  document
+    .querySelectorAll(
+      "[data-gain]"
+    )
+    .forEach(button => {
+
+      button.addEventListener(
+        "click",
+        () => {
+
+          if (
+            !webGain ||
+            !webContext
+          ) {
+
+            webStatus.textContent =
+              "請先按 B 的「播放」";
+
+            return;
+          }
+
+
+          const value =
+            Number(
+              button.dataset.gain
+            );
+
+
+          webGain.gain.cancelScheduledValues(
+            webContext.currentTime
+          );
+
+
+          webGain.gain.setValueAtTime(
+            value,
+            webContext.currentTime
+          );
+
+
+          webStatus.innerHTML =
+            "Web Audio 播放中<br>" +
+            "Context: " +
+            webContext.state +
+            "<br>" +
+            "Gain: " +
+            webGain.gain.value;
+        }
+      );
+    });
+
+
+
+  /*
+   * =========================================
+   * Stop Web Audio
+   * =========================================
+   */
+
+  document
+    .getElementById("web-stop")
+    .addEventListener(
+      "click",
+      () => {
+
+        if (webAudio) {
+
+          webAudio.pause();
+
+          webAudio.currentTime = 0;
+        }
+
+
+        webStatus.innerHTML =
+          "已停止<br>" +
+          (
+            webContext
+              ? "Context: " +
+                webContext.state
+              : ""
+          );
+      }
+    );
+
+</script>
 
 </body>
 </html>
