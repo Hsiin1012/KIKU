@@ -2600,7 +2600,7 @@ function ensureBgmRestoreDebugPanel() {
 
   Object.assign(panel.style, {
     position: "fixed",
-    buttom: "8px",
+    top: "8px",
     left: "8px",
     right: "8px",
     maxHeight: "45vh",
