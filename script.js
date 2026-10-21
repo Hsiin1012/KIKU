@@ -6211,6 +6211,112 @@ function bgmDbgAttach(audio) {
   }, 6000);
 }
 
+/* TEMP DEBUG：Main BGM foreground restore 診斷（只讀取狀態） */
+function bgmDbgAttach(audio, nodes) {
+  const startedAt = performance.now();
+  const events = [];
+  let peakMax = 0;
+  let analyser = null;
+  let buffer = null;
+  let peakTimer = null;
+
+  [
+    "playing",
+    "pause",
+    "waiting",
+    "stalled",
+    "emptied",
+    "ended",
+    "error"
+  ].forEach((name) => {
+    audio.addEventListener(name, () => {
+      if (events.length < 14) {
+        events.push(
+          name + "@" +
+          Math.round(performance.now() - startedAt)
+        );
+      }
+    });
+  });
+
+  try {
+    if (nodes && nodes.source && mainBgmAudioContext) {
+      const ctx = mainBgmAudioContext;
+
+      analyser = ctx.createAnalyser();
+      analyser.fftSize = 256;
+
+      /*
+       * 靜音旁路：source → analyser → gain(0) → destination
+       * 不影響原本的 fadeGain / mainBgmGainNode 路徑。
+       */
+      const tap = ctx.createGain();
+      tap.gain.value = 0;
+
+      nodes.source.connect(analyser);
+      analyser.connect(tap);
+      tap.connect(ctx.destination);
+
+      buffer = new Uint8Array(analyser.fftSize);
+    }
+  } catch (e) {
+    analyser = null;
+    buffer = null;
+  }
+
+  if (analyser && buffer) {
+    peakTimer = setInterval(() => {
+      try {
+        analyser.getByteTimeDomainData(buffer);
+
+        for (let i = 0; i < buffer.length; i++) {
+          const d = Math.abs(buffer[i] - 128);
+
+          if (d > peakMax) {
+            peakMax = d;
+          }
+        }
+      } catch (e) {}
+    }, 100);
+  }
+
+  const snap = (label) => {
+    try {
+      console.log(
+        "[BGM RESTORE] DBG " + label +
+        " | ctx=" +
+          (mainBgmAudioContext ? mainBgmAudioContext.state : "none") +
+        " | current=" + (mainBgmAudio === audio) +
+        " | hidden=" + document.hidden +
+        " | paused=" + audio.paused +
+        " ended=" + audio.ended +
+        " rs=" + audio.readyState +
+        " ns=" + audio.networkState +
+        " t=" + audio.currentTime.toFixed(2) +
+        " dur=" + Math.round(audio.duration) +
+        " muted=" + audio.muted +
+        " err=" + (audio.error ? audio.error.code : "none") +
+        " | peakMax=" + (analyser ? peakMax : "n/a") +
+        " | as=" +
+          (navigator.audioSession
+            ? navigator.audioSession.type
+            : "n/a") +
+        " | ev=" + events.join(",")
+      );
+    } catch (e) {}
+  };
+
+  setTimeout(() => snap("1s"), 1000);
+
+  setTimeout(() => {
+    snap("6s");
+
+    if (peakTimer) {
+      clearInterval(peakTimer);
+    }
+  }, 6000);
+}
+
 function pauseGameAudioForBackground() {
   /*
    * Main BGM
@@ -6559,7 +6665,7 @@ if (
     );
   }
 }
-
+bgmDbgOutputProbe();
 await bgmPlayPromise;
 
 console.log(
