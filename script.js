@@ -5932,10 +5932,21 @@ function pauseGameAudioForBackground() {
     !activeAudioInstance.paused &&
     activeAudioInstance.src
   ) {
-    backgroundVoiceReplayPath =
+    const voiceSrc =
       activeAudioInstance.currentSrc ||
       activeAudioInstance.src ||
       "";
+
+    try {
+      const voiceUrl =
+        new URL(voiceSrc, window.location.href);
+
+      backgroundVoiceReplayPath =
+        voiceUrl.pathname.replace(/^\/+/, "");
+    } catch (e) {
+      backgroundVoiceReplayPath =
+        voiceSrc.replace(/^\/+/, "");
+    }
   }
 
   try {
@@ -5995,6 +6006,29 @@ async function resumeGameAudioFromBackground() {
    * 全部保持原本架構。
    */
   resetMainBgmContextForForeground();
+
+  /*
+   * Voice
+   * 必須在 PAUSED 的「點擊繼續」這次 user gesture 中立刻重播，
+   * 不等待 BGM restore，避免 iOS 失去播放授權。
+   */
+  const voiceToReplay = backgroundVoiceReplayPath;
+  backgroundVoiceReplayPath = "";
+
+  if (voiceToReplay) {
+    try {
+      playVoiceAudio(
+        voiceToReplay,
+        "backgroundVoiceReplay"
+      );
+    } catch (err) {
+      console.warn(
+        "[BACKGROUND] Voice replay failed:",
+        err
+      );
+    }
+  }
+
   /*
    * Main BGM
    */
@@ -6058,30 +6092,6 @@ if (bgmNodes) {
   audio.volume =
     getMainBgmVolume();
 
-    /*
-   * Voice
-   * 如果背景化時正在播放 Voice，
-   * foreground 後從頭重播同一句。
-   *
-   * 不傳 onEndedCallback，
-   * 避免重複觸發原本劇情流程。
-   */
-  const voiceToReplay = backgroundVoiceReplayPath;
-  backgroundVoiceReplayPath = "";
-
-  if (voiceToReplay) {
-    try {
-      playVoiceAudio(
-        voiceToReplay,
-        "backgroundVoiceReplay"
-      );
-    } catch (err) {
-      console.warn(
-        "[BACKGROUND] Voice replay failed:",
-        err
-      );
-    }
-  }
 }
 
 mainBgmAudio = audio;
