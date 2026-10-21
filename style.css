@@ -3137,3 +3137,31 @@ button.extra-collection-card:not(.is-locked):hover {
   }
 
 }
+
+/* ==========================================================================
+   CONFIG - VOLUME ROW ALIGNMENT
+   Desktop + Tablet
+   ========================================================================== */
+
+@media screen and (min-width: 769px) {
+  #screen-config .config-row:has(input[type="range"]) {
+    display: grid;
+    grid-template-columns: 150px minmax(0, 200px) 45px;
+    align-items: center;
+    justify-content: space-between;
+    column-gap: 18px;
+  }
+
+  #screen-config .config-row:has(input[type="range"]) input[type="range"] {
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    margin: 0;
+  }
+
+  #screen-config .config-row:has(input[type="range"]) .cfg-val-text {
+    width: 45px;
+    min-width: 45px;
+    text-align: right;
+  }
+}
