@@ -1777,6 +1777,98 @@ let activeAudioInstance = null;
 let currentPlaybackToken = 0;
 
 /*
+ * Voice Web Audio
+ * iPhone / iPad 上不依賴 HTMLAudio.volume 做實際音量縮放。
+ * Voice Slider 改由獨立 GainNode 控制。
+ */
+let voiceAudioContext = null;
+let voiceGainNode = null;
+let voiceAudioNodes = new WeakMap();
+
+function updateVoiceGain() {
+  if (!voiceGainNode) return;
+
+  const volume =
+    Math.max(
+      0,
+      Math.min(
+        1,
+        (gameSettings.voiceVolume ?? 50) / 100
+      )
+    );
+
+  try {
+    voiceGainNode.gain.value = volume;
+  } catch (e) {}
+}
+
+function ensureVoiceAudioContext() {
+  try {
+    const AudioContextClass =
+      window.AudioContext ||
+      window.webkitAudioContext;
+
+    if (!AudioContextClass) return null;
+
+    if (!voiceAudioContext) {
+      voiceAudioContext = new AudioContextClass();
+      voiceGainNode = voiceAudioContext.createGain();
+      voiceGainNode.connect(voiceAudioContext.destination);
+      updateVoiceGain();
+    }
+
+    return voiceAudioContext;
+  } catch (err) {
+    console.warn("[VOICE] AudioContext unavailable:", err);
+    return null;
+  }
+}
+
+function ensureVoiceWebAudio(audio) {
+  if (!audio) return null;
+
+  const context = ensureVoiceAudioContext();
+  if (!context || !voiceGainNode) return null;
+
+  try {
+    if (voiceAudioNodes.has(audio)) {
+      return voiceAudioNodes.get(audio);
+    }
+
+    const source =
+      context.createMediaElementSource(audio);
+
+    source.connect(voiceGainNode);
+
+    const nodes = { source };
+    voiceAudioNodes.set(audio, nodes);
+
+    /*
+     * HTMLAudio 固定 100%。
+     * Voice 實際音量交給 voiceGainNode。
+     */
+    audio.volume = 1;
+    updateVoiceGain();
+
+    return nodes;
+  } catch (err) {
+    console.warn("[VOICE] Web Audio routing failed:", err);
+    return null;
+  }
+}
+
+function resumeVoiceAudioContext() {
+  const context = ensureVoiceAudioContext();
+  if (!context) return;
+
+  if (context.state === "suspended") {
+    try {
+      context.resume().catch(() => {});
+    } catch (e) {}
+  }
+}
+
+/*
  * Page Background Audio Pause / Resume
  */
 const backgroundAudioState = {
@@ -3707,6 +3799,12 @@ function unlockAudioContextIOS() {
 
   unlockMainStoryAudio();
 
+  /*
+   * TAP TO START 的 user gesture 中一併建立／喚醒 Voice Context。
+   * 這樣 Loading 結束後第一句 Voice 不需要臨時建立 suspended Context。
+   */
+  resumeVoiceAudioContext();
+
   try {
     
   } catch (e) {}
@@ -3736,8 +3834,27 @@ function playVoiceAudio(audioPath, dialogueId = "unknown", onEndedCallback) {
 
   try {
   const audio = new Audio(cleanPath);
-  audio.volume = currentVol;
+
+  audio.muted = currentVol <= 0;
+
+  const voiceNodes =
+    ensureVoiceWebAudio(audio);
+
+  if (voiceNodes) {
+    audio.volume = 1;
+    updateVoiceGain();
+  } else {
+    /* Web Audio 不可用時保留原本 HTMLAudio fallback。 */
+    audio.volume = currentVol;
+  }
+
   activeAudioInstance = audio;
+
+  /*
+   * foreground 的 PAUSED Continue 也會走到這裡。
+   * 不 await，讓 resume() 與 play() 都留在同一次 user gesture 中。
+   */
+  resumeVoiceAudioContext();
 
     audio.play().then(() => {}).catch(err => {
       console.warn("[iOS Audio Autoplay Blocked / NotAllowedError]", err);
@@ -5818,19 +5935,30 @@ if (elements.cfgVoiceSlider) {
      * 正在播放中的主 Voice
      * 也立即套用新音量。
      */
-    if (activeAudioInstance) {
-  activeAudioInstance.muted =
-    gameSettings.voiceVolume <= 0;
+    updateVoiceGain();
 
-  activeAudioInstance.volume =
-    Math.max(
-      0,
-      Math.min(
-        1,
-        (gameSettings.voiceVolume ?? 0) / 100
-      )
-    );
-}
+    if (activeAudioInstance) {
+      activeAudioInstance.muted =
+        gameSettings.voiceVolume <= 0;
+
+      /*
+       * 已接上 Web Audio 時 HTMLAudio 維持 100%，
+       * 真正音量由 voiceGainNode 控制。
+       * 若 Web Audio routing 失敗，才沿用原本 volume fallback。
+       */
+      if (voiceAudioNodes.has(activeAudioInstance)) {
+        activeAudioInstance.volume = 1;
+      } else {
+        activeAudioInstance.volume =
+          Math.max(
+            0,
+            Math.min(
+              1,
+              (gameSettings.voiceVolume ?? 0) / 100
+            )
+          );
+      }
+    }
 
     saveGameData();
   };
