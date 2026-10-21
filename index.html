@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Visual Novel Learning Engine - 不良たちの日本語講座！</title>
+    <title>KIKU!</title>
     <link rel="stylesheet" href="style.css?v=20261020-001">
 </head>
 <body>
@@ -85,12 +85,160 @@
                     <button id="btn-start" class="vn-btn primary large"><span class="btn-zh">開始新遊戲</span> <span class="btn-en">(New Game)</span></button>
                     <button id="btn-continue" class="vn-btn secondary hidden"><span class="btn-zh">繼續遊戲</span> <span class="btn-en">(Continue)</span></button>
                     <button id="btn-how-to-play" class="vn-btn secondary"><span class="btn-zh">使用說明</span> <span class="btn-en">(How to Play)</span></button>
-                    <button id="btn-extra-collection" class="vn-btn secondary"><span class="btn-zh">Extra Event 收藏</span><span class="btn-en">(Collection)</span></button>
+                    <button id="btn-extra-collection" class="vn-btn secondary"><span class="btn-zh">收藏</span><span class="btn-en">(Collection)</span></button>
                     <button id="btn-title-config" class="vn-btn secondary"><span class="btn-zh">設定</span> <span class="btn-en">(Config)</span></button>
                     <button id="btn-review" class="vn-btn secondary hidden"><span class="btn-zh">聽力回顧</span> <span class="btn-en">(Review)</span></button>
                 </div>
             </div>
         </div>
+
+        <!-- ==========================================================================
+     COLLECTION HUB
+     ========================================================================== -->
+<div id="screen-collection" class="vn-screen">
+    <div class="collection-hub-shell">
+        <header class="collection-hub-header">
+            <div>
+                <span class="collection-hub-kicker">ARCHIVE</span>
+                <h2>COLLECTION</h2>
+                <p>收藏</p>
+            </div>
+            <button id="btn-collection-back" class="vn-btn secondary collection-hub-back" type="button">返回標題</button>
+        </header>
+
+        <div class="collection-hub-grid">
+            <button id="btn-story-collection" class="collection-hub-card" type="button">
+                <span class="collection-hub-card-en">STORY</span>
+                <span class="collection-hub-card-zh">章節回顧</span>
+                <span class="collection-hub-card-desc">回顧已完成的主線劇情</span>
+            </button>
+
+            <button id="btn-open-extra-collection" class="collection-hub-card" type="button">
+                <span class="collection-hub-card-en">EXTRA</span>
+                <span class="collection-hub-card-zh">隱藏事件</span>
+                <span class="collection-hub-card-desc">查看已解鎖的隱藏事件</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+        <!-- ==========================================================================
+     STORY COLLECTION / REPLAY INDEX
+     ========================================================================== -->
+<div id="screen-story-collection" class="vn-screen">
+    <div class="story-collection-shell">
+        <header class="story-collection-header">
+            <div>
+                <span class="story-collection-kicker">STORY ARCHIVE</span>
+                <h2>STORY COLLECTION</h2>
+            </div>
+            <button id="btn-story-collection-back" class="vn-btn secondary story-collection-back" type="button">返回收藏</button>
+        </header>
+
+        <div class="story-collection-grid">
+            <button id="btn-story-chapter1" class="story-collection-card is-available" type="button">
+                <span class="story-chapter-number">CHAPTER 01</span>
+                <span class="story-chapter-title">誰把我們的班級交給這兩個人了？</span>
+                <span class="story-chapter-status">5 SECTIONS</span>
+            </button>
+            <div class="story-collection-card is-locked">
+                <span class="story-chapter-number">CHAPTER 02</span>
+                <span class="story-chapter-title">??????</span>
+                <span class="story-chapter-status">LOCKED</span>
+            </div>
+            <div class="story-collection-card is-locked">
+                <span class="story-chapter-number">CHAPTER 03</span>
+                <span class="story-chapter-title">??????</span>
+                <span class="story-chapter-status">LOCKED</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+        <!-- ==========================================================================
+     CHAPTER 01 / SECTION SELECT
+     ========================================================================== -->
+<div id="screen-story-chapter1" class="vn-screen">
+    <div class="story-chapter-shell">
+        <header class="story-chapter-header">
+            <div>
+                <span class="story-chapter-kicker">CHAPTER REVIEW</span>
+                <h2>CHAPTER 01</h2>
+                <p>誰把我們的班級交給這兩個人了？</p>
+            </div>
+            <button id="btn-story-chapter1-back" class="vn-btn secondary story-chapter-back" type="button">返回章節</button>
+        </header>
+
+        <div class="story-timeline" aria-label="Chapter 01 story timeline">
+            <div class="story-timeline-line" aria-hidden="true"></div>
+
+            <div class="story-timeline-item">
+                <div class="story-timeline-marker" aria-hidden="true"><span>01</span></div>
+                <button class="story-timeline-card" type="button" disabled aria-disabled="true">
+                    <div class="story-timeline-thumb is-placeholder" aria-hidden="true"><span>SCENE 01</span></div>
+                    <div class="story-timeline-copy">
+                        <span class="story-section-number">01</span>
+                        <strong>プリン失踪事件</strong>
+                        <small>布丁失蹤事件</small>
+                        <span class="story-section-status">REPLAY 準備中</span>
+                    </div>
+                </button>
+            </div>
+
+            <div class="story-timeline-item">
+                <div class="story-timeline-marker" aria-hidden="true"><span>02</span></div>
+                <button class="story-timeline-card" type="button" disabled aria-disabled="true">
+                    <div class="story-timeline-thumb is-placeholder" aria-hidden="true"><span>SCENE 02</span></div>
+                    <div class="story-timeline-copy">
+                        <span class="story-section-number">02</span>
+                        <strong>文化祭、始まります</strong>
+                        <small>文化祭，要開始了</small>
+                        <span class="story-section-status">REPLAY 準備中</span>
+                    </div>
+                </button>
+            </div>
+
+            <div class="story-timeline-item">
+                <div class="story-timeline-marker" aria-hidden="true"><span>03</span></div>
+                <button class="story-timeline-card" type="button" disabled aria-disabled="true">
+                    <div class="story-timeline-thumb is-placeholder" aria-hidden="true"><span>SCENE 03</span></div>
+                    <div class="story-timeline-copy">
+                        <span class="story-section-number">03</span>
+                        <strong>余計な一言</strong>
+                        <small>多嘴的一句話</small>
+                        <span class="story-section-status">REPLAY 準備中</span>
+                    </div>
+                </button>
+            </div>
+
+            <div class="story-timeline-item">
+                <div class="story-timeline-marker" aria-hidden="true"><span>04</span></div>
+                <button class="story-timeline-card" type="button" disabled aria-disabled="true">
+                    <div class="story-timeline-thumb is-placeholder" aria-hidden="true"><span>SCENE 04</span></div>
+                    <div class="story-timeline-copy">
+                        <span class="story-section-number">04</span>
+                        <strong>転校初日から企画会議！？</strong>
+                        <small>轉學第一天就要開企劃會議！？</small>
+                        <span class="story-section-status">REPLAY 準備中</span>
+                    </div>
+                </button>
+            </div>
+
+            <div class="story-timeline-item">
+                <div class="story-timeline-marker" aria-hidden="true"><span>05</span></div>
+                <button class="story-timeline-card" type="button" disabled aria-disabled="true">
+                    <div class="story-timeline-thumb is-placeholder" aria-hidden="true"><span>SCENE 05</span></div>
+                    <div class="story-timeline-copy">
+                        <span class="story-section-number">05</span>
+                        <strong>珍しくまともな案？</strong>
+                        <small>難得有個正常的提案？</small>
+                        <span class="story-section-status">REPLAY 準備中</span>
+                    </div>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
         <!-- ==========================================================================
      EXTRA EVENT COLLECTION
@@ -110,7 +258,7 @@
                 class="vn-btn secondary extra-collection-back"
                 type="button"
             >
-                返回標題
+                返回收藏
             </button>
         </header>
 

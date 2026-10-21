@@ -5615,6 +5615,15 @@ function initEventListeners() {
   screens.review = document.getElementById('screen-review');
   screens.config = document.getElementById('screen-config');
 
+  screens.collection =
+    document.getElementById('screen-collection');
+
+  screens.storyCollection =
+    document.getElementById('screen-story-collection');
+
+  screens.storyChapter1 =
+    document.getElementById('screen-story-chapter1');
+
   screens.extraCollection =
     document.getElementById(
     'screen-extra-collection'
@@ -5729,12 +5738,42 @@ bindClick(
 
 bindClick(
   'btn-extra-collection',
+  () => showScreen('collection')
+);
+
+bindClick(
+  'btn-collection-back',
+  () => showScreen('title')
+);
+
+bindClick(
+  'btn-story-collection',
+  () => showScreen('storyCollection')
+);
+
+bindClick(
+  'btn-story-collection-back',
+  () => showScreen('collection')
+);
+
+bindClick(
+  'btn-story-chapter1',
+  () => showScreen('storyChapter1')
+);
+
+bindClick(
+  'btn-story-chapter1-back',
+  () => showScreen('storyCollection')
+);
+
+bindClick(
+  'btn-open-extra-collection',
   () => openExtraCollection()
 );
 
 bindClick(
   'btn-extra-collection-back',
-  () => showScreen('title')
+  () => showScreen('collection')
 );
 
 bindClick(
