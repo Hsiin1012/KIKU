@@ -2583,6 +2583,55 @@ function fadeDetachedMainAudioOut(
   }, 40);
 }
 
+function resetMainBgmContextForForeground() {
+  /*
+   * iOS Safari foreground restore 專用。
+   *
+   * 只重建 Main BGM 的 Web Audio Context。
+   * 不碰：
+   * - Main SE
+   * - Voice
+   * - Morning Ambient
+   * - Extra Event
+   * - mainAudioUnlocked
+   */
+
+  const oldContext = mainBgmAudioContext;
+
+  /*
+   * 丟棄舊 Main BGM Web Audio graph。
+   *
+   * 背景前的 HTMLAudio 已經 destructive unload，
+   * 所以舊 MediaElementSource 不再使用。
+   */
+  mainBgmAudioContext = null;
+  mainBgmGainNode = null;
+  mainBgmAudioNodes = new WeakMap();
+
+  /*
+   * 不等待 close()。
+   * 避免 iOS Safari 的 close Promise 卡住恢復流程。
+   */
+  if (oldContext) {
+    try {
+      oldContext.close().catch(() => {});
+    } catch (e) {}
+  }
+
+  /*
+   * 不在這裡直接建立新的 Context。
+   *
+   * 等新的 BGM Audio 建立後，
+   * 交給 ensureMainBgmWebAudio(audio)
+   * 建立新的：
+   *
+   * AudioContext
+   * → MediaElementSource
+   * → fadeGain
+   * → mainBgmGainNode
+   */
+}
+
 function rebuildMainAudioContext() {
   /*
    * iOS Safari 從背景回來後，
@@ -5951,21 +6000,15 @@ function pauseGameAudioForBackground() {
 }
 
 async function resumeGameAudioFromBackground() {
-  /*
+    /*
    * iOS Safari：
-   * 不重建 AudioContext。
-   * 保留最初由 TAP 解鎖的 Context，
-   * 在使用者回到遊戲並再次操作時恢復它。
+   * foreground 的第一次 user gesture
+   * 只重建 Main BGM Web Audio Context。
+   *
+   * SE / Voice / Ambient / Extra Event
+   * 全部保持原本架構。
    */
-  if (
-    mainBgmAudioContext &&
-    mainBgmAudioContext.state === "suspended"
-  ) {
-    try {
-      mainBgmAudioContext.resume().catch(() => {});
-    } catch (e) {}
-  }
-
+  resetMainBgmContextForForeground();
   /*
    * Main BGM
    */
@@ -5990,11 +6033,59 @@ audio.preload = "auto";
 audio.loop = true;
 audio.src = savedBgm.path;
 
+audio.muted =
+  gameSettings.bgmVolume <= 0;
+
+/*
+ * 把 foreground 新建立的 HTMLAudio
+ * 接到全新的 Main BGM Web Audio graph。
+ */
+const bgmNodes =
+  ensureMainBgmWebAudio(audio);
+
+if (bgmNodes) {
+  /*
+   * HTMLAudio 固定 100%。
+   * 真正 Slider 音量由 mainBgmGainNode 控制。
+   *
+   * foreground restore 不重新淡入，
+   * 因此 fadeGain 直接恢復目前 duck 狀態。
+   */
+  audio.volume = 1;
+
+  bgmNodes.fadeGain.gain.value =
+    mainBgmDuckFactor;
+
+  updateMainBgmGain();
+
+  /*
+   * 必須在 foreground user gesture
+   * 觸發的恢復流程中喚醒新的 Context。
+   */
+  if (
+    mainBgmAudioContext &&
+    mainBgmAudioContext.state === "suspended"
+  ) {
+    try {
+      await mainBgmAudioContext.resume();
+    } catch (e) {
+      console.warn(
+        "[BACKGROUND] Main BGM AudioContext resume failed:",
+        e
+      );
+    }
+  }
+} else {
+  /*
+   * Web Audio 建立失敗時，
+   * 保留 HTMLAudio fallback。
+   */
+  audio.volume =
+    getMainBgmVolume();
+}
+
 mainBgmAudio = audio;
 mainBgmPath = savedBgm.path;
-
-audio.volume =
-  getMainBgmVolume();
 
       const restoreTime = () => {
         try {
