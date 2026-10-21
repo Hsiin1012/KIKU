@@ -6617,18 +6617,9 @@ async function restoreBackgroundAudioOnUserGesture() {
  * 用來重新解鎖並恢復音訊。
  */
 document.addEventListener(
-  "pointerdown",
+  "click",
   restoreBackgroundAudioOnUserGesture,
   true
-);
-
-document.addEventListener(
-  "touchstart",
-  restoreBackgroundAudioOnUserGesture,
-  {
-    capture: true,
-    passive: true
-  }
 );
 
 document.addEventListener("DOMContentLoaded", () => {
