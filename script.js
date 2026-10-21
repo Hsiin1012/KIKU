@@ -5822,6 +5822,7 @@ if (elements.cfgVoiceSlider) {
 }
 }
 
+let backgroundVoiceReplayPath = "";
 
 function pauseGameAudioForBackground() {
   /*
@@ -5917,13 +5918,26 @@ function pauseGameAudioForBackground() {
   }
 
 
-  /*
+    /*
    * Voice
    *
-   * Voice 不保存播放位置。
-   * 直接正常清掉目前 instance，
-   * 回到頁面後也不自動播放。
+   * 如果切到背景時 Voice 正在播放，
+   * 記住目前這一句的路徑。
+   * 回到頁面並點擊繼續後，從頭重播一次。
    */
+  backgroundVoiceReplayPath = "";
+
+  if (
+    activeAudioInstance &&
+    !activeAudioInstance.paused &&
+    activeAudioInstance.src
+  ) {
+    backgroundVoiceReplayPath =
+      activeAudioInstance.currentSrc ||
+      activeAudioInstance.src ||
+      "";
+  }
+
   try {
     stopActiveAudio(
       "pageBackground",
@@ -6043,6 +6057,31 @@ if (bgmNodes) {
    */
   audio.volume =
     getMainBgmVolume();
+
+    /*
+   * Voice
+   * 如果背景化時正在播放 Voice，
+   * foreground 後從頭重播同一句。
+   *
+   * 不傳 onEndedCallback，
+   * 避免重複觸發原本劇情流程。
+   */
+  const voiceToReplay = backgroundVoiceReplayPath;
+  backgroundVoiceReplayPath = "";
+
+  if (voiceToReplay) {
+    try {
+      playVoiceAudio(
+        voiceToReplay,
+        "backgroundVoiceReplay"
+      );
+    } catch (err) {
+      console.warn(
+        "[BACKGROUND] Voice replay failed:",
+        err
+      );
+    }
+  }
 }
 
 mainBgmAudio = audio;
