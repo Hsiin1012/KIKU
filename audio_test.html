@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>iPhone Web Audio Test</title>
+
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      background: #111;
+      color: white;
+
+      font-family: sans-serif;
+    }
+
+    .panel {
+      width: min(90vw, 360px);
+      text-align: center;
+    }
+
+    button {
+      display: block;
+      width: 100%;
+
+      margin: 12px 0;
+      padding: 16px;
+
+      font-size: 18px;
+
+      border: none;
+      border-radius: 10px;
+    }
+
+    #status {
+      margin-top: 20px;
+      line-height: 1.7;
+      font-family: monospace;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="panel">
+
+    <h2>iPhone Web Audio Test</h2>
+
+    <button id="start">
+      開始測試音
+    </button>
+
+    <button data-gain="1">
+      Gain 1
+    </button>
+
+    <button data-gain="0.001">
+      Gain 0.001
+    </button>
+
+    <button data-gain="0">
+      Gain 0
+    </button>
+
+    <button id="stop">
+      停止
+    </button>
+
+    <div id="status">
+      尚未開始
+    </div>
+
+  </div>
+
+
+  <script>
+    let context = null;
+    let oscillator = null;
+    let gainNode = null;
+
+    const status =
+      document.getElementById("status");
+
+
+    document
+      .getElementById("start")
+      .addEventListener(
+        "click",
+        async () => {
+
+          /*
+           * 防止建立第二個 oscillator。
+           */
+          if (oscillator) {
+            status.innerHTML =
+              "測試音已經在播放";
+            return;
+          }
+
+
+          const AudioContextClass =
+            window.AudioContext ||
+            window.webkitAudioContext;
+
+
+          if (!AudioContextClass) {
+            status.innerHTML =
+              "AudioContext 不支援";
+            return;
+          }
+
+
+          try {
+
+            /*
+             * 建立完全獨立的 AudioContext。
+             */
+            context =
+              new AudioContextClass();
+
+
+            /*
+             * 建立 GainNode。
+             */
+            gainNode =
+              context.createGain();
+
+            gainNode.gain.value =
+              0.001;
+
+
+            /*
+             * GainNode 是唯一連到
+             * destination 的節點。
+             */
+            gainNode.connect(
+              context.destination
+            );
+
+
+            /*
+             * 建立 oscillator。
+             */
+            oscillator =
+              context.createOscillator();
+
+            oscillator.type =
+              "sine";
+
+            oscillator.frequency.value =
+              440;
+
+
+            /*
+             * 唯一音訊路徑：
+             *
+             * Oscillator
+             *     ↓
+             * GainNode
+             *     ↓
+             * Destination
+             */
+            oscillator.connect(
+              gainNode
+            );
+
+
+            if (
+              context.state ===
+              "suspended"
+            ) {
+              await context.resume();
+            }
+
+
+            oscillator.start();
+
+
+            status.innerHTML =
+              "播放中<br>" +
+              "Context: " +
+              context.state +
+              "<br>" +
+              "Gain: " +
+              gainNode.gain.value;
+
+          } catch (err) {
+
+            console.error(err);
+
+            status.innerHTML =
+              "啟動失敗<br>" +
+              err.message;
+          }
+        }
+      );
+
+
+    document
+      .querySelectorAll(
+        "[data-gain]"
+      )
+      .forEach(button => {
+
+        button.addEventListener(
+          "click",
+          () => {
+
+            if (!gainNode) {
+              status.innerHTML =
+                "請先按「開始測試音」";
+              return;
+            }
+
+
+            const value =
+              Number(
+                button.dataset.gain
+              );
+
+
+            /*
+             * 使用 setValueAtTime，
+             * 不只直接修改 .value。
+             */
+            gainNode.gain.setValueAtTime(
+              value,
+              context.currentTime
+            );
+
+
+            status.innerHTML =
+              "播放中<br>" +
+              "Context: " +
+              context.state +
+              "<br>" +
+              "Gain: " +
+              gainNode.gain.value;
+          }
+        );
+      });
+
+
+    document
+      .getElementById("stop")
+      .addEventListener(
+        "click",
+        async () => {
+
+          try {
+
+            if (oscillator) {
+              oscillator.stop();
+              oscillator.disconnect();
+            }
+
+          } catch (e) {}
+
+
+          oscillator = null;
+
+
+          try {
+
+            if (gainNode) {
+              gainNode.disconnect();
+            }
+
+          } catch (e) {}
+
+
+          gainNode = null;
+
+
+          try {
+
+            if (context) {
+              await context.close();
+            }
+
+          } catch (e) {}
+
+
+          context = null;
+
+
+          status.innerHTML =
+            "已停止";
+        }
+      );
+
+  </script>
+
+</body>
+</html>
