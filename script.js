@@ -2348,6 +2348,121 @@ function fadeMainAudio(
     }
   }
 
+
+  /*
+   * Main BGM：
+   * 如果這個 Audio 已經接上 Web Audio，
+   * 淡入淡出改由該首 BGM 自己的 fadeGain 負責。
+   *
+   * Master Gain 只負責設定頁 Slider。
+   */
+  if (
+    type === "bgm" &&
+    mainBgmAudioNodes.has(audio)
+  ) {
+    const nodes =
+      mainBgmAudioNodes.get(audio);
+
+    const fadeGain =
+      nodes && nodes.fadeGain;
+
+    if (fadeGain) {
+      /*
+       * HTMLAudio 本身固定 100%。
+       */
+      audio.volume = 1;
+
+      const startGain =
+        Number.isFinite(fadeGain.gain.value)
+          ? fadeGain.gain.value
+          : 0;
+
+      /*
+       * 注意：
+       * BGM Slider 音量已經由
+       * mainBgmGainNode 負責。
+       *
+       * 所以這裡的 fade target：
+       * 有聲 = mainBgmDuckFactor
+       * 無聲 = 0
+       */
+      const safeTarget =
+        targetVolume <= 0
+          ? 0
+          : Math.max(
+              0,
+              Math.min(
+                1,
+                mainBgmDuckFactor
+              )
+            );
+
+      if (duration <= 0) {
+        fadeGain.gain.value =
+          safeTarget;
+
+        if (onComplete) {
+          onComplete();
+        }
+
+        return;
+      }
+
+      const startTime =
+        performance.now();
+
+      const timer =
+        setInterval(() => {
+          const progress =
+            Math.min(
+              1,
+              (
+                performance.now() -
+                startTime
+              ) /
+                Math.max(1, duration)
+            );
+
+          fadeGain.gain.value =
+            startGain +
+            (
+              safeTarget -
+              startGain
+            ) *
+              progress;
+
+          if (progress >= 1) {
+            clearInterval(timer);
+
+            fadeGain.gain.value =
+              safeTarget;
+
+            if (
+              mainBgmFadeTimer ===
+              timer
+            ) {
+              mainBgmFadeTimer = null;
+            }
+
+            if (onComplete) {
+              onComplete();
+            }
+          }
+        }, 40);
+
+      mainBgmFadeTimer = timer;
+
+      return;
+    }
+  }
+
+
+  /*
+   * 其他 Audio：
+   * 保留原本 HTMLAudio.volume 的處理。
+   *
+   * Morning Ambient 等功能完全不改。
+   */
   const startVolume =
     Number.isFinite(audio.volume)
       ? audio.volume
@@ -2947,7 +3062,39 @@ audio.src = cleanPath;
 audio.muted =
   gameSettings.bgmVolume <= 0;
 
-audio.volume = 0;
+/*
+ * Main BGM 接入 Web Audio：
+ *
+ * HTMLAudio
+ * ↓
+ * MediaElementSource
+ * ↓
+ * fadeGain
+ * ↓
+ * mainBgmGainNode
+ * ↓
+ * destination
+ */
+const bgmNodes =
+  ensureMainBgmWebAudio(audio);
+
+if (bgmNodes) {
+  /*
+   * Web Audio 模式：
+   * HTMLAudio 本身固定 100%。
+   * 初始淡入由 fadeGain = 0 開始。
+   */
+  audio.volume = 1;
+  bgmNodes.fadeGain.gain.value = 0;
+
+  updateMainBgmGain();
+} else {
+  /*
+   * Web Audio 建立失敗時，
+   * 保留原本 HTMLAudio fallback。
+   */
+  audio.volume = 0;
+}
 
 mainBgmAudio = audio;
 mainBgmPath = cleanPath;
@@ -5473,13 +5620,31 @@ document.addEventListener('click', (event) => {
  * 統一交給 Web Audio GainNode。
  */
 if (mainBgmAudio) {
-  // iPhone / iOS 測試：
-  // 0% 使用 muted，> 0% 解除 muted。
+  /*
+   * 0% 繼續保留 muted。
+   * 這是之前已經在 iPhone 實測成功的保險。
+   */
   mainBgmAudio.muted =
     gameSettings.bgmVolume <= 0;
 
-  mainBgmAudio.volume =
-    getMainBgmVolume();
+  /*
+   * Main BGM 真正的 1～100% 音量
+   * 改由 Web Audio Master Gain 控制。
+   */
+  if (
+    mainBgmAudioNodes.has(
+      mainBgmAudio
+    )
+  ) {
+    mainBgmAudio.volume = 1;
+    updateMainBgmGain();
+  } else {
+    /*
+     * Web Audio 沒建立成功時的 fallback。
+     */
+    mainBgmAudio.volume =
+      getMainBgmVolume();
+  }
 
 // iPhone 音量診斷：暫時顯示在畫面上
 let bgmVolumeDebug =
