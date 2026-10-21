@@ -3674,6 +3674,11 @@ function typeWriterText(element, text) {
 
 function stopActiveAudio(reason = "manual_stop", dialogueId = "unknown") {
   currentPlaybackToken++;
+
+  if (reason !== "pageBackground") {
+    activeVoiceReplayPath = "";
+  }
+
   if (activeAudioInstance) {
     activeAudioInstance.pause();
     activeAudioInstance.currentTime = 0;
@@ -3720,11 +3725,14 @@ function playVoiceAudio(audioPath, dialogueId = "unknown", onEndedCallback) {
   }
 
   if (!audioPath || currentVol <= 0) {
+    activeVoiceReplayPath = "";
     const replayBtn = document.getElementById('btn-audio-play');
     if (replayBtn) replayBtn.remove();
     if (onEndedCallback) onEndedCallback();
     return;
   }
+
+  activeVoiceReplayPath = cleanPath;
 
   try {
   const audio = new Audio(cleanPath);
@@ -3733,6 +3741,9 @@ function playVoiceAudio(audioPath, dialogueId = "unknown", onEndedCallback) {
 
     audio.play().then(() => {}).catch(err => {
       console.warn("[iOS Audio Autoplay Blocked / NotAllowedError]", err);
+      if (currentPlaybackToken === thisToken) {
+        activeVoiceReplayPath = "";
+      }
       if (currentPlaybackToken === thisToken && onEndedCallback) {
         onEndedCallback();
       }
@@ -3740,12 +3751,16 @@ function playVoiceAudio(audioPath, dialogueId = "unknown", onEndedCallback) {
 
     audio.onended = () => {
       if (currentPlaybackToken !== thisToken) return;
+      activeVoiceReplayPath = "";
       if (activeAudioInstance === audio) {
         activeAudioInstance = null;
       }
       if (onEndedCallback) onEndedCallback();
     };
   } catch (e) {
+    if (currentPlaybackToken === thisToken) {
+      activeVoiceReplayPath = "";
+    }
     if (currentPlaybackToken === thisToken && onEndedCallback) {
       onEndedCallback();
     }
@@ -5823,6 +5838,7 @@ if (elements.cfgVoiceSlider) {
 }
 
 let backgroundVoiceReplayPath = "";
+let activeVoiceReplayPath = "";
 
 function pauseGameAudioForBackground() {
   /*
@@ -5925,29 +5941,8 @@ function pauseGameAudioForBackground() {
    * 記住目前這一句的路徑。
    * 回到頁面並點擊繼續後，從頭重播一次。
    */
-  backgroundVoiceReplayPath = "";
-
-  if (
-    activeAudioInstance &&
-    !activeAudioInstance.paused &&
-    activeAudioInstance.src
-  ) {
-    const voiceSrc =
-      activeAudioInstance.currentSrc ||
-      activeAudioInstance.src ||
-      "";
-
-    try {
-      const voiceUrl =
-        new URL(voiceSrc, window.location.href);
-
-      backgroundVoiceReplayPath =
-        voiceUrl.pathname.replace(/^\/+/, "");
-    } catch (e) {
-      backgroundVoiceReplayPath =
-        voiceSrc.replace(/^\/+/, "");
-    }
-  }
+  backgroundVoiceReplayPath =
+    activeVoiceReplayPath || "";
 
   try {
     stopActiveAudio(
@@ -6570,6 +6565,26 @@ document.addEventListener(
       pauseGameAudioForBackground();
     } else if (backgroundPauseWasHidden) {
       backgroundPauseWasHidden = false;
+
+      /*
+       * 還停在最初 TAP TO START、尚未點擊開始時，
+       * 不顯示 PAUSED，避免兩個開始畫面疊在一起。
+       */
+      const startGate =
+        document.getElementById("start-gate");
+
+      const isUntouchedStartGate =
+        startGate &&
+        !startGate.classList.contains("is-loading") &&
+        !startGate.classList.contains("is-ready") &&
+        !startGate.classList.contains("is-closing");
+
+      if (isUntouchedStartGate) {
+        backgroundAudioRestorePending = false;
+        hideBackgroundPauseOverlay();
+        return;
+      }
+
       backgroundAudioRestorePending = true;
 
       /* 約 300ms 的視覺緩衝，只延遲 Overlay 顯示。 */
