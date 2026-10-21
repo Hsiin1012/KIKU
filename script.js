@@ -2562,10 +2562,69 @@ function fadeMainAudio(
 
 
   /*
+   * Morning Ambient：
+   * 與 Main BGM 一樣，HTMLAudio 固定 100%，
+   * fadeGain 只負責淡入淡出，Master Gain 負責 SE Slider × Ambient Factor。
+   */
+  if (
+    type === "ambient" &&
+    morningAmbientAudioNodes.has(audio)
+  ) {
+    const nodes =
+      morningAmbientAudioNodes.get(audio);
+
+    const fadeGain =
+      nodes && nodes.fadeGain;
+
+    if (fadeGain) {
+      audio.volume = 1;
+
+      const startGain =
+        Number.isFinite(fadeGain.gain.value)
+          ? fadeGain.gain.value
+          : 0;
+
+      const safeTarget =
+        targetVolume <= 0 ? 0 : 1;
+
+      if (duration <= 0) {
+        fadeGain.gain.value = safeTarget;
+        if (onComplete) onComplete();
+        return;
+      }
+
+      const startTime = performance.now();
+      const timer = setInterval(() => {
+        const progress = Math.min(
+          1,
+          (performance.now() - startTime) /
+            Math.max(1, duration)
+        );
+
+        fadeGain.gain.value =
+          startGain +
+          (safeTarget - startGain) * progress;
+
+        if (progress >= 1) {
+          clearInterval(timer);
+          fadeGain.gain.value = safeTarget;
+
+          if (morningAmbientFadeTimer === timer) {
+            morningAmbientFadeTimer = null;
+          }
+
+          if (onComplete) onComplete();
+        }
+      }, 40);
+
+      morningAmbientFadeTimer = timer;
+      return;
+    }
+  }
+
+  /*
    * 其他 Audio：
    * 保留原本 HTMLAudio.volume 的處理。
-   *
-   * Morning Ambient 等功能完全不改。
    */
   const startVolume =
     Number.isFinite(audio.volume)
@@ -3506,6 +3565,11 @@ function startMorningAmbient(
   ) {
     morningAmbientAudio.muted =
   gameSettings.seVolume <= 0;
+
+    ensureMorningAmbientWebAudio(
+      morningAmbientAudio
+    );
+
     const playPromise =
       morningAmbientAudio.play();
 
@@ -3567,6 +3631,13 @@ audio.src = cleanPath;
   audio.dataset.mainPath = cleanPath;
 
   morningAmbientAudio = audio;
+
+  /*
+   * 每次播放 Morning Ambient 前，確認它真的接上
+   * Ambient Web Audio GainNode。
+   * iPhone 上不能只依賴 HTMLAudio.volume。
+   */
+  ensureMorningAmbientWebAudio(audio);
 
   console.log(
     "[MORNING AMBIENT] load:",
@@ -5888,8 +5959,18 @@ if (morningAmbientAudio) {
   morningAmbientAudio.muted =
     gameSettings.seVolume <= 0;
 
-  morningAmbientAudio.volume =
-    getMorningAmbientVolume();
+  if (
+    morningAmbientAudioNodes.has(
+      morningAmbientAudio
+    )
+  ) {
+    morningAmbientAudio.volume = 1;
+    updateMorningAmbientGain();
+  } else {
+    /* fallback：Web Audio 尚未建立時保留原行為 */
+    morningAmbientAudio.volume =
+      getMorningAmbientVolume();
+  }
 }
 
 /*
