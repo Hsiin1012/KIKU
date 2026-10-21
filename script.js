@@ -5975,6 +5975,74 @@ function bgmDbgAttach(audio) {
   const startedAt = performance.now();
   const events = [];
 
+  let analyser = null;
+  let analyserBuffer = null;
+  let peakMax = 0;
+  let peakTimer = null;
+
+  try {
+    const nodes = mainBgmAudioNodes.get(audio);
+
+    if (
+      nodes &&
+      nodes.source &&
+      mainBgmAudioContext
+    ) {
+      analyser = mainBgmAudioContext.createAnalyser();
+      analyser.fftSize = 256;
+
+      const silentTap =
+        mainBgmAudioContext.createGain();
+
+      silentTap.gain.value = 0;
+
+      /*
+       * 診斷旁路：
+       *
+       * MediaElementSource
+       *   ├─ 原本的 BGM 路徑（完全不動）
+       *   └─ Analyser → Gain(0) → destination
+       *
+       * Gain(0) 保證這條診斷路徑本身不會發出聲音。
+       */
+      nodes.source.connect(analyser);
+      analyser.connect(silentTap);
+      silentTap.connect(
+        mainBgmAudioContext.destination
+      );
+
+      analyserBuffer =
+        new Uint8Array(analyser.fftSize);
+
+      peakTimer = setInterval(() => {
+        try {
+          analyser.getByteTimeDomainData(
+            analyserBuffer
+          );
+
+          for (
+            let i = 0;
+            i < analyserBuffer.length;
+            i++
+          ) {
+            const deviation = Math.abs(
+              analyserBuffer[i] - 128
+            );
+
+            if (deviation > peakMax) {
+              peakMax = deviation;
+            }
+          }
+        } catch (e) {}
+      }, 100);
+    }
+  } catch (e) {
+    console.log(
+      "[BGM RESTORE] DBG analyser setup failed",
+      e
+    );
+  }
+
   [
     "playing",
     "pause",
@@ -6023,11 +6091,15 @@ function bgmDbgAttach(audio) {
         " muted=" +
           audio.muted +
         " err=" +
-          (audio.error
-            ? audio.error.code
-            : "none") +
-        " | ev=" +
-          events.join(",")
+  (audio.error
+    ? audio.error.code
+    : "none") +
+" peak=" +
+  (analyser
+    ? peakMax
+    : "n/a") +
+" | ev=" +
+  events.join(",")
       );
     } catch (e) {}
   };
@@ -6037,8 +6109,12 @@ function bgmDbgAttach(audio) {
   }, 1000);
 
   setTimeout(() => {
-    snap("6s");
-  }, 6000);
+  snap("6s");
+
+  if (peakTimer) {
+    clearInterval(peakTimer);
+  }
+}, 6000);
 }
 
 function pauseGameAudioForBackground() {
