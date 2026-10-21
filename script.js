@@ -2720,11 +2720,11 @@ console.log(
    * 不等待 close()。
    * 避免 iOS Safari 的 close Promise 卡住恢復流程。
    */
-  /*if (oldContext) {
+  if (oldContext) {
     try {
       oldContext.close().catch(() => {});
     } catch (e) {}
-  }*/
+  }
   
   console.log(
   "[BGM RESTORE] 3. old context close requested",
@@ -6197,46 +6197,14 @@ if (bgmNodes) {
    * 必須在 foreground user gesture
    * 觸發的恢復流程中喚醒新的 Context。
    */
-  if (
-  mainBgmAudioContext &&
-  mainBgmAudioContext.state === "suspended"
-) {
-  console.log(
-    "[BGM RESTORE] 7. before context.resume()",
-    mainBgmAudioContext.state
-  );
-
-  try {
-  mainBgmAudioContext
-    .resume()
-    .then(() => {
-      console.log(
-        "[BGM RESTORE] 8. context.resume() resolved",
-        {
-          state:
-            mainBgmAudioContext?.state ?? "none"
-        }
-      );
-    })
-    .catch((e) => {
-      console.warn(
-        "[BGM RESTORE] 8. context.resume() FAILED",
-        e
-      );
-    });
-} catch (e) {
-  console.warn(
-    "[BGM RESTORE] 8. context.resume() THREW",
-    e
-  );
-}} else {
+  } else {
   /*
    * Web Audio 建立失敗時，
    * 保留 HTMLAudio fallback。
    */
   audio.volume =
     getMainBgmVolume();
-}}
+}
 
 mainBgmAudio = audio;
 mainBgmPath = savedBgm.path;
@@ -6280,7 +6248,55 @@ mainBgmPath = savedBgm.path;
   }
 );
 
-await audio.play();
+/*
+ * iOS foreground restore：
+ * 先啟動 HTMLAudio，
+ * 再於同一次 user gesture 中立刻 resume Web Audio。
+ */
+const bgmPlayPromise = audio.play();
+
+console.log(
+  "[BGM RESTORE] 7. audio.play() requested before context.resume()"
+);
+
+if (
+  mainBgmAudioContext &&
+  mainBgmAudioContext.state === "suspended"
+) {
+  console.log(
+    "[BGM RESTORE] 8. resume immediately after play()",
+    {
+      state: mainBgmAudioContext.state
+    }
+  );
+
+  try {
+    mainBgmAudioContext
+      .resume()
+      .then(() => {
+        console.log(
+          "[BGM RESTORE] 8A. context.resume() resolved",
+          {
+            state:
+              mainBgmAudioContext?.state ?? "none"
+          }
+        );
+      })
+      .catch((e) => {
+        console.warn(
+          "[BGM RESTORE] 8A. context.resume() FAILED",
+          e
+        );
+      });
+  } catch (e) {
+    console.warn(
+      "[BGM RESTORE] 8A. context.resume() THREW",
+      e
+    );
+  }
+}
+
+await bgmPlayPromise;
 
 console.log(
   "[BGM RESTORE] 10. audio.play() resolved",
