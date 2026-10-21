@@ -615,7 +615,12 @@ function startExtraEvent() {
 
   const hudConfigBtn = document.getElementById('hud-config-btn');
   const hudGameExitBtn = document.getElementById('btn-game-exit');
-  if (hudConfigBtn) hudConfigBtn.style.display = 'none';
+
+  /*
+   * Extra Event 中保留「設定」入口，方便即時調整 BGM / SE / Voice。
+   * 「返回標題」仍維持隱藏，避免這次測試同時改動退出流程。
+   */
+  if (hudConfigBtn) hudConfigBtn.style.display = 'block';
   if (hudGameExitBtn) hudGameExitBtn.style.display = 'none';
 
   renderExtraEventStep();
@@ -4468,8 +4473,12 @@ function showScreen(screenKey) {
   const hudGameExitBtn = document.getElementById('btn-game-exit');
 
   if (screenKey === 'gameplay') {
-    if (elements.vnHud && !extraEventState.active) elements.vnHud.classList.remove('hidden');
-    if (hudConfigBtn) hudConfigBtn.style.display = extraEventState.active ? 'none' : 'block';
+    /*
+     * Extra Event 也顯示 HUD/Menu，但只開放「設定」。
+     * 返回標題按鈕仍在 Extra Event 中隱藏。
+     */
+    if (elements.vnHud) elements.vnHud.classList.remove('hidden');
+    if (hudConfigBtn) hudConfigBtn.style.display = 'block';
     if (hudGameExitBtn) hudGameExitBtn.style.display = extraEventState.active ? 'none' : 'block';
     const chapterData = CHAPTER_DATA[gameState.currentChapter];
     if (chapterData && elements.hudChapterTitle) elements.hudChapterTitle.innerText = chapterData.title;
