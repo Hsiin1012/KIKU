@@ -1965,7 +1965,7 @@ let mainAudioUnlocked = false;
 const mainSePool = [];
 
 const MAIN_BGM_DUCK_FACTOR = 0.35;
-const MORNING_AMBIENT_FACTOR = 0.08;
+const MORNING_AMBIENT_FACTOR = 0.13;
 
 const MAIN_BGM_VOLUME_FACTOR = 0.5;
 const MAIN_SE_VOLUME_FACTOR = 0.35;
