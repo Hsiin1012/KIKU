@@ -5968,11 +5968,104 @@ if (elements.cfgVoiceSlider) {
 }
 }
 
+  /* TEMP DEBUG：Main BGM foreground restore 診斷
+ * 只監聽 HTMLAudio 狀態，不修改 Web Audio graph。
+ */
+function bgmDbgAttach(audio) {
+  const startedAt = performance.now();
+  const events = [];
+
+  [
+    "playing",
+    "pause",
+    "waiting",
+    "stalled",
+    "emptied",
+    "ended",
+    "error"
+  ].forEach((name) => {
+    audio.addEventListener(name, () => {
+      if (events.length < 14) {
+        events.push(
+          name + "@" +
+          Math.round(performance.now() - startedAt)
+        );
+      }
+    });
+  });
+
+  const snap = (label) => {
+    try {
+      console.log(
+        "[BGM RESTORE] DBG " + label +
+        " | ctx=" +
+          (mainBgmAudioContext
+            ? mainBgmAudioContext.state
+            : "none") +
+        " | current=" +
+          (mainBgmAudio === audio) +
+        " | hidden=" +
+          document.hidden +
+        " | paused=" +
+          audio.paused +
+        " ended=" +
+          audio.ended +
+        " rs=" +
+          audio.readyState +
+        " ns=" +
+          audio.networkState +
+        " t=" +
+          audio.currentTime.toFixed(2) +
+        " dur=" +
+          (Number.isFinite(audio.duration)
+            ? audio.duration.toFixed(2)
+            : "n/a") +
+        " muted=" +
+          audio.muted +
+        " err=" +
+          (audio.error
+            ? audio.error.code
+            : "none") +
+        " | ev=" +
+          events.join(",")
+      );
+    } catch (e) {}
+  };
+
+  setTimeout(() => {
+    snap("1s");
+  }, 1000);
+
+  setTimeout(() => {
+    snap("6s");
+  }, 6000);
+}
+
 function pauseGameAudioForBackground() {
   /*
    * Main BGM
    * 記錄播放資訊後，完全卸載 HTML Audio。
    */
+  console.log(
+    "[BGM RESTORE] DBG pauseForBackground" +
+    " | hasAudio=" +
+      !!mainBgmAudio +
+    " path=" +
+      (mainBgmPath ? "yes" : "none") +
+    " paused=" +
+      (mainBgmAudio
+        ? mainBgmAudio.paused
+        : "n/a") +
+    " savedBefore=" +
+      (backgroundAudioState.mainBgm
+        ? "yes"
+        : "none") +
+    " ctx=" +
+      (mainBgmAudioContext
+        ? mainBgmAudioContext.state
+        : "none")
+  );
+
   backgroundAudioState.mainBgm = null;
 
   if (mainBgmAudio && mainBgmPath) {
@@ -6253,6 +6346,7 @@ mainBgmPath = savedBgm.path;
  * 先啟動 HTMLAudio，
  * 再於同一次 user gesture 中立刻 resume Web Audio。
  */
+bgmDbgAttach(audio);
 const bgmPlayPromise = audio.play();
 
 console.log(
