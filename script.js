@@ -144,6 +144,12 @@ const extraEventState = {
   currentCgKey: null
 };
 
+/*
+ * Extra Event Collection Replay Mode
+ * 收藏頁重播與主線觸發流程分離。
+ */
+let extraEventReplayFromCollection = false;
+
 const EXTRA_AUDIO = {
   seTrigger: "assets/se/se_extra_trigger.ogg",
   seTitle: "assets/se/se_extra_title.ogg",
@@ -1140,6 +1146,20 @@ function finishExtraEvent() {
     elements.dialogueZh.style.display = "none";
   }
 
+  /*
+   * 收藏頁 Replay：
+   * 不顯示主線 Q4 feedback、不寫入主線存檔，
+   * 播完直接回 Extra Event Collection。
+   */
+  if (extraEventReplayFromCollection) {
+    extraEventReplayFromCollection = false;
+
+    renderExtraCollection();
+    showScreen("extraCollection");
+    startTitleBgm();
+    return;
+  }
+
   updateHUD();
   if (elements.feedbackModal) {
     elements.feedbackModal.classList.remove('hidden');
@@ -1893,6 +1913,40 @@ function openExtraCollection() {
   showScreen(
     "extraCollection"
   );
+}
+
+function startExtraEventFromCollection(eventKey) {
+  if (!isExtraEventUnlocked(eventKey)) {
+    return;
+  }
+
+  if (eventKey !== "yakisobaRally") {
+    console.warn(
+      "[EXTRA GALLERY] replay unavailable:",
+      eventKey
+    );
+    return;
+  }
+
+  /*
+   * 收藏重播不改動主線存檔。
+   * 每次都交給 startExtraEvent() 從 step 0 開始。
+   */
+  extraEventReplayFromCollection = true;
+
+  stopMainBgm(0);
+  stopExtraBgm(0);
+  stopAllTypewriters();
+  stopActiveAudio(
+    "startExtraEventFromCollection",
+    "extraCollection"
+  );
+  stopParallelVoices();
+  removeReplayAudioButton(
+    "startExtraEventFromCollection"
+  );
+
+  startExtraEvent();
 }
 
 /* ==========================================================================
@@ -5681,6 +5735,13 @@ bindClick(
 bindClick(
   'btn-extra-collection-back',
   () => showScreen('title')
+);
+
+bindClick(
+  'extra-card-yakisoba',
+  () => startExtraEventFromCollection(
+    'yakisobaRally'
+  )
 );
 
 bindClick(
