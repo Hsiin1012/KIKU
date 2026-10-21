@@ -5971,13 +5971,29 @@ if (elements.cfgVoiceSlider) {
   /* TEMP DEBUG：Main BGM foreground restore 診斷
  * 只監聽 HTMLAudio 狀態，不修改 Web Audio graph。
  */
+/* TEMP DEBUG：Main BGM foreground restore 雙測點診斷
+ *
+ * sourcePeak：
+ * MediaElementSource 是否有音訊資料
+ *
+ * outputPeak：
+ * 音訊經過 fadeGain + mainBgmGainNode 後，
+ * 到達 destination 前是否仍有音訊資料
+ *
+ * 兩條診斷旁路皆使用 Gain(0)，不產生額外聲音。
+ */
 function bgmDbgAttach(audio) {
   const startedAt = performance.now();
   const events = [];
 
-  let analyser = null;
-  let analyserBuffer = null;
-  let peakMax = 0;
+  let sourceAnalyser = null;
+  let sourceBuffer = null;
+  let sourcePeakMax = 0;
+
+  let outputAnalyser = null;
+  let outputBuffer = null;
+  let outputPeakMax = 0;
+
   let peakTimer = null;
 
   try {
@@ -5986,51 +6002,105 @@ function bgmDbgAttach(audio) {
     if (
       nodes &&
       nodes.source &&
-      mainBgmAudioContext
+      mainBgmAudioContext &&
+      mainBgmGainNode
     ) {
-      analyser = mainBgmAudioContext.createAnalyser();
-      analyser.fftSize = 256;
+      /*
+       * 測點 1：
+       * MediaElementSource 直接輸出的訊號
+       */
+      sourceAnalyser =
+        mainBgmAudioContext.createAnalyser();
 
-      const silentTap =
+      sourceAnalyser.fftSize = 256;
+
+      const sourceSilentTap =
         mainBgmAudioContext.createGain();
 
-      silentTap.gain.value = 0;
+      sourceSilentTap.gain.value = 0;
 
-      /*
-       * 診斷旁路：
-       *
-       * MediaElementSource
-       *   ├─ 原本的 BGM 路徑（完全不動）
-       *   └─ Analyser → Gain(0) → destination
-       *
-       * Gain(0) 保證這條診斷路徑本身不會發出聲音。
-       */
-      nodes.source.connect(analyser);
-      analyser.connect(silentTap);
-      silentTap.connect(
+      nodes.source.connect(sourceAnalyser);
+
+      sourceAnalyser.connect(
+        sourceSilentTap
+      );
+
+      sourceSilentTap.connect(
         mainBgmAudioContext.destination
       );
 
-      analyserBuffer =
-        new Uint8Array(analyser.fftSize);
+      sourceBuffer = new Uint8Array(
+        sourceAnalyser.fftSize
+      );
+
+      /*
+       * 測點 2：
+       * mainBgmGainNode 輸出的訊號。
+       *
+       * 這代表音訊已經走過：
+       * source → fadeGain → mainBgmGainNode
+       */
+      outputAnalyser =
+        mainBgmAudioContext.createAnalyser();
+
+      outputAnalyser.fftSize = 256;
+
+      const outputSilentTap =
+        mainBgmAudioContext.createGain();
+
+      outputSilentTap.gain.value = 0;
+
+      mainBgmGainNode.connect(
+        outputAnalyser
+      );
+
+      outputAnalyser.connect(
+        outputSilentTap
+      );
+
+      outputSilentTap.connect(
+        mainBgmAudioContext.destination
+      );
+
+      outputBuffer = new Uint8Array(
+        outputAnalyser.fftSize
+      );
 
       peakTimer = setInterval(() => {
         try {
-          analyser.getByteTimeDomainData(
-            analyserBuffer
+          sourceAnalyser.getByteTimeDomainData(
+            sourceBuffer
           );
 
           for (
             let i = 0;
-            i < analyserBuffer.length;
+            i < sourceBuffer.length;
             i++
           ) {
             const deviation = Math.abs(
-              analyserBuffer[i] - 128
+              sourceBuffer[i] - 128
             );
 
-            if (deviation > peakMax) {
-              peakMax = deviation;
+            if (deviation > sourcePeakMax) {
+              sourcePeakMax = deviation;
+            }
+          }
+
+          outputAnalyser.getByteTimeDomainData(
+            outputBuffer
+          );
+
+          for (
+            let i = 0;
+            i < outputBuffer.length;
+            i++
+          ) {
+            const deviation = Math.abs(
+              outputBuffer[i] - 128
+            );
+
+            if (deviation > outputPeakMax) {
+              outputPeakMax = deviation;
             }
           }
         } catch (e) {}
@@ -6055,8 +6125,11 @@ function bgmDbgAttach(audio) {
     audio.addEventListener(name, () => {
       if (events.length < 14) {
         events.push(
-          name + "@" +
-          Math.round(performance.now() - startedAt)
+          name +
+          "@" +
+          Math.round(
+            performance.now() - startedAt
+          )
         );
       }
     });
@@ -6065,7 +6138,8 @@ function bgmDbgAttach(audio) {
   const snap = (label) => {
     try {
       console.log(
-        "[BGM RESTORE] DBG " + label +
+        "[BGM RESTORE] DBG " +
+        label +
         " | ctx=" +
           (mainBgmAudioContext
             ? mainBgmAudioContext.state
@@ -6091,15 +6165,35 @@ function bgmDbgAttach(audio) {
         " muted=" +
           audio.muted +
         " err=" +
-  (audio.error
-    ? audio.error.code
-    : "none") +
-" peak=" +
-  (analyser
-    ? peakMax
-    : "n/a") +
-" | ev=" +
-  events.join(",")
+          (audio.error
+            ? audio.error.code
+            : "none") +
+        " sourcePeak=" +
+          (sourceAnalyser
+            ? sourcePeakMax
+            : "n/a") +
+        " outputPeak=" +
+          (outputAnalyser
+            ? outputPeakMax
+            : "n/a") +
+        " master=" +
+          (mainBgmGainNode
+            ? mainBgmGainNode.gain.value
+            : "n/a") +
+        " fade=" +
+          (() => {
+            const nodes =
+              mainBgmAudioNodes.get(audio);
+
+            return (
+              nodes &&
+              nodes.fadeGain
+            )
+              ? nodes.fadeGain.gain.value
+              : "n/a";
+          })() +
+        " | ev=" +
+          events.join(",")
       );
     } catch (e) {}
   };
@@ -6109,12 +6203,12 @@ function bgmDbgAttach(audio) {
   }, 1000);
 
   setTimeout(() => {
-  snap("6s");
+    snap("6s");
 
-  if (peakTimer) {
-    clearInterval(peakTimer);
-  }
-}, 6000);
+    if (peakTimer) {
+      clearInterval(peakTimer);
+    }
+  }, 6000);
 }
 
 function pauseGameAudioForBackground() {
