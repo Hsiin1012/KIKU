@@ -1289,8 +1289,19 @@ function preloadExtraEventInBackground() {
 async function preloadInitialGameResources(
   onProgress = null
 ) {
+  /*
+   * iPhone diagnostic / stability test:
+   * Initial Loading only preloads images.
+   *
+   * Do not create additional HTMLAudio preload instances while the
+   * title BGM is establishing its first playback session. Audio assets
+   * will continue to load normally when they are actually needed, and
+   * the existing staged background preload remains unchanged.
+   */
   const resources =
-    getInitialGameResources();
+    getInitialGameResources().filter(
+      resource => resource.type === "image"
+    );
 
   await preloadResourceBatch(
     resources,
