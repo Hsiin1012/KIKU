@@ -2584,6 +2584,15 @@ function fadeDetachedMainAudioOut(
 }
 
 function resetMainBgmContextForForeground() {
+console.log(
+  "[BGM RESTORE] 1. reset start",
+  {
+    oldContextExists: !!mainBgmAudioContext,
+    oldContextState:
+      mainBgmAudioContext?.state ?? "none"
+  }
+);
+
   /*
    * iOS Safari foreground restore 專用。
    *
@@ -2607,6 +2616,9 @@ function resetMainBgmContextForForeground() {
   mainBgmAudioContext = null;
   mainBgmGainNode = null;
   mainBgmAudioNodes = new WeakMap();
+  console.log(
+  "[BGM RESTORE] 2. old graph detached"
+);
 
   /*
    * 不等待 close()。
@@ -2617,6 +2629,14 @@ function resetMainBgmContextForForeground() {
       oldContext.close().catch(() => {});
     } catch (e) {}
   }
+  
+  console.log(
+  "[BGM RESTORE] 3. old context close requested",
+  {
+    oldContextState:
+      oldContext?.state ?? "none"
+  }
+);
 
   /*
    * 不在這裡直接建立新的 Context。
@@ -6019,6 +6039,11 @@ async function resumeGameAudioFromBackground() {
   const savedBgm =
     backgroundAudioState.mainBgm;
 
+    console.log(
+  "[BGM RESTORE] 4. saved BGM",
+  savedBgm
+);
+
   backgroundAudioState.mainBgm = null;
 
   if (
@@ -6028,6 +6053,9 @@ async function resumeGameAudioFromBackground() {
   ) {
     try {
       const audio = new Audio();
+      console.log(
+  "[BGM RESTORE] 5. new Audio created"
+);
 
 audio.preload = "auto";
 audio.loop = true;
@@ -6042,6 +6070,17 @@ audio.muted =
  */
 const bgmNodes =
   ensureMainBgmWebAudio(audio);
+
+console.log(
+  "[BGM RESTORE] 6. Web Audio graph result",
+  {
+    nodesCreated: !!bgmNodes,
+    contextExists: !!mainBgmAudioContext,
+    contextState:
+      mainBgmAudioContext?.state ?? "none",
+    gainExists: !!mainBgmGainNode
+  }
+);
 
 if (bgmNodes) {
   /*
@@ -6063,18 +6102,38 @@ if (bgmNodes) {
    * 觸發的恢復流程中喚醒新的 Context。
    */
   if (
-    mainBgmAudioContext &&
-    mainBgmAudioContext.state === "suspended"
-  ) {
-    try {
-      await mainBgmAudioContext.resume();
-    } catch (e) {
-      console.warn(
-        "[BACKGROUND] Main BGM AudioContext resume failed:",
-        e
-      );
-    }
+  mainBgmAudioContext &&
+  mainBgmAudioContext.state === "suspended"
+) {
+  console.log(
+    "[BGM RESTORE] 7. before context.resume()",
+    mainBgmAudioContext.state
+  );
+
+  try {
+    await mainBgmAudioContext.resume();
+
+    console.log(
+      "[BGM RESTORE] 8. context.resume() resolved",
+      {
+        state: mainBgmAudioContext.state
+      }
+    );
+  } catch (e) {
+    console.warn(
+      "[BGM RESTORE] 8. context.resume() FAILED",
+      e
+    );
   }
+} else {
+  console.log(
+    "[BGM RESTORE] 7-8. resume not needed",
+    {
+      state:
+        mainBgmAudioContext?.state ?? "none"
+    }
+  );
+}
 } else {
   /*
    * Web Audio 建立失敗時，
@@ -6109,7 +6168,61 @@ mainBgmPath = savedBgm.path;
         );
       }
 
-      await audio.play();
+      console.log(
+  "[BGM RESTORE] 9. before audio.play()",
+  {
+    paused: audio.paused,
+    readyState: audio.readyState,
+    currentTime: audio.currentTime,
+    muted: audio.muted,
+    volume: audio.volume,
+    contextState:
+      mainBgmAudioContext?.state ?? "none",
+    masterGain:
+      mainBgmGainNode?.gain?.value ?? null,
+    fadeGain:
+      bgmNodes?.fadeGain?.gain?.value ?? null
+  }
+);
+
+await audio.play();
+
+console.log(
+  "[BGM RESTORE] 10. audio.play() resolved",
+  {
+    paused: audio.paused,
+    readyState: audio.readyState,
+    currentTime: audio.currentTime,
+    muted: audio.muted,
+    volume: audio.volume,
+    contextState:
+      mainBgmAudioContext?.state ?? "none",
+    masterGain:
+      mainBgmGainNode?.gain?.value ?? null,
+    fadeGain:
+      bgmNodes?.fadeGain?.gain?.value ?? null
+  }
+);
+
+setTimeout(() => {
+  console.log(
+    "[BGM RESTORE] 11. one second later",
+    {
+      paused: audio.paused,
+      ended: audio.ended,
+      readyState: audio.readyState,
+      currentTime: audio.currentTime,
+      muted: audio.muted,
+      volume: audio.volume,
+      contextState:
+        mainBgmAudioContext?.state ?? "none",
+      masterGain:
+        mainBgmGainNode?.gain?.value ?? null,
+      fadeGain:
+        bgmNodes?.fadeGain?.gain?.value ?? null
+    }
+  );
+}, 1000);
 
     } catch (err) {
       console.warn(
