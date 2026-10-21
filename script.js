@@ -5508,6 +5508,9 @@ if (mainBgmAudio) {
  * Morning Ambient
  */
 if (morningAmbientAudio) {
+  morningAmbientAudio.muted =
+    gameSettings.seVolume <= 0;
+
   morningAmbientAudio.volume =
     getMorningAmbientVolume();
 }
@@ -5520,12 +5523,15 @@ if (
   Array.isArray(mainSePool)
 ) {
   mainSePool.forEach((audio) => {
-    if (!audio) return;
+  if (!audio) return;
 
-    audio.volume =
-      volume *
-      MAIN_SE_VOLUME_FACTOR;
-  });
+  audio.muted =
+    gameSettings.seVolume <= 0;
+
+  audio.volume =
+    volume *
+    MAIN_SE_VOLUME_FACTOR;
+});
 }
 
     /*
@@ -5536,10 +5542,13 @@ if (
       extraSePool
     ) {
       extraSePool.forEach((audio) => {
-        if (!audio) return;
+  if (!audio) return;
 
-        audio.volume = volume;
-      });
+  audio.muted =
+    gameSettings.seVolume <= 0;
+
+  audio.volume = volume;
+});
     }
 
     saveGameData();
@@ -5561,15 +5570,18 @@ if (elements.cfgVoiceSlider) {
      * 也立即套用新音量。
      */
     if (activeAudioInstance) {
-      activeAudioInstance.volume =
-        Math.max(
-          0,
-          Math.min(
-            1,
-            (gameSettings.voiceVolume ?? 0) / 100
-          )
-        );
-    }
+  activeAudioInstance.muted =
+    gameSettings.voiceVolume <= 0;
+
+  activeAudioInstance.volume =
+    Math.max(
+      0,
+      Math.min(
+        1,
+        (gameSettings.voiceVolume ?? 0) / 100
+      )
+    );
+}
 
     saveGameData();
   };
