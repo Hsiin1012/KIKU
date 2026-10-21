@@ -2848,15 +2848,6 @@ function unlockMainStoryAudio() {
 /* ---------- BGM ---------- */
 
 function playMainBgm(path, fadeMs = 700) {
-  console.trace(
-  "[DEBUG BGM] playMainBgm called",
-  {
-    path,
-    fadeMs,
-    currentAudio: mainBgmAudio,
-    currentPath: mainBgmPath
-  }
-);
   if (
     typeof extraEventState !== "undefined" &&
     extraEventState.active
@@ -3798,9 +3789,18 @@ function armTitleBgm() {
     return;
   }
 
-  // 已經通過 Start Gate，例如遊戲內返回 Title。
-  startTitleBgm();
+  // 首頁 BGM 已經正在播放時，不要重新啟動。
+if (
+  mainBgmAudio &&
+  mainBgmPath === MAIN_AUDIO.bgmNewIdea &&
+  !mainBgmAudio.paused
+) {
+  return;
 }
+
+startTitleBgm();
+}
+
 function initStartGate() {
   const startGate =
     document.getElementById("start-gate");
@@ -5453,6 +5453,11 @@ document.addEventListener('click', (event) => {
  * 統一交給 Web Audio GainNode。
  */
 if (mainBgmAudio) {
+  // iPhone / iOS 測試：
+  // 0% 使用 muted，> 0% 解除 muted。
+  mainBgmAudio.muted =
+    gameSettings.bgmVolume <= 0;
+
   mainBgmAudio.volume =
     getMainBgmVolume();
 }
