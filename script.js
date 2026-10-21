@@ -4388,7 +4388,7 @@ function startTitleBgm() {
   }
 
   playMainBgm(
-    MAIN_AUDIO.bgmNewIdea,
+    MAIN_AUDIO.bgmSchoolDay,
     700
   );
 }
@@ -4415,7 +4415,7 @@ function armTitleBgm() {
   // 首頁 BGM 已經正在播放時，不要重新啟動。
 if (
   mainBgmAudio &&
-  mainBgmPath === MAIN_AUDIO.bgmNewIdea &&
+  mainBgmPath === MAIN_AUDIO.bgmSchoolDay &&
   !mainBgmAudio.paused
 ) {
   return;
@@ -4485,7 +4485,7 @@ function initStartGate() {
     */
     if ((gameSettings.bgmVolume ?? 0) > 0) {
       playMainBgm(
-        MAIN_AUDIO.bgmNewIdea,
+        MAIN_AUDIO.bgmSchoolDay,
         0
       );
     }
@@ -4601,8 +4601,8 @@ function showScreen(screenKey) {
   if (screenKey === "title") {
   const titlePath =
     normalizeMainAudioPath(
-      MAIN_AUDIO.bgmNewIdea
-    );
+      MAIN_AUDIO.bgmSchoolDay
+  );
 
   const isTitleBgmAlreadyPlaying =
     mainBgmAudio &&
