@@ -2720,11 +2720,11 @@ console.log(
    * 不等待 close()。
    * 避免 iOS Safari 的 close Promise 卡住恢復流程。
    */
-  if (oldContext) {
+  /*if (oldContext) {
     try {
       oldContext.close().catch(() => {});
     } catch (e) {}
-  }
+  }*/
   
   console.log(
   "[BGM RESTORE] 3. old context close requested",
