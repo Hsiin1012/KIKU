@@ -3410,6 +3410,18 @@ audio.muted =
 
 audio.volume = 1;
 
+/*
+ * 每次播放 Main SE 前，確認這個 channel 已接上
+ * Main SE GainNode。
+ *
+ * 這一步很重要：unlockMainStoryAudio() 可能先建立
+ * HTMLAudio channel，之後 BGM 才建立 AudioContext。
+ * 若沒有在播放前補接，Slider 的 1～100% 只會改到
+ * GainNode，實際鐘聲仍可能繞過 GainNode；只有 0% 的
+ * HTMLAudio muted 會有反應。
+ */
+ensureMainSeWebAudio(audio);
+
     let finished = false;
     const finishOnce = () => {
       if (finished) return;
