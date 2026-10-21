@@ -248,9 +248,13 @@ function playExtraBgm(path, fadeMs = 700) {
   try {
     const audio = new Audio(cleanPath);
 
-    audio.preload = "auto";
-    audio.loop = true;
-    audio.volume = 0;
+audio.preload = "auto";
+audio.loop = true;
+
+audio.muted =
+  gameSettings.bgmVolume <= 0;
+
+audio.volume = 0;
 
     extraBgmAudio = audio;
 
@@ -2869,6 +2873,8 @@ function playMainBgm(path, fadeMs = 700) {
     mainBgmAudio &&
     mainBgmPath === cleanPath
   ) {
+    mainBgmAudio.muted =
+      gameSettings.bgmVolume <= 0;
     const playPromise =
       mainBgmAudio.play();
 
@@ -2937,6 +2943,10 @@ const audio =
 audio.preload = "auto";
 audio.loop = true;
 audio.src = cleanPath;
+
+audio.muted =
+  gameSettings.bgmVolume <= 0;
+
 audio.volume = 0;
 
 mainBgmAudio = audio;
@@ -3098,10 +3108,14 @@ function playMainSe(path, onEnded = null) {
     audio.currentTime = 0;
 
     audio.src = cleanPath;
-    audio.loop = false;
-    audio.volume =
-    getMainSeVolume() *
-    MAIN_SE_VOLUME_FACTOR;
+audio.loop = false;
+
+audio.muted =
+  gameSettings.seVolume <= 0;
+
+audio.volume =
+  getMainSeVolume() *
+  MAIN_SE_VOLUME_FACTOR;
 
     let finished = false;
     const finishOnce = () => {
@@ -3185,6 +3199,8 @@ function startMorningAmbient(
     morningAmbientAudio.dataset.mainPath ===
       cleanPath
   ) {
+    morningAmbientAudio.muted =
+  gameSettings.seVolume <= 0;
     const playPromise =
       morningAmbientAudio.play();
 
@@ -3234,10 +3250,14 @@ function startMorningAmbient(
 
   const audio = new Audio();
 
-  audio.preload = "auto";
-  audio.loop = true;
-  audio.volume = 0;
-  audio.src = cleanPath;
+audio.preload = "auto";
+audio.loop = true;
+
+audio.muted =
+  gameSettings.seVolume <= 0;
+
+audio.volume = 0;
+audio.src = cleanPath;
 
   audio.dataset.mainPath = cleanPath;
 
