@@ -1870,6 +1870,47 @@ function resumeVoiceAudioContext() {
 }
 
 /*
+ * Title Screen -> Continue 專用 Voice Web Audio 重建。
+ * iOS / WebKit 在重新進入存檔流程時，舊的 Voice AudioContext
+ * 偶爾仍存在但 MediaElementSource 輸出會保持無聲。
+ * 只在「繼續遊戲」這次使用者點擊中重建 Voice graph，
+ * 不影響正常遊戲、PAUSED foreground replay、BGM / SE / Ambient。
+ */
+function resetVoiceAudioContextForContinue() {
+  if (activeAudioInstance) {
+    try {
+      activeAudioInstance.pause();
+      activeAudioInstance.currentTime = 0;
+      activeAudioInstance.onended = null;
+      activeAudioInstance.onerror = null;
+    } catch (e) {}
+    activeAudioInstance = null;
+  }
+
+  if (voiceGainNode) {
+    try {
+      voiceGainNode.disconnect();
+    } catch (e) {}
+  }
+
+  if (voiceAudioContext) {
+    try {
+      voiceAudioContext.close().catch(() => {});
+    } catch (e) {}
+  }
+
+  voiceAudioContext = null;
+  voiceGainNode = null;
+  voiceAudioNodes = new WeakMap();
+
+  /*
+   * 立刻在 Continue click 的 user gesture call stack 中
+   * 建立並喚醒新的 Voice Context。
+   */
+  resumeVoiceAudioContext();
+}
+
+/*
  * Page Background Audio Pause / Resume
  */
 const backgroundAudioState = {
@@ -5197,6 +5238,12 @@ function startNewGame() {
 
 function continueGame() {
   unlockAudioContextIOS();
+
+  /*
+   * iPhone / iPad：從標題畫面讀取存檔時，
+   * 用這次 Continue 點擊重新建立 Voice Web Audio graph。
+   */
+  resetVoiceAudioContextForContinue();
 
   const loaded = loadGameData();
 
