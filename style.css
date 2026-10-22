@@ -129,7 +129,7 @@ html, body {
   justify-content: flex-start;
   align-items: flex-start;
   text-align: left;
-  padding: clamp(230px, 34vh, 320px) clamp(30px, 6vw, 70px);
+  padding: clamp(255px, 37vh, 350px) clamp(30px, 6vw, 70px);
   overflow: hidden;
 }
 
@@ -556,7 +556,7 @@ html, body {
   display: none;
   justify-content: flex-start;
   align-items: flex-start;
-  padding: clamp(230px, 34vh, 320px) clamp(30px, 6vw, 70px);
+  padding: clamp(255px, 37vh, 350px) clamp(30px, 6vw, 70px);
   overflow: hidden;
 }
 
@@ -1530,7 +1530,7 @@ html, body {
   }
 
   #screen-title {
-  padding: 180px clamp(30px, 6vw, 70px);
+  padding: 210px clamp(30px, 6vw, 70px);
   }
 
   /* Tablet Portrait 專屬：隱藏 Title Menu 按鈕中的英文副標籤 */
@@ -1576,8 +1576,8 @@ html, body {
   }
 
     #screen-title {
-    padding: 180px clamp(30px, 6vw, 70px);
-  }
+  padding: 210px clamp(30px, 6vw, 70px);
+}
 
   /* Tablet Landscape 專屬：隱藏 Title Menu 按鈕中的英文副標籤 */
   #screen-title .title-menu-buttons .vn-btn .btn-en {
