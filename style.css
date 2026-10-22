@@ -129,7 +129,7 @@ html, body {
   justify-content: flex-start;
   align-items: flex-start;
   text-align: left;
-  padding: clamp(310px, 45vh, 420px) clamp(30px, 6vw, 70px);
+  padding: clamp(230px, 34vh, 320px) clamp(30px, 6vw, 70px);
   overflow: hidden;
 }
 
@@ -556,7 +556,7 @@ html, body {
   display: none;
   justify-content: flex-start;
   align-items: flex-start;
-  padding: clamp(310px, 45vh, 420px) clamp(30px, 6vw, 70px);
+  padding: clamp(230px, 34vh, 320px) clamp(30px, 6vw, 70px);
   overflow: hidden;
 }
 
@@ -1530,7 +1530,7 @@ html, body {
   }
 
   #screen-title {
-    padding: 260px clamp(30px, 6vw, 70px);
+  padding: 180px clamp(30px, 6vw, 70px);
   }
 
   /* Tablet Portrait 專屬：隱藏 Title Menu 按鈕中的英文副標籤 */
@@ -1573,6 +1573,10 @@ html, body {
 @media screen and (min-width: 769px) and (max-width: 1024px) and (orientation: landscape) {
   .title-bg-layer {
     background: url('assets/title/title_cover_pc.webp') center/cover no-repeat;
+  }
+
+    #screen-title {
+    padding: 180px clamp(30px, 6vw, 70px);
   }
 
   /* Tablet Landscape 專屬：隱藏 Title Menu 按鈕中的英文副標籤 */
