@@ -1692,6 +1692,245 @@ const QUIZZES = {
 };
 
 /* =========================================================
+   STORY ARCHIVE COLLECTION
+   與主線存檔分離：已完成的 Section 永久解鎖。
+   ========================================================= */
+
+const STORY_ARCHIVE_STORAGE_KEY =
+  "furyo_vn_story_archive";
+
+const storyArchiveState = {
+  chapter1: {
+    unlockedSections: [false, false, false, false, false]
+  }
+};
+
+function loadStoryArchiveData() {
+  const raw = localStorage.getItem(STORY_ARCHIVE_STORAGE_KEY);
+  if (!raw) return;
+
+  try {
+    const data = JSON.parse(raw);
+    const saved = data?.chapter1?.unlockedSections;
+
+    if (Array.isArray(saved)) {
+      storyArchiveState.chapter1.unlockedSections =
+        storyArchiveState.chapter1.unlockedSections.map(
+          (_, index) => saved[index] === true
+        );
+    }
+  } catch (err) {
+    console.warn("[STORY ARCHIVE] load failed:", err);
+  }
+}
+
+function saveStoryArchiveData() {
+  try {
+    localStorage.setItem(
+      STORY_ARCHIVE_STORAGE_KEY,
+      JSON.stringify(storyArchiveState)
+    );
+  } catch (err) {
+    console.warn("[STORY ARCHIVE] save failed:", err);
+  }
+}
+
+function unlockStorySection(chapterNumber, sectionNumber) {
+  if (chapterNumber !== 1) return;
+
+  const index = Number(sectionNumber) - 1;
+  const list = storyArchiveState.chapter1.unlockedSections;
+
+  if (index < 0 || index >= list.length || list[index] === true) {
+    return;
+  }
+
+  list[index] = true;
+  saveStoryArchiveData();
+
+  console.log(
+    "[STORY ARCHIVE] unlocked:",
+    `chapter ${chapterNumber} / section ${sectionNumber}`
+  );
+}
+
+function migrateStoryArchiveFromMainSave() {
+  try {
+    const raw = localStorage.getItem("furyo_vn_save");
+    if (!raw) return;
+
+    const data = JSON.parse(raw);
+    if (!data || Number(data.currentChapter || 1) !== 1) return;
+
+    const completed = Array.isArray(data.completedSections)
+      ? data.completedSections
+      : [];
+
+    completed.forEach(sectionNumber => {
+      unlockStorySection(1, Number(sectionNumber));
+    });
+
+    if (data.isCleared === true) {
+      for (let section = 1; section <= 5; section++) {
+        unlockStorySection(1, section);
+      }
+    }
+  } catch (err) {
+    console.warn("[STORY ARCHIVE] migration failed:", err);
+  }
+}
+
+function isStorySectionUnlocked(chapterNumber, sectionNumber) {
+  if (chapterNumber !== 1) return false;
+
+  const index = Number(sectionNumber) - 1;
+  return storyArchiveState.chapter1.unlockedSections[index] === true;
+}
+
+function renderStoryChapter1Collection() {
+  migrateStoryArchiveFromMainSave();
+
+  const cards = document.querySelectorAll(
+    "#screen-story-chapter1 .story-timeline-card[data-story-section]"
+  );
+
+  let unlockedCount = 0;
+
+  cards.forEach(card => {
+    const sectionNumber = Number(card.dataset.storySection);
+    const unlocked = isStorySectionUnlocked(1, sectionNumber);
+    const image = card.querySelector(".story-timeline-image");
+    const lockLabel = card.querySelector(".story-timeline-lock-label");
+    const thumb = card.querySelector(".story-timeline-thumb");
+    const status = card.querySelector(".story-section-status");
+
+    if (unlocked) {
+      unlockedCount++;
+      card.disabled = false;
+      card.setAttribute("aria-disabled", "false");
+      card.classList.remove("is-locked");
+      card.classList.add("is-unlocked");
+
+      if (image) {
+        const src = image.dataset.src;
+        if (src && !image.getAttribute("src")) {
+          image.src = src;
+        }
+        image.classList.remove("hidden");
+      }
+
+      if (lockLabel) lockLabel.classList.add("hidden");
+      if (thumb) thumb.classList.remove("is-placeholder");
+      if (status) status.textContent = "REPLAY";
+    } else {
+      card.disabled = true;
+      card.setAttribute("aria-disabled", "true");
+      card.classList.add("is-locked");
+      card.classList.remove("is-unlocked");
+
+      if (image) {
+        image.removeAttribute("src");
+        image.classList.add("hidden");
+      }
+
+      if (lockLabel) lockLabel.classList.remove("hidden");
+      if (thumb) thumb.classList.add("is-placeholder");
+      if (status) status.textContent = "LOCKED";
+    }
+  });
+
+  const chapterStatus = document.querySelector(
+    "#btn-story-chapter1 .story-chapter-status"
+  );
+
+  if (chapterStatus) {
+    chapterStatus.textContent = `${unlockedCount} / 5 SECTIONS`;
+  }
+}
+
+/* =========================================================
+   STORY COLLECTION REPLAY MODE
+   只播放該 Listening Section 的劇情，不寫入主線存檔。
+   ========================================================= */
+
+let storyCollectionReplayMode = false;
+let storyCollectionReplaySection = null;
+let storyCollectionPreviousListeningState = null;
+
+function playStoryCollectionSectionBgm(sectionNumber) {
+  stopMorningAmbient(0);
+
+  if (sectionNumber === 1) {
+    startMorningAmbient();
+    playMainBgm(MAIN_AUDIO.bgmDaily, 500);
+  } else if (sectionNumber >= 2 && sectionNumber <= 4) {
+    playMainBgm(MAIN_AUDIO.bgmSchoolDay, 500);
+  } else if (sectionNumber === 5) {
+    playMainBgm(MAIN_AUDIO.bgmNewIdea, 500);
+  }
+}
+
+function startStorySectionFromCollection(sectionNumber) {
+  const section = Number(sectionNumber);
+
+  if (!isStorySectionUnlocked(1, section)) return;
+
+  const chapterData = CHAPTER_DATA[1];
+  const queue = chapterData.steps.filter(
+    step =>
+      step.listeningSection === section &&
+      step.type === "dialogue"
+  );
+
+  if (queue.length === 0) return;
+
+  unlockAudioContextIOS();
+  stopAllTypewriters();
+  stopActiveAudio("startStorySectionFromCollection", `section-${section}`);
+  removeReplayAudioButton("startStorySectionFromCollection");
+
+  storyCollectionReplayMode = true;
+  storyCollectionReplaySection = section;
+  storyCollectionPreviousListeningState = gameState.listeningState;
+
+  sectionReplayQueue = queue;
+  sectionReplayIndex = 0;
+  sectionReplayQuizIdToReturn = null;
+  sectionReplayFrozenSection = section;
+  isWrongReviewMode = false;
+
+  gameState.listeningState = "QUESTION_REPLAY";
+
+  playStoryCollectionSectionBgm(section);
+  renderReplayStepManual(0);
+}
+
+function finishStoryCollectionReplay() {
+  removeReplayAudioButton("finishStoryCollectionReplay");
+  stopAllTypewriters();
+  stopActiveAudio("finishStoryCollectionReplay", "storyCollection");
+  stopMorningAmbient(400);
+  stopMainBgm(400);
+
+  gameState.listeningState =
+    storyCollectionPreviousListeningState || "BLIND_LISTENING";
+
+  storyCollectionReplayMode = false;
+  storyCollectionReplaySection = null;
+  storyCollectionPreviousListeningState = null;
+  sectionReplayQueue = [];
+  sectionReplayIndex = 0;
+  sectionReplayQuizIdToReturn = null;
+
+  showScreen("storyChapter1");
+  renderStoryChapter1Collection();
+
+  window.setTimeout(() => {
+    playMainBgm(MAIN_AUDIO.bgmSchoolDay, 500);
+  }, 250);
+}
+
+/* =========================================================
    EXTRA EVENT GALLERY COLLECTION
    與主線存檔分離
    ========================================================= */
@@ -4911,6 +5150,9 @@ function handleAnswer(selectedOpt, quizData, optionIndex) {
     gameState.completedSections.push(currentSec);
   }
 
+  // Story Collection：完成該聽力 Section 後永久解鎖回顧。
+  unlockStorySection(gameState.currentChapter, currentSec);
+
   const alreadyScored = gameState.scoredSections.includes(currentSec);
 
   if (elements.playerChoiceBox) elements.playerChoiceBox.classList.remove('hidden');
@@ -5156,6 +5398,12 @@ function renderReplayStepManual(index) {
 
   if (index >= sectionReplayQueue.length) {
     removeReplayAudioButton("replayQueueFinished");
+
+    if (storyCollectionReplayMode) {
+      finishStoryCollectionReplay();
+      return;
+    }
+
     gameState.listeningState = "BLIND_LISTENING";
     if (isWrongReviewMode) {
       isWrongReviewMode = false;
@@ -5758,13 +6006,26 @@ bindClick(
 
 bindClick(
   'btn-story-chapter1',
-  () => showScreen('storyChapter1')
+  () => {
+    renderStoryChapter1Collection();
+    showScreen('storyChapter1');
+  }
 );
 
 bindClick(
   'btn-story-chapter1-back',
   () => showScreen('storyCollection')
 );
+
+  document.querySelectorAll(
+    "#screen-story-chapter1 .story-timeline-card[data-story-section]"
+  ).forEach(card => {
+    card.onclick = (e) => {
+      e.stopPropagation();
+      unlockAudioContextIOS();
+      startStorySectionFromCollection(card.dataset.storySection);
+    };
+  });
 
 bindClick(
   'btn-open-extra-collection',
@@ -7152,6 +7413,10 @@ document.addEventListener(
 
 document.addEventListener("DOMContentLoaded", () => {
   initEventListeners();
+  loadStoryArchiveData();
+  migrateStoryArchiveFromMainSave();
+  renderStoryChapter1Collection();
+
   loadExtraGalleryData();
   loadGameData();
   updateTitleScreenButtons();

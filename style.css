@@ -3683,3 +3683,67 @@ button.extra-collection-card:not(.is-locked):hover {
     padding: 17px 18px 19px;
   }
 }
+
+/* ==========================================================================
+   STORY COLLECTION - REAL THUMBNAILS + REPLAY STATES
+   ========================================================================== */
+
+.story-timeline-thumb {
+  position: relative;
+}
+
+.story-timeline-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  object-position: center;
+}
+
+.story-timeline-lock-label {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: rgba(82, 105, 124, 0.58);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+}
+
+.story-timeline-card.is-unlocked {
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.story-timeline-card.is-unlocked:hover {
+  transform: translateY(-3px);
+  border-color: rgba(111, 143, 168, 0.66);
+  box-shadow: 0 15px 34px rgba(38, 55, 70, 0.14);
+}
+
+.story-timeline-card.is-unlocked .story-section-status {
+  color: #526f86;
+}
+
+.story-timeline-card.is-locked {
+  cursor: default;
+}
+
+.story-timeline-card.is-locked .story-timeline-copy {
+  opacity: 0.68;
+}
+
+.story-timeline-card.is-locked .story-timeline-thumb {
+  background:
+    linear-gradient(
+      135deg,
+      rgba(221,226,226,0.82),
+      rgba(239,235,227,0.94)
+    );
+}
+
