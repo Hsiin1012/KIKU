@@ -1276,8 +1276,8 @@ const CHAPTER_DATA = {
       { id: "ch2_s01_001_ren", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "ren", expression: "smile", position: "left", jp: "俺からでいいぞ。会場は押さえた。", zh: "我先說吧。場地已經搞定了。", audio: "/assets/voice/chapter2/voice_ch2_s01_001_ren.m4a", listeningSection: 1 },
       { id: "ch2_s01_002_ren", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "ren", expression: "normal", position: "left", jp: "多目的室。さっき見てきた。", zh: "多功能教室。我剛才去看過了。", audio: "/assets/voice/chapter2/voice_ch2_s01_002_ren.m4a", listeningSection: 1 },
       { id: "ch2_s01_003_toru", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "toru", expression: "surprised", position: "right", jp: "ちょっと待て。", zh: "等一下。", audio: "/assets/voice/chapter2/voice_ch2_s01_003_toru.m4a", listeningSection: 1 },
-      { id: "ch2_s01_005_toru", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "toru", expression: "serious", position: "right", jp: "『押さえた』って、ちゃんと予約したのか？", zh: "你說「搞定了」，是真的有好好預約嗎？", audio: "/assets/voice/chapter2/voice_ch2_s01_005_toru.m4a", listeningSection: 1 },
       { id: "ch2_s01_004_ren", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "ren", expression: "throwshade", position: "left", jp: "なんだよ。", zh: "幹嘛啦。", audio: "/assets/voice/chapter2/voice_ch2_s01_004_ren.m4a", listeningSection: 1 },
+      { id: "ch2_s01_005_toru", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "toru", expression: "serious", position: "right", jp: "『押さえた』って、ちゃんと予約したのか？", zh: "你說「搞定了」，是真的有好好預約嗎？", audio: "/assets/voice/chapter2/voice_ch2_s01_005_toru.m4a", listeningSection: 1 },
       { id: "ch2_s01_006_ren", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "ren", expression: "embarrased", position: "left", jp: "……見てきた。", zh: "……我去看過了。", audio: "/assets/voice/chapter2/voice_ch2_s01_006_ren.m4a", listeningSection: 1 },
       { id: "ch2_s01_007_toru", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "toru", expression: "sigh", position: "right", jp: "何を？", zh: "看什麼？", audio: "/assets/voice/chapter2/voice_ch2_s01_007_toru.m4a", listeningSection: 1 },
       { id: "ch2_s01_008_ren", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "ren", expression: "throwshade", position: "left", jp: "会場。", zh: "場地啊。", audio: "/assets/voice/chapter2/voice_ch2_s01_008_ren.m4a", listeningSection: 1 },
@@ -1395,7 +1395,7 @@ const CHAPTER_DATA = {
       { id: "ch2_s06_105_ren", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "ren", expression: "angry", position: "left", jp: "俺のミスなんだから、俺が何とかすればいいだろ。", zh: "既然是我的失誤，我自己想辦法不就好了。", audio: "/assets/voice/chapter2/voice_ch2_s06_105_ren.m4a", listeningSection: 5 },
       { id: "ch2_s06_106_toru", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "toru", expression: "serious", position: "right", jp: "でも――", zh: "可是——", audio: "/assets/voice/chapter2/voice_ch2_s06_106_toru.m4a", listeningSection: 5 },
       { id: "ch2_s06_107_ren", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "ren", expression: "angry", position: "left", jp: "お前らには関係ねえよ。", zh: "跟你們沒關係。", audio: "/assets/voice/chapter2/voice_ch2_s06_107_ren.m4a", listeningSection: 5 },
-      { id: "ch2_s06_108_toru", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "toru", expression: "sad", position: "right", jp: "……そうかよ。", zh: "……是喔。", audio: "/assets/voice/chapter2/voice_ch2_s06_108_toru.m4a", listeningSection: 5 },
+      { id: "ch2_s06_108_toru", type: "dialogue", delayVoiceMs: 1200, bg: "2年B班 教室 (放學後)", speaker: "toru", expression: "sad", position: "right", jp: "……そうかよ。", zh: "……是喔。", audio: "/assets/voice/chapter2/voice_ch2_s06_108_toru.m4a", listeningSection: 5 },
       { id: "ch2_s06_109_toru", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "toru", expression: "sad", position: "right", jp: "じゃあ、好きにすれば。", zh: "那你就隨便吧。", audio: "/assets/voice/chapter2/voice_ch2_s06_109_toru.m4a", listeningSection: 5 },
       { id: "ch2_s06_110_misaki", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "misaki", expression: "sad", position: "center", jp: "……今の、ちょっと言いすぎじゃない？", zh: "……你剛才那句，是不是說得有點太過分了？", audio: "/assets/voice/chapter2/voice_ch2_s06_110_misaki.m4a", listeningSection: 5 },
       { id: "ch2_s06_111_ren", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "ren", expression: "angry", position: "left", jp: "……なんだよ、あいつ。", zh: "……那傢伙是怎樣。", audio: "/assets/voice/chapter2/voice_ch2_s06_111_ren.m4a", listeningSection: 5 },
@@ -4130,16 +4130,28 @@ function setMainBgmDucked(
 function getAvailableMainSeChannel() {
   unlockMainStoryAudio();
 
-  let audio = mainSePool.find(
-    item =>
-      item.paused ||
-      item.ended ||
-      !item.src
-  );
-
   /*
-   * 同時有多個 SE 時允許增加 channel。
+   * Main BGM foreground restore 會重建共用 AudioContext。
+   * 若某個舊 SE channel 的 MediaElementSource 還屬於舊 Context，
+   * 不能再把它接到新的 GainNode，否則會出現：
+   * "cannot connect to an AudioNode belonging to a different audio context"。
+   *
+   * 這裡直接淘汰舊 Context 的 SE channel，改建新的 HTMLAudio。
+   * 不改動 BGM / Voice 的既有恢復流程。
    */
+  const isUsableChannel = (item) => {
+    if (!(item.paused || item.ended || !item.src)) return false;
+
+    const cachedSource = mainSeAudioNodes.get(item);
+    if (cachedSource && cachedSource.context !== mainBgmAudioContext) {
+      return false;
+    }
+
+    return true;
+  };
+
+  let audio = mainSePool.find(isUsableChannel);
+
   if (!audio) {
     audio = new Audio();
     audio.preload = "auto";
@@ -5214,9 +5226,6 @@ function renderDialogueStep(stepData) {
       }
     }
 
-    if (stepData.id === "ch2_s06_110_misaki") {
-      playMainSe(MAIN_AUDIO.seDoorClose);
-    }
   } else if (stepData.listeningSection === 1) {
     startMorningAmbient();
     playMainBgm(MAIN_AUDIO.bgmDaily);
@@ -5296,7 +5305,39 @@ function renderDialogueStep(stepData) {
     }
 
     if (stepData.audio) {
-      playVoiceAudio(stepData.audio, stepData.id);
+      const voiceDelayMs = Number(stepData.delayVoiceMs || 0);
+
+      if (voiceDelayMs > 0) {
+        const delayedStepId = stepData.id;
+        isMainStoryTransitioning = true;
+
+        setTimeout(() => {
+          const chapterData = CHAPTER_DATA[gameState.currentChapter];
+          const currentStep = chapterData && chapterData.steps
+            ? chapterData.steps[gameState.currentStepIndex]
+            : null;
+
+          if (currentStep && currentStep.id === delayedStepId) {
+            playVoiceAudio(
+              stepData.audio,
+              stepData.id,
+              stepData.id === "ch2_s06_109_toru"
+                ? () => playMainSe(MAIN_AUDIO.seDoorClose)
+                : undefined
+            );
+          }
+
+          isMainStoryTransitioning = false;
+        }, voiceDelayMs);
+      } else {
+        playVoiceAudio(
+          stepData.audio,
+          stepData.id,
+          stepData.id === "ch2_s06_109_toru"
+            ? () => playMainSe(MAIN_AUDIO.seDoorClose)
+            : undefined
+        );
+      }
     }
   }
 
