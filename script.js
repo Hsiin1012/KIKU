@@ -32,7 +32,9 @@ const BACKGROUND_MAP = {
   "校園走廊 (熱鬧混亂)": "assets/backgrounds/bg_corridor_evening.webp",
   "放學後的屋頂 (夕陽風吹)": "assets/backgrounds/bg_rooftop.webp",
   "校園中庭 (交流會後夕陽微風)": "assets/backgrounds/bg_eventspace_evening.webp",
-  "龍神高中 (校園全景黃昏)": "assets/backgrounds/bg_office.webp"
+  "龍神高中 (校園全景黃昏)": "assets/backgrounds/bg_office.webp",
+  "職員室": "assets/backgrounds/bg_office.webp",
+  "校園走廊 (放學後)": "assets/backgrounds/bg_corridor_evening.webp"
 };
 
 /* 角色立繪對應表 */
@@ -53,7 +55,10 @@ const CHARACTER_SPRITE_MAP = {
     "angry": "assets/characters/ren/ren_angry.webp",
     "normal": "assets/characters/ren/ren_normal.webp",
     "embarrased": "assets/characters/ren/ren_embarrased.webp",
-    "smile": "assets/characters/ren/ren_smile.webp"
+    "smile": "assets/characters/ren/ren_smile.webp",
+    "serious": "assets/characters/ren/ren_serious.webp",
+    "sad": "assets/characters/ren/ren_sad.webp",
+    "shy": "assets/characters/ren/ren_shy.webp"
   },
   "toru": {
     "冷漠推眼鏡": "assets/characters/toru/toru_smile.webp",
@@ -64,7 +69,10 @@ const CHARACTER_SPRITE_MAP = {
     "sigh": "assets/characters/toru/toru_sigh.webp",
     "smirk": "assets/characters/toru/toru_smirk.webp",
     "serious": "assets/characters/toru/toru_serious.webp",
-    "smile": "assets/characters/toru/toru_smile.webp"
+    "smile": "assets/characters/toru/toru_smile.webp",
+    "angry": "assets/characters/toru/toru_angry.webp",
+    "sad": "assets/characters/toru/toru_sad.webp",
+    "surprised": "assets/characters/toru/toru_surprised.webp"
   },
   "sato": {
     "溫和微笑": "assets/characters/sato/sato_smile.webp",
@@ -72,13 +80,23 @@ const CHARACTER_SPRITE_MAP = {
     "標準": "assets/characters/sato/sato_normal.webp",
     "normal": "assets/characters/sato/sato_normal.webp",
     "scarysmile": "assets/characters/sato/sato_scarysmile.webp",
-    "smile": "assets/characters/sato/sato_smile.webp"
+    "smile": "assets/characters/sato/sato_smile.webp",
+    "wrysmile": "assets/characters/sato/sato_wrysmile.webp",
+    "sigh": "assets/characters/sato/sato_sigh.webp",
+    "pleased": "assets/characters/sato/sato_pleased.webp"
   },
   "misaki": {
     "活潑得意": "assets/characters/misaki/misaki_excited.webp",
     "標準": "assets/characters/misaki/misaki_normal.webp",
     "excited": "assets/characters/misaki/misaki_excited.webp",
-    "normal": "assets/characters/misaki/misaki_normal.webp"
+    "normal": "assets/characters/misaki/misaki_normal.webp",
+    "curious": "assets/characters/misaki/misaki_curious.webp",
+    "embarrased": "assets/characters/misaki/misaki_embarrased.webp",
+    "surprised": "assets/characters/misaki/misaki_surprised.webp",
+    "angry": "assets/characters/misaki/misaki_angry.webp",
+    "sad": "assets/characters/misaki/misaki_sad.webp",
+    "serious": "assets/characters/misaki/misaki_serious.webp",
+    "laugh": "assets/characters/misaki/misaki_laugh.webp"
   },
   "player": {
     "溫和微笑": "",
@@ -1249,6 +1267,145 @@ const CHAPTER_DATA = {
       { id: "ch1_s03_063_ren", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "ren", expression: "embarrased", position: "left", jp: "お前まで笑うな！", zh: "連你也笑我！", audio: "/assets/voice/chapter1/ch1_s03_063_ren.m4a", listeningSection: 5 },
       { type: "quiz", id: "ch1_q5", listeningSection: 5, nextStepIndex: -1 }
     ]
+  },
+  2: {
+    title: "第二章：每個人說的都不是同一件事",
+    totalQuizzes: 5,
+    steps: [
+      { id: "ch2_player_001", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "player", expression: "溫和微笑", position: "center", jp: "じゃあ、進み具合を確認しようか。", zh: "那我們來確認一下目前的進度吧。", audio: null, listeningSection: 1 },
+      { id: "ch2_s01_001_ren", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "ren", expression: "smile", position: "left", jp: "俺からでいいぞ。会場は押さえた。", zh: "我先說吧。場地已經搞定了。", audio: "/assets/voice/chapter2/voice_ch2_s01_001_ren.m4a", listeningSection: 1 },
+      { id: "ch2_s01_002_ren", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "ren", expression: "normal", position: "left", jp: "多目的室。さっき見てきた。", zh: "多功能教室。我剛才去看過了。", audio: "/assets/voice/chapter2/voice_ch2_s01_002_ren.m4a", listeningSection: 1 },
+      { id: "ch2_s01_003_toru", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "toru", expression: "surprised", position: "right", jp: "ちょっと待て。", zh: "等一下。", audio: "/assets/voice/chapter2/voice_ch2_s01_003_toru.m4a", listeningSection: 1 },
+      { id: "ch2_s01_005_toru", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "toru", expression: "serious", position: "right", jp: "『押さえた』って、ちゃんと予約したのか？", zh: "你說「搞定了」，是真的有好好預約嗎？", audio: "/assets/voice/chapter2/voice_ch2_s01_005_toru.m4a", listeningSection: 1 },
+      { id: "ch2_s01_004_ren", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "ren", expression: "throwshade", position: "left", jp: "なんだよ。", zh: "幹嘛啦。", audio: "/assets/voice/chapter2/voice_ch2_s01_004_ren.m4a", listeningSection: 1 },
+      { id: "ch2_s01_006_ren", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "ren", expression: "embarrased", position: "left", jp: "……見てきた。", zh: "……我去看過了。", audio: "/assets/voice/chapter2/voice_ch2_s01_006_ren.m4a", listeningSection: 1 },
+      { id: "ch2_s01_007_toru", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "toru", expression: "sigh", position: "right", jp: "何を？", zh: "看什麼？", audio: "/assets/voice/chapter2/voice_ch2_s01_007_toru.m4a", listeningSection: 1 },
+      { id: "ch2_s01_008_ren", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "ren", expression: "throwshade", position: "left", jp: "会場。", zh: "場地啊。", audio: "/assets/voice/chapter2/voice_ch2_s01_008_ren.m4a", listeningSection: 1 },
+      { id: "ch2_s01_009_toru", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "toru", expression: "serious", position: "right", jp: "予約は？", zh: "預約呢？", audio: "/assets/voice/chapter2/voice_ch2_s01_009_toru.m4a", listeningSection: 1 },
+      { id: "ch2_s01_010_ren", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "ren", expression: "embarrased", position: "left", jp: "……まだ。", zh: "……還沒。", audio: "/assets/voice/chapter2/voice_ch2_s01_010_ren.m4a", listeningSection: 1 },
+      { id: "ch2_s01_011_toru", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "toru", expression: "roast", position: "right", jp: "押さえてないじゃないか。", zh: "那根本就還沒訂好吧。", audio: "/assets/voice/chapter2/voice_ch2_s01_011_toru.m4a", listeningSection: 1 },
+      { id: "ch2_s01_012_ren", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "ren", expression: "throwshade", position: "left", jp: "でも空いてたぞ？", zh: "可是那裡是空的啊？", audio: "/assets/voice/chapter2/voice_ch2_s01_012_ren.m4a", listeningSection: 1 },
+      { id: "ch2_s01_013_toru", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "toru", expression: "serious", position: "right", jp: "今日空いてることと、文化祭当日に使えることは別だろ。", zh: "今天空著，跟文化祭當天能不能用是兩回事吧。", audio: "/assets/voice/chapter2/voice_ch2_s01_013_toru.m4a", listeningSection: 1 },
+      { id: "ch2_s01_014_ren", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "ren", expression: "throwshade", position: "left", jp: "大丈夫だって。誰も使ってなかったし。", zh: "沒問題啦。又沒有人在用。", audio: "/assets/voice/chapter2/voice_ch2_s01_014_ren.m4a", listeningSection: 1 },
+      { id: "ch2_s01_015_toru", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "toru", expression: "sigh", position: "right", jp: "その考え方で映画館に行ったらどうなるか、想像してみろ。", zh: "照你這種想法去電影院會怎樣，你自己想想看。", audio: "/assets/voice/chapter2/voice_ch2_s01_015_toru.m4a", listeningSection: 1 },
+      { id: "ch2_s01_016_ren", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "ren", expression: "suspect", position: "left", jp: "映画館？", zh: "電影院？", audio: "/assets/voice/chapter2/voice_ch2_s01_016_ren.m4a", listeningSection: 1 },
+      { id: "ch2_s01_017_toru", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "toru", expression: "serious", position: "right", jp: "予約してない席が空いてるからって、勝手に座るのか？", zh: "沒預約的座位空著，你就可以擅自坐下嗎？", audio: "/assets/voice/chapter2/voice_ch2_s01_017_toru.m4a", listeningSection: 1 },
+      { id: "ch2_s01_018_ren", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "ren", expression: "embarrased", position: "left", jp: "……あとから客が来たら追い出される。", zh: "……之後客人來了，我就會被趕走。", audio: "/assets/voice/chapter2/voice_ch2_s01_018_ren.m4a", listeningSection: 1 },
+      { id: "ch2_s01_019_toru", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "toru", expression: "smirk", position: "right", jp: "学習が早くて助かるよ。", zh: "學得真快，省得我解釋了。", audio: "/assets/voice/chapter2/voice_ch2_s01_019_toru.m4a", listeningSection: 1 },
+      { id: "ch2_s01_020_ren", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "ren", expression: "embarrased", position: "left", jp: "うるせえな。じゃあ今から予約してくる。", zh: "吵死了。那我現在去預約總行了吧。", audio: "/assets/voice/chapter2/voice_ch2_s01_020_ren.m4a", listeningSection: 1 },
+      { id: "ch2_s01_021_toru", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "toru", expression: "sigh", position: "right", jp: "最初からそうしろ。", zh: "一開始就這麼做啊。", audio: "/assets/voice/chapter2/voice_ch2_s01_021_toru.m4a", listeningSection: 1 },
+      { type: "quiz", id: "ch2_q1", listeningSection: 1 },
+      { id: "ch2_s02_022_ren", type: "dialogue", bg: "職員室", speaker: "ren", expression: "normal", position: "left", jp: "すみません。多目的室のことで聞きたいんですけど、田中先生いますか？", zh: "不好意思，我想問多功能教室的事，田中老師在嗎？", audio: "/assets/voice/chapter2/voice_ch2_s02_022_ren.m4a", listeningSection: 2 },
+      { id: "ch2_s02_023_sato", type: "dialogue", bg: "職員室", speaker: "sato", expression: "normal", position: "center", jp: "田中先生なら、今、会議中で席を外しているんですが。", zh: "田中老師的話，現在正在開會，不在座位上。", audio: "/assets/voice/chapter2/voice_ch2_s02_023_sato.m4a", listeningSection: 2 },
+      { id: "ch2_s02_024_ren", type: "dialogue", bg: "職員室", speaker: "ren", expression: "surprised", position: "left", jp: "会議中？", zh: "在開會？", audio: "/assets/voice/chapter2/voice_ch2_s02_024_ren.m4a", listeningSection: 2 },
+      { id: "ch2_s02_025_sato", type: "dialogue", bg: "職員室", speaker: "sato", expression: "normal", position: "center", jp: "はい。しばらく戻らないと思いますよ。", zh: "是的。我想他暫時不會回來。", audio: "/assets/voice/chapter2/voice_ch2_s02_025_sato.m4a", listeningSection: 2 },
+      { id: "ch2_s02_026_ren", type: "dialogue", bg: "職員室", speaker: "ren", expression: "normal", position: "left", jp: "じゃあ、あとで来ます。", zh: "那我晚點再來。", audio: "/assets/voice/chapter2/voice_ch2_s02_026_ren.m4a", listeningSection: 2 },
+      { id: "ch2_s02_027_sato", type: "dialogue", bg: "職員室", speaker: "sato", expression: "normal", position: "center", jp: "あ、鬼塚くん。急ぎなら、伝言を――", zh: "啊，鬼塚同學。如果很急的話，我可以幫你傳話——", audio: "/assets/voice/chapter2/voice_ch2_s02_027_sato.m4a", listeningSection: 2 },
+      { id: "ch2_s02_028_ren", type: "dialogue", bg: "職員室", speaker: "ren", expression: "smile", position: "left", jp: "大丈夫です！　また来ます！", zh: "沒關係！我等等再來！", audio: "/assets/voice/chapter2/voice_ch2_s02_028_ren.m4a", listeningSection: 2 },
+      { id: "ch2_s02_029_sato", type: "dialogue", bg: "職員室", speaker: "sato", expression: "sigh", position: "center", jp: "……最後まで聞いてください。", zh: "……請聽人家說完。", audio: "/assets/voice/chapter2/voice_ch2_s02_029_sato.m4a", listeningSection: 2 },
+      { id: "ch2_player_002", type: "dialogue", bg: "職員室", speaker: "player", expression: "溫和微笑", position: "center", jp: "失礼します。佐藤先生、この資料を持ってきました。", zh: "打擾了。佐藤老師，我把這份資料拿來了。", audio: null, listeningSection: 2 },
+      { id: "ch2_s02_030_sato", type: "dialogue", bg: "職員室", speaker: "sato", expression: "smile", position: "center", jp: "ああ、ありがとうございます。", zh: "啊，謝謝你。", audio: "/assets/voice/chapter2/voice_ch2_s02_030_sato.m4a", listeningSection: 2 },
+      { id: "ch2_s02_031_sato", type: "dialogue", bg: "職員室", speaker: "sato", expression: "normal", position: "center", jp: "そういえば、鬼塚くんは教室にいますか？", zh: "對了，鬼塚同學在教室嗎？", audio: "/assets/voice/chapter2/voice_ch2_s02_031_sato.m4a", listeningSection: 2 },
+      { id: "ch2_player_003", type: "dialogue", bg: "職員室", speaker: "player", expression: "溫和微笑", position: "center", jp: "はい。たぶん、まだいると思います。", zh: "是的。我想他應該還在。", audio: null, listeningSection: 2 },
+      { id: "ch2_s02_032_sato", type: "dialogue", bg: "職員室", speaker: "sato", expression: "smile", position: "center", jp: "では、鬼塚くんに伝言をお願いしてもいいですか？", zh: "那可以麻煩你幫我傳話給鬼塚同學嗎？", audio: "/assets/voice/chapter2/voice_ch2_s02_032_sato.m4a", listeningSection: 2 },
+      { id: "ch2_player_004", type: "dialogue", bg: "職員室", speaker: "player", expression: "溫和微笑", position: "center", jp: "はい。", zh: "好的。", audio: null, listeningSection: 2 },
+      { id: "ch2_s02_033_sato", type: "dialogue", bg: "職員室", speaker: "sato", expression: "normal", position: "center", jp: "先ほど田中先生が戻っていらっしゃったんですが、多目的室のことで鬼塚くんを探していました。", zh: "剛才田中老師回來了，他正在找鬼塚同學，說是有關多功能教室的事。", audio: "/assets/voice/chapter2/voice_ch2_s02_033_sato.m4a", listeningSection: 2 },
+      { id: "ch2_player_005", type: "dialogue", bg: "職員室", speaker: "player", expression: "溫和微笑", position: "center", jp: "多目的室……。", zh: "多功能教室……。", audio: null, listeningSection: 2 },
+      { id: "ch2_s02_034_sato", type: "dialogue", bg: "職員室", speaker: "sato", expression: "normal", position: "center", jp: "『文化祭で多目的室を使いたい場合は、今日中に使用申請書を提出してください』とのことです。", zh: "他說：「如果文化祭想使用多功能教室，請在今天之內提交使用申請書。」", audio: "/assets/voice/chapter2/voice_ch2_s02_034_sato.m4a", listeningSection: 2 },
+      { id: "ch2_player_006", type: "dialogue", bg: "職員室", speaker: "player", expression: "溫和微笑", position: "center", jp: "今日中ですね。", zh: "今天之內對吧。", audio: null, listeningSection: 2 },
+      { id: "ch2_s02_035_sato", type: "dialogue", bg: "職員室", speaker: "sato", expression: "smile", position: "center", jp: "はい。そうお伝えください。", zh: "是的。請你這樣轉告他。", audio: "/assets/voice/chapter2/voice_ch2_s02_035_sato.m4a", listeningSection: 2 },
+      { id: "ch2_player_007", type: "dialogue", bg: "職員室", speaker: "player", expression: "溫和微笑", position: "center", jp: "わかりました。", zh: "我知道了。", audio: null, listeningSection: 2 },
+      { type: "quiz", id: "ch2_q2", listeningSection: 2 },
+      { id: "ch2_player_008", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "player", expression: "溫和微笑", position: "center", jp: "蓮、田中先生から伝言。", zh: "蓮，田中老師有話要轉告你。", audio: null, listeningSection: 3 },
+      { id: "ch2_s03_036_ren", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "ren", expression: "suspect", position: "left", jp: "田中先生？", zh: "田中老師？", audio: "/assets/voice/chapter2/voice_ch2_s03_036_ren.m4a", listeningSection: 3 },
+      { id: "ch2_player_009", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "player", expression: "溫和微笑", position: "center", jp: "文化祭で多目的室を使いたいなら、今日中に使用申請書を出してほしいって。", zh: "他說如果文化祭想用多功能教室，希望你今天之內把使用申請書交出去。", audio: null, listeningSection: 3 },
+      { id: "ch2_s03_037_ren", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "ren", expression: "surprised", position: "left", jp: "……今日中？", zh: "……今天之內？", audio: "/assets/voice/chapter2/voice_ch2_s03_037_ren.m4a", listeningSection: 3 },
+      { id: "ch2_s03_038_toru", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "toru", expression: "normal", position: "right", jp: "よかったな。まだ間に合うぞ。", zh: "太好了。還來得及。", audio: "/assets/voice/chapter2/voice_ch2_s03_038_toru.m4a", listeningSection: 3 },
+      { id: "ch2_s05_094_ren", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "ren", expression: "throwshade", position: "left", jp: "分かってるよ。", zh: "我知道啦。", audio: "/assets/voice/chapter2/voice_ch2_s05_094_ren.m4a", listeningSection: 3 },
+      { id: "ch2_s03_040_misaki", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "misaki", expression: "normal", position: "center", jp: "じゃあ、蓮は申請書ね。", zh: "那蓮就負責申請書囉。", audio: "/assets/voice/chapter2/voice_ch2_s03_040_misaki.m4a", listeningSection: 3 },
+      { id: "ch2_s03_041_ren", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "ren", expression: "throwshade", position: "left", jp: "はいはい。", zh: "好好好。", audio: "/assets/voice/chapter2/voice_ch2_s03_041_ren.m4a", listeningSection: 3 },
+      { id: "ch2_s03_042_toru", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "toru", expression: "sigh", position: "right", jp: "その返事、不安しかないな。", zh: "你這個回答只讓人更不安。", audio: "/assets/voice/chapter2/voice_ch2_s03_042_toru.m4a", listeningSection: 3 },
+      { id: "ch2_s03_043_ren", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "ren", expression: "embarrased", position: "left", jp: "ちゃんと出すって。", zh: "就說我會好好交啦。", audio: "/assets/voice/chapter2/voice_ch2_s03_043_ren.m4a", listeningSection: 3 },
+      { id: "ch2_s03_044_misaki", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "misaki", expression: "excited", position: "center", jp: "じゃあ次、私ね！　宣伝用のポスター、作っておいたよ！", zh: "那接下來換我！宣傳用的海報我已經做好了！", audio: "/assets/voice/chapter2/voice_ch2_s03_044_misaki.m4a", listeningSection: 3 },
+      { id: "ch2_player_010", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "player", expression: "溫和微笑", position: "center", jp: "もう作ったの？", zh: "已經做好了？", audio: null, listeningSection: 3 },
+      { id: "ch2_s03_045_misaki", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "misaki", expression: "excited", position: "center", jp: "昨日、二時間もかけたんだから。", zh: "我昨天可是花了整整兩個小時。", audio: "/assets/voice/chapter2/voice_ch2_s03_045_misaki.m4a", listeningSection: 3 },
+      { id: "ch2_s03_046_misaki", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "misaki", expression: "excited", position: "center", jp: "じゃーん！　校内ミッションラリー！", zh: "鏘鏘！校內任務闖關！", audio: "/assets/voice/chapter2/voice_ch2_s03_046_misaki.m4a", listeningSection: 3 },
+      { id: "ch2_player_011", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "player", expression: "溫和微笑", position: "center", jp: "……これ、何のイベントだっけ？", zh: "……這到底是什麼活動來著？", audio: null, listeningSection: 3 },
+      { id: "ch2_s03_047_misaki", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "misaki", expression: "curious", position: "center", jp: "え？", zh: "咦？", audio: "/assets/voice/chapter2/voice_ch2_s03_047_misaki.m4a", listeningSection: 3 },
+      { id: "ch2_player_012", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "player", expression: "溫和微笑", position: "center", jp: "お化け屋敷じゃなくて？", zh: "不是鬼屋嗎？", audio: null, listeningSection: 3 },
+      { id: "ch2_s03_048_misaki", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "misaki", expression: "surprised", position: "center", jp: "違うよ？", zh: "才不是喔？", audio: "/assets/voice/chapter2/voice_ch2_s03_048_misaki.m4a", listeningSection: 3 },
+      { id: "ch2_s03_049_toru", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "toru", expression: "sigh", position: "right", jp: "宣伝というより、脅迫状だな。", zh: "與其說是宣傳，不如說像恐嚇信。", audio: "/assets/voice/chapter2/voice_ch2_s03_049_toru.m4a", listeningSection: 3 },
+      { id: "ch2_s03_050_misaki", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "misaki", expression: "angry", position: "center", jp: "えー、インパクトあっていいじゃん。", zh: "欸～很有衝擊力不是很好嗎。", audio: "/assets/voice/chapter2/voice_ch2_s03_050_misaki.m4a", listeningSection: 3 },
+      { id: "ch2_s03_051_ren", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "ren", expression: "serious", position: "left", jp: "……俺は嫌いじゃない。", zh: "……我倒是不討厭。", audio: "/assets/voice/chapter2/voice_ch2_s03_051_ren.m4a", listeningSection: 3 },
+      { id: "ch2_s03_052_toru", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "toru", expression: "roast", position: "right", jp: "お前の好みは聞いてない。", zh: "沒人在問你的喜好。", audio: "/assets/voice/chapter2/voice_ch2_s03_052_toru.m4a", listeningSection: 3 },
+      { id: "ch2_s03_053_ren", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "ren", expression: "throwshade", position: "left", jp: "じゃあ聞けよ。", zh: "那你就問啊。", audio: "/assets/voice/chapter2/voice_ch2_s03_053_ren.m4a", listeningSection: 3 },
+      { id: "ch2_s03_054_toru", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "toru", expression: "smirk", position: "right", jp: "聞く必要がない。", zh: "沒必要問。", audio: "/assets/voice/chapter2/voice_ch2_s03_054_toru.m4a", listeningSection: 3 },
+      { type: "quiz", id: "ch2_q3", listeningSection: 3 },
+      { id: "ch2_s04_055_misaki", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "misaki", expression: "excited", position: "center", jp: "そうだ。文化祭の日、佐藤先生も呼ぼうよ！", zh: "對了。文化祭那天也邀佐藤老師來吧！", audio: "/assets/voice/chapter2/voice_ch2_s04_055_misaki.m4a", listeningSection: 4 },
+      { id: "ch2_s04_056_ren", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "ren", expression: "suspect", position: "left", jp: "先生を？", zh: "老師？", audio: "/assets/voice/chapter2/voice_ch2_s04_056_ren.m4a", listeningSection: 4 },
+      { id: "ch2_s04_057_misaki", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "misaki", expression: "excited", position: "center", jp: "うん！　せっかくだし、ミッションラリーやってもらいたい！", zh: "嗯！難得有機會，也想讓老師玩玩看任務闖關！", audio: "/assets/voice/chapter2/voice_ch2_s04_057_misaki.m4a", listeningSection: 4 },
+      { id: "ch2_s04_058_toru", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "toru", expression: "normal", position: "right", jp: "まあ、いいんじゃないか。", zh: "嗯，也沒什麼不好。", audio: "/assets/voice/chapter2/voice_ch2_s04_058_toru.m4a", listeningSection: 4 },
+      { id: "ch2_s04_059_ren", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "ren", expression: "normal", position: "left", jp: "じゃあ美咲、誘ってこいよ。", zh: "那美咲，你去邀啊。", audio: "/assets/voice/chapter2/voice_ch2_s04_059_ren.m4a", listeningSection: 4 },
+      { id: "ch2_s04_060_misaki", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "misaki", expression: "surprised", position: "center", jp: "え、私？", zh: "咦，我？", audio: "/assets/voice/chapter2/voice_ch2_s04_060_misaki.m4a", listeningSection: 4 },
+      { id: "ch2_s04_061_ren", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "ren", expression: "throwshade", position: "left", jp: "言い出したのお前だろ。", zh: "不是你先提的嗎。", audio: "/assets/voice/chapter2/voice_ch2_s04_061_ren.m4a", listeningSection: 4 },
+      { id: "ch2_s04_062_misaki", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "misaki", expression: "embarrased", position: "center", jp: "……一緒に来てよ。", zh: "……陪我一起去啦。", audio: "/assets/voice/chapter2/voice_ch2_s04_062_misaki.m4a", listeningSection: 4 },
+      { id: "ch2_s04_063_ren", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "ren", expression: "throwshade", position: "left", jp: "やだ。", zh: "不要。", audio: "/assets/voice/chapter2/voice_ch2_s04_063_ren.m4a", listeningSection: 4 },
+      { id: "ch2_s04_064_misaki", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "misaki", expression: "surprised", position: "center", jp: "即答！？", zh: "秒答！？", audio: "/assets/voice/chapter2/voice_ch2_s04_064_misaki.m4a", listeningSection: 4 },
+      { id: "ch2_s04_065_misaki", type: "dialogue", bg: "職員室", speaker: "misaki", expression: "embarrased", position: "center", jp: "佐藤先生、今よろしいですか？", zh: "佐藤老師，現在方便嗎？", audio: "/assets/voice/chapter2/voice_ch2_s04_065_misaki.m4a", listeningSection: 4 },
+      { id: "ch2_s04_066_sato", type: "dialogue", bg: "職員室", speaker: "sato", expression: "normal", position: "center", jp: "はい、どうしました？", zh: "可以，怎麼了？", audio: "/assets/voice/chapter2/voice_ch2_s04_066_sato.m4a", listeningSection: 4 },
+      { id: "ch2_s04_067_misaki", type: "dialogue", bg: "職員室", speaker: "misaki", expression: "serious", position: "center", jp: "文化祭の日なんですけど、もしお時間がありましたら、私たちのミッションラリーに参加していただけませんか？", zh: "關於文化祭那天，如果老師有時間的話，可以來參加我們的任務闖關嗎？", audio: "/assets/voice/chapter2/voice_ch2_s04_067_misaki.m4a", listeningSection: 4 },
+      { id: "ch2_s04_068_sato", type: "dialogue", bg: "職員室", speaker: "sato", expression: "smile", position: "center", jp: "ああ、皆さんが準備している企画ですね。", zh: "啊，是你們正在準備的企劃吧。", audio: "/assets/voice/chapter2/voice_ch2_s04_068_sato.m4a", listeningSection: 4 },
+      { id: "ch2_s04_069_misaki", type: "dialogue", bg: "職員室", speaker: "misaki", expression: "excited", position: "center", jp: "はい！", zh: "是！", audio: "/assets/voice/chapter2/voice_ch2_s04_069_misaki.m4a", listeningSection: 4 },
+      { id: "ch2_s04_070_sato", type: "dialogue", bg: "職員室", speaker: "sato", expression: "wrysmile", position: "center", jp: "ぜひ、と言いたいところなんですが……当日は午前中、見回りの担当が入っているんです。", zh: "我很想答應，不過……當天上午我有巡視的工作。", audio: "/assets/voice/chapter2/voice_ch2_s04_070_sato.m4a", listeningSection: 4 },
+      { id: "ch2_s04_071_misaki", type: "dialogue", bg: "職員室", speaker: "misaki", expression: "sad", position: "center", jp: "あ、そうなんですね……。", zh: "啊，原來是這樣……。", audio: "/assets/voice/chapter2/voice_ch2_s04_071_misaki.m4a", listeningSection: 4 },
+      { id: "ch2_s04_072_sato", type: "dialogue", bg: "職員室", speaker: "sato", expression: "smile", position: "center", jp: "午後でしたら、時間が取れるかもしれません。", zh: "如果是下午的話，也許能抽出時間。", audio: "/assets/voice/chapter2/voice_ch2_s04_072_sato.m4a", listeningSection: 4 },
+      { id: "ch2_s04_073_misaki", type: "dialogue", bg: "職員室", speaker: "misaki", expression: "surprised", position: "center", jp: "ほんとですか？", zh: "真的嗎？", audio: "/assets/voice/chapter2/voice_ch2_s04_073_misaki.m4a", listeningSection: 4 },
+      { id: "ch2_s04_074_toru", type: "dialogue", bg: "職員室", speaker: "toru", expression: "serious", position: "right", jp: "先生のご都合が分かりましたら、教えていただけますか？", zh: "老師確定時間之後，可以再告訴我們嗎？", audio: "/assets/voice/chapter2/voice_ch2_s04_074_toru.m4a", listeningSection: 4 },
+      { id: "ch2_s04_075_sato", type: "dialogue", bg: "職員室", speaker: "sato", expression: "smile", position: "center", jp: "もちろんです。", zh: "當然可以。", audio: "/assets/voice/chapter2/voice_ch2_s04_075_sato.m4a", listeningSection: 4 },
+      { id: "ch2_s04_076_misaki", type: "dialogue", bg: "職員室", speaker: "misaki", expression: "excited", position: "center", jp: "ありがとうございます！", zh: "謝謝老師！", audio: "/assets/voice/chapter2/voice_ch2_s04_076_misaki.m4a", listeningSection: 4 },
+      { type: "quiz", id: "ch2_q4", listeningSection: 4 },
+      { id: "ch2_s04_077_ren", type: "dialogue", bg: "校園走廊 (放學後)", speaker: "ren", expression: "suspect", position: "left", jp: "で、先生来るって？", zh: "所以，老師會來嗎？", audio: "/assets/voice/chapter2/voice_ch2_s04_077_ren.m4a", listeningSection: 4 },
+      { id: "ch2_s04_078_misaki", type: "dialogue", bg: "校園走廊 (放學後)", speaker: "misaki", expression: "normal", position: "center", jp: "午前中は見回りなんだって。", zh: "他說上午要巡視。", audio: "/assets/voice/chapter2/voice_ch2_s04_078_misaki.m4a", listeningSection: 4 },
+      { id: "ch2_s04_079_ren", type: "dialogue", bg: "校園走廊 (放學後)", speaker: "ren", expression: "throwshade", position: "left", jp: "じゃあ来ないのか。", zh: "那就是不來囉。", audio: "/assets/voice/chapter2/voice_ch2_s04_079_ren.m4a", listeningSection: 4 },
+      { id: "ch2_s04_080_toru", type: "dialogue", bg: "校園走廊 (放學後)", speaker: "toru", expression: "sigh", position: "right", jp: "午後なら時間が取れるかもしれないって言ってただろ。", zh: "他不是說下午也許能抽出時間嗎。", audio: "/assets/voice/chapter2/voice_ch2_s04_080_toru.m4a", listeningSection: 4 },
+      { id: "ch2_s04_081_ren", type: "dialogue", bg: "校園走廊 (放學後)", speaker: "ren", expression: "suspect", position: "left", jp: "……じゃあ来るのか？", zh: "……所以會來嗎？", audio: "/assets/voice/chapter2/voice_ch2_s04_081_ren.m4a", listeningSection: 4 },
+      { id: "ch2_s04_082_toru", type: "dialogue", bg: "校園走廊 (放學後)", speaker: "toru", expression: "serious", position: "right", jp: "まだ分からない。", zh: "還不知道。", audio: "/assets/voice/chapter2/voice_ch2_s04_082_toru.m4a", listeningSection: 4 },
+      { id: "ch2_s04_083_ren", type: "dialogue", bg: "校園走廊 (放學後)", speaker: "ren", expression: "angry", position: "left", jp: "どっちだよ。", zh: "到底是哪個啦。", audio: "/assets/voice/chapter2/voice_ch2_s04_083_ren.m4a", listeningSection: 4 },
+      { id: "ch2_s04_084_toru", type: "dialogue", bg: "校園走廊 (放學後)", speaker: "toru", expression: "sigh", position: "right", jp: "だから、まだ分からないって言ってるんだよ。", zh: "所以我就說，現在還不知道啊。", audio: "/assets/voice/chapter2/voice_ch2_s04_084_toru.m4a", listeningSection: 4 },
+      { id: "ch2_s04_085_misaki", type: "dialogue", bg: "校園走廊 (放學後)", speaker: "misaki", expression: "normal", position: "center", jp: "蓮、人の話ちゃんと聞いてた？", zh: "蓮，你有好好聽人家說話嗎？", audio: "/assets/voice/chapter2/voice_ch2_s04_085_misaki.m4a", listeningSection: 4 },
+      { id: "ch2_s04_086_ren", type: "dialogue", bg: "校園走廊 (放學後)", speaker: "ren", expression: "embarrased", position: "left", jp: "聞いてたよ！", zh: "我有聽啦！", audio: "/assets/voice/chapter2/voice_ch2_s04_086_ren.m4a", listeningSection: 4 },
+      { id: "ch2_s04_087_toru", type: "dialogue", bg: "校園走廊 (放學後)", speaker: "toru", expression: "roast", position: "right", jp: "聞いてた結果がそれか。", zh: "有聽的結果就是這樣嗎。", audio: "/assets/voice/chapter2/voice_ch2_s04_087_toru.m4a", listeningSection: 4 },
+      { id: "ch2_s05_088_ren", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "ren", expression: "sad", position: "left", jp: "……多目的室、もう他のクラスに取られてた。", zh: "……多功能教室，已經被其他班訂走了。", audio: "/assets/voice/chapter2/voice_ch2_s05_088_ren.m4a", listeningSection: 5 },
+      { id: "ch2_s05_089_misaki", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "misaki", expression: "surprised", position: "center", jp: "えっ、じゃあ使えないの？", zh: "咦，那我們不能用了嗎？", audio: "/assets/voice/chapter2/voice_ch2_s05_089_misaki.m4a", listeningSection: 5 },
+      { id: "ch2_s05_090_ren", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "ren", expression: "sad", position: "left", jp: "文化祭当日はな。", zh: "文化祭當天不行。", audio: "/assets/voice/chapter2/voice_ch2_s05_090_ren.m4a", listeningSection: 5 },
+      { id: "ch2_s05_091_toru", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "toru", expression: "surprised", position: "right", jp: "……申請書は？", zh: "……申請書呢？", audio: "/assets/voice/chapter2/voice_ch2_s05_091_toru.m4a", listeningSection: 5 },
+      { id: "ch2_s05_092_ren", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "ren", expression: "embarrased", position: "left", jp: "出そうと思ったときには、もう別のクラスが出してた。", zh: "等我想去交的時候，別班已經先交了。", audio: "/assets/voice/chapter2/voice_ch2_s05_092_ren.m4a", listeningSection: 5 },
+      { id: "ch2_s05_093_toru", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "toru", expression: "serious", position: "right", jp: "昨日、今日中に出せって伝言があっただろ。", zh: "昨天不是有人傳話叫你要在今天之內交嗎。", audio: "/assets/voice/chapter2/voice_ch2_s05_093_toru.m4a", listeningSection: 5 },
+      { id: "ch2_s05_094_ren", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "ren", expression: "angry", position: "left", jp: "分かってるよ。", zh: "我知道啦。", audio: "/assets/voice/chapter2/voice_ch2_s05_094_ren.m4a", listeningSection: 5 },
+      { id: "ch2_s05_095_toru", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "toru", expression: "angry", position: "right", jp: "分かってたら、なんですぐ出さなかったんだよ。", zh: "既然知道，為什麼不馬上交？", audio: "/assets/voice/chapter2/voice_ch2_s05_095_toru.m4a", listeningSection: 5 },
+      { id: "ch2_s05_096_ren", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "ren", expression: "embarrased", position: "left", jp: "うるせえな。別の場所探せばいいんだろ。", zh: "吵死了。找別的地方不就好了。", audio: "/assets/voice/chapter2/voice_ch2_s05_096_ren.m4a", listeningSection: 5 },
+      { id: "ch2_s05_097_misaki", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "misaki", expression: "sad", position: "center", jp: "でも、もう文化祭まで三週間しかないよ？", zh: "可是離文化祭已經只剩三週了耶？", audio: "/assets/voice/chapter2/voice_ch2_s05_097_misaki.m4a", listeningSection: 5 },
+      { id: "ch2_s05_098_ren", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "ren", expression: "throwshade", position: "left", jp: "まだ三週間ある。", zh: "還有三週。", audio: "/assets/voice/chapter2/voice_ch2_s05_098_ren.m4a", listeningSection: 5 },
+      { id: "ch2_s05_099_toru", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "toru", expression: "serious", position: "right", jp: "『まだ』じゃなくて、『もう』だろ。", zh: "不是「還有」，是「只剩」吧。", audio: "/assets/voice/chapter2/voice_ch2_s05_099_toru.m4a", listeningSection: 5 },
+      { id: "ch2_s05_100_ren", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "ren", expression: "serious", position: "left", jp: "……俺が何とかする。", zh: "……我會想辦法。", audio: "/assets/voice/chapter2/voice_ch2_s05_100_ren.m4a", listeningSection: 5 },
+      { id: "ch2_s05_101_toru", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "toru", expression: "serious", position: "right", jp: "一人で？", zh: "你一個人？", audio: "/assets/voice/chapter2/voice_ch2_s05_101_toru.m4a", listeningSection: 5 },
+      { id: "ch2_s05_102_ren", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "ren", expression: "throwshade", position: "left", jp: "そうだよ。もともと会場は俺の担当だし。", zh: "對啊。本來場地就是我負責的。", audio: "/assets/voice/chapter2/voice_ch2_s05_102_ren.m4a", listeningSection: 5 },
+      { id: "ch2_s05_103_toru", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "toru", expression: "serious", position: "right", jp: "だからって、一人で全部やる必要はないだろ。", zh: "就算這樣，也沒必要全部一個人做吧。", audio: "/assets/voice/chapter2/voice_ch2_s05_103_toru.m4a", listeningSection: 5 },
+      { id: "ch2_s05_104_ren", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "ren", expression: "angry", position: "left", jp: "いいって。俺がやるから。", zh: "就說不用了。我來處理。", audio: "/assets/voice/chapter2/voice_ch2_s05_104_ren.m4a", listeningSection: 5 },
+      { id: "ch2_s06_105_ren", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "ren", expression: "angry", position: "left", jp: "俺のミスなんだから、俺が何とかすればいいだろ。", zh: "既然是我的失誤，我自己想辦法不就好了。", audio: "/assets/voice/chapter2/voice_ch2_s06_105_ren.m4a", listeningSection: 5 },
+      { id: "ch2_s06_106_toru", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "toru", expression: "serious", position: "right", jp: "でも――", zh: "可是——", audio: "/assets/voice/chapter2/voice_ch2_s06_106_toru.m4a", listeningSection: 5 },
+      { id: "ch2_s06_107_ren", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "ren", expression: "angry", position: "left", jp: "お前らには関係ねえよ。", zh: "跟你們沒關係。", audio: "/assets/voice/chapter2/voice_ch2_s06_107_ren.m4a", listeningSection: 5 },
+      { id: "ch2_s06_108_toru", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "toru", expression: "sad", position: "right", jp: "……そうかよ。", zh: "……是喔。", audio: "/assets/voice/chapter2/voice_ch2_s06_108_toru.m4a", listeningSection: 5 },
+      { id: "ch2_s06_109_toru", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "toru", expression: "sad", position: "right", jp: "じゃあ、好きにすれば。", zh: "那你就隨便吧。", audio: "/assets/voice/chapter2/voice_ch2_s06_109_toru.m4a", listeningSection: 5 },
+      { id: "ch2_s06_110_misaki", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "misaki", expression: "sad", position: "center", jp: "……今の、ちょっと言いすぎじゃない？", zh: "……你剛才那句，是不是說得有點太過分了？", audio: "/assets/voice/chapter2/voice_ch2_s06_110_misaki.m4a", listeningSection: 5 },
+      { id: "ch2_s06_111_ren", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "ren", expression: "angry", position: "left", jp: "……なんだよ、あいつ。", zh: "……那傢伙是怎樣。", audio: "/assets/voice/chapter2/voice_ch2_s06_111_ren.m4a", listeningSection: 5 },
+      { id: "ch2_s06_112_misaki", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "misaki", expression: "serious", position: "center", jp: "蓮は『自分で何とかする』って意味で言ったのかもしれないけど。", zh: "蓮可能只是想表達「我要自己想辦法」。", audio: "/assets/voice/chapter2/voice_ch2_s06_112_misaki.m4a", listeningSection: 5 },
+      { id: "ch2_s06_113_misaki", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "misaki", expression: "sad", position: "center", jp: "でも、『お前らには関係ない』って言われたら、一緒にやってる側はどう思うかな。", zh: "可是，如果被說「跟你們沒關係」，一起努力的人會怎麼想呢。", audio: "/assets/voice/chapter2/voice_ch2_s06_113_misaki.m4a", listeningSection: 5 },
+      { id: "ch2_s06_114_ren", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "ren", expression: "surprised", position: "left", jp: "……。", zh: "……。", audio: null, listeningSection: 5 },
+      { id: "ch2_s06_115_misaki", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "misaki", expression: "sad", position: "center", jp: "いつも言ってるからって、相手が平気とは限らないでしょ。", zh: "就算平常總是這樣說，也不代表對方一定不會受傷吧。", audio: "/assets/voice/chapter2/voice_ch2_s06_115_misaki.m4a", listeningSection: 5 },
+      { id: "ch2_s06_116_ren", type: "dialogue", bg: "2年B班 教室 (放學後)", speaker: "ren", expression: "sad", position: "left", jp: "……。", zh: "……。", audio: null, listeningSection: 5 },
+      { type: "quiz", id: "ch2_q5", listeningSection: 5 }
+    ]
   }
 };
 
@@ -1687,6 +1844,76 @@ const QUIZZES = {
         jpOriginal: "いつもなら、まず文句言うだろ。", zhTrans: "照常理你應該先抱怨才對。",
         words: "素直に(坦率地)、褒める(稱讚)、珍しい(少見)、文句(抱怨)、からかう(調侃)", explanation: "正確答案為 B。"
       }
+    }
+  }  ,
+  "ch2_q1": {
+    quizNumber: 1, type: "聽力理解任務", section: 1,
+    question: "蓮が多目的室について実際にしたことは何ですか。", trustTarget: "toru",
+    options: [
+      { text: "A. 文化祭当日の使用予約をした。", isCorrect: false },
+      { text: "B. 使用申請書を提出した。", isCorrect: false },
+      { text: "C. 多目的室が空いていることを確認した。", isCorrect: true },
+      { text: "D. 先生から使用の許可をもらった。", isCorrect: false }
+    ],
+    feedback: {
+      correct: { title: "正解！ (C)", story: "蓮がしたのは、会場が空いているかを見に行ったことだけでした。", jpOriginal: "多目的室。さっき見てきた。", zhTrans: "多功能教室。我剛才去看過了。", words: "押さえる(預訂／確保)、予約(預約)、空いている(空著)", explanation: "蓮は予約や申請をしておらず、多目的室が空いていることを確認しただけです。" },
+      wrong: { title: "不正解！ (正確答案為 C)", story: "『見てきた』と『予約した』の違いがポイントです。", jpOriginal: "……見てきた。", zhTrans: "……我去看過了。", words: "予約(預約)、確認する(確認)", explanation: "実際にしたのは、多目的室が空いていることの確認です。" }
+    }
+  },
+  "ch2_q2": {
+    quizNumber: 2, type: "聽力理解任務", section: 2,
+    question: "佐藤先生がプレイヤーに頼んだことは何ですか。", trustTarget: "sato",
+    options: [
+      { text: "A. 田中先生が会議中だと蓮に伝えること。", isCorrect: false },
+      { text: "B. 蓮に、今日中に使用申請書を出すよう伝えること。", isCorrect: true },
+      { text: "C. 蓮の代わりに使用申請書を提出すること。", isCorrect: false },
+      { text: "D. 田中先生が戻るまで職員室で待つこと。", isCorrect: false }
+    ],
+    feedback: {
+      correct: { title: "正解！ (B)", story: "佐藤先生からの伝言内容を正確に聞き取れました。", jpOriginal: "今日中に使用申請書を提出してください", zhTrans: "請在今天之內提交使用申請書。", words: "伝言(傳話)、使用申請書(使用申請書)、提出する(提交)", explanation: "プレイヤーは、蓮に今日中の申請書提出を伝えるよう頼まれました。" },
+      wrong: { title: "不正解！ (正確答案為 B)", story: "会議の話ではなく、田中先生が戻った後の伝言が重要です。", jpOriginal: "そうお伝えください。", zhTrans: "請你這樣轉告他。", words: "伝える(轉告)、今日中(今天之內)", explanation: "頼まれたのは、蓮に今日中の提出を伝えることです。" }
+    }
+  },
+  "ch2_q3": {
+    quizNumber: 3, type: "聽力理解任務", section: 3,
+    question: "透が美咲のポスターを『脅迫状』と言ったのはなぜですか。", trustTarget: "toru",
+    options: [
+      { text: "A. ポスターに文化祭の日付が書かれていなかったから。", isCorrect: false },
+      { text: "B. ポスターが怖すぎて、イベントの宣伝らしく見えなかったから。", isCorrect: true },
+      { text: "C. 美咲が誰にも相談せずにポスターを作ったから。", isCorrect: false },
+      { text: "D. ポスターに校内ミッションラリーと書かれていなかったから。", isCorrect: false }
+    ],
+    feedback: {
+      correct: { title: "正解！ (B)", story: "透の『脅迫状』は、ポスターの怖すぎる見た目へのツッコミです。", jpOriginal: "宣伝というより、脅迫状だな。", zhTrans: "與其說是宣傳，不如說像恐嚇信。", words: "宣伝(宣傳)、脅迫状(恐嚇信)、インパクト(衝擊力)", explanation: "ポスターが怖く、普通のイベント宣伝に見えなかったためです。" },
+      wrong: { title: "不正解！ (正確答案為 B)", story: "透が問題にしているのはポスターの雰囲気です。", jpOriginal: "宣伝というより、脅迫状だな。", zhTrans: "與其說是宣傳，不如說像恐嚇信。", words: "脅迫状(恐嚇信)、宣伝(宣傳)", explanation: "日付や相談の有無ではなく、怖すぎる見た目が理由です。" }
+    }
+  },
+  "ch2_q4": {
+    quizNumber: 4, type: "聽力理解任務", section: 4,
+    question: "佐藤先生は、文化祭当日の参加についてどのように答えましたか。", trustTarget: "sato",
+    options: [
+      { text: "A. 午前中から必ず参加すると答えた。", isCorrect: false },
+      { text: "B. 午前中は難しいが、午後なら参加できる可能性があると答えた。", isCorrect: true },
+      { text: "C. 見回りがあるため、一日中参加できないと断った。", isCorrect: false },
+      { text: "D. 午後の見回りが終わったら、必ず参加すると答えた。", isCorrect: false }
+    ],
+    feedback: {
+      correct: { title: "正解！ (B)", story: "『かもしれません』が示す不確定さまで聞き取れています。", jpOriginal: "午後でしたら、時間が取れるかもしれません。", zhTrans: "如果是下午的話，也許能抽出時間。", words: "見回り(巡視)、午後(下午)、かもしれない(也許)", explanation: "午前中は見回りがあり、午後は参加できる可能性があるという回答です。" },
+      wrong: { title: "不正解！ (正確答案為 B)", story: "先生は参加を確約していません。", jpOriginal: "時間が取れるかもしれません。", zhTrans: "也許能抽出時間。", words: "かもしれない(也許)、都合(時間安排)", explanation: "『かもしれない』なので、午後の参加はまだ確定ではありません。" }
+    }
+  },
+  "ch2_q5": {
+    quizNumber: 5, type: "聽力理解任務", section: 5,
+    question: "蓮が『お前らには関係ねえよ』と言ったとき、本当に伝えたかったことに最も近いものはどれですか。", trustTarget: "ren",
+    options: [
+      { text: "A. この企画にはもう誰にも関わってほしくない。", isCorrect: false },
+      { text: "B. 会場のことは自分のミスだから、自分で何とかしたい。", isCorrect: true },
+      { text: "C. 透たちは文化祭の準備を何もしていない。", isCorrect: false },
+      { text: "D. 校内ミッションラリーをやめたい。", isCorrect: false }
+    ],
+    feedback: {
+      correct: { title: "正解！ (B)", story: "言葉そのものではなく、蓮がその直前に伝えようとしていた意図を理解できました。", jpOriginal: "俺のミスなんだから、俺が何とかすればいいだろ。", zhTrans: "既然是我的失誤，我自己想辦法不就好了。", words: "ミス(失誤)、何とかする(想辦法處理)、関係ない(沒有關係)", explanation: "蓮は仲間を拒絶したかったのではなく、自分の失敗を自分で処理しようとしていました。" },
+      wrong: { title: "不正解！ (正確答案為 B)", story: "美咲の説明と、蓮が直前に言った内容を合わせて考えるのがポイントです。", jpOriginal: "蓮は『自分で何とかする』って意味で言ったのかもしれないけど。", zhTrans: "蓮可能只是想表達『我要自己想辦法』。", words: "意味(意思)、関係ない(沒關係)、平気(不在意／沒事)", explanation: "本意は『自分のミスだから自分で何とかしたい』に最も近いです。" }
     }
   }
 };
@@ -2380,6 +2607,7 @@ const MAIN_AUDIO = {
 
   ambSchoolMorning: "assets/se/amb_school_morning.ogg",
   seSchoolBell: "assets/se/se_school_bell.ogg",
+  seDoorClose: "assets/se/se_door_close.ogg",
 
   seChoiceOpen: "assets/se/se_choice_open.ogg",
   seChoiceSelect: "assets/se/se_choice_select.ogg",
@@ -4262,7 +4490,7 @@ function hasValidStorySave() {
   try {
     const data = JSON.parse(raw);
     if (!data.hasValidSave) return false;
-    const hasProgress = (data.currentStepIndex && data.currentStepIndex > 0) || data.isCleared || (data.completedSections && data.completedSections.length > 0);
+    const hasProgress = Number(data.currentChapter || 1) > 1 || (data.currentStepIndex && data.currentStepIndex > 0) || data.isCleared || (data.completedSections && data.completedSections.length > 0);
     return !!hasProgress;
   } catch (e) {
     return false;
@@ -4510,6 +4738,7 @@ function loadGameData() {
 
     gameState.hasValidSave = true;
     gameState.currentChapter = data.currentChapter || 1;
+    gameState.totalQuizzes = CHAPTER_DATA[gameState.currentChapter]?.totalQuizzes || 5;
     gameState.currentStepIndex = data.currentStepIndex || 0;
     gameState.score = data.score || 0;
     gameState.trustPoints = data.trustPoints || { ren: 0, toru: 0, sato: 0 };
@@ -4972,7 +5201,23 @@ function renderDialogueStep(stepData) {
   stopActiveAudio("renderDialogueStep", stepData.id);
 
 
-  if (stepData.listeningSection === 1) {
+  if (gameState.currentChapter === 2) {
+    stopMorningAmbient();
+
+    if (stepData.listeningSection >= 1 && stepData.listeningSection <= 4) {
+      playMainBgm(MAIN_AUDIO.bgmSchoolDay);
+    } else if (stepData.listeningSection === 5) {
+      if (stepData.id === "ch2_s06_107_ren") {
+        stopMainBgm(700);
+      } else if (!stepData.id.startsWith("ch2_s06_")) {
+        playMainBgm(MAIN_AUDIO.bgmDaily);
+      }
+    }
+
+    if (stepData.id === "ch2_s06_110_misaki") {
+      playMainSe(MAIN_AUDIO.seDoorClose);
+    }
+  } else if (stepData.listeningSection === 1) {
     startMorningAmbient();
     playMainBgm(MAIN_AUDIO.bgmDaily);
   } else if (
@@ -5124,6 +5369,7 @@ function handleAnswer(selectedOpt, quizData, optionIndex) {
   const isCorrect = selectedOpt.isCorrect;
   
   const isQ4ExtraD =
+    gameState.currentChapter === 1 &&
     quizData.quizNumber === 4 &&
     optionIndex === 3;
 
@@ -5267,6 +5513,10 @@ function playChapterTransition(nextChapter, callback) {
       gameState.currentListeningSection = 1;
       gameState.completedSections = [];
       gameState.scoredSections = [];
+      gameState.wrongQuestions = [];
+      gameState.score = 0;
+      gameState.isCleared = false;
+      gameState.totalQuizzes = CHAPTER_DATA[nextChapter]?.totalQuizzes || 5;
       gameState.hasValidSave = true;
       
       saveGameData();
@@ -5289,6 +5539,10 @@ function playChapterTransition(nextChapter, callback) {
     gameState.currentListeningSection = 1;
     gameState.completedSections = [];
     gameState.scoredSections = [];
+    gameState.wrongQuestions = [];
+    gameState.score = 0;
+    gameState.isCleared = false;
+    gameState.totalQuizzes = CHAPTER_DATA[nextChapter]?.totalQuizzes || 5;
     gameState.hasValidSave = true;
     saveGameData();
     updateHUD();
@@ -5585,14 +5839,31 @@ function renderEnding() {
   const { ren, toru, sato } = gameState.trustPoints;
   if (elements.trustSummaryText) elements.trustSummaryText.innerText = `蓮: ${ren} | 透: ${toru} | 佐藤先生: ${sato}`;
 
-  if (elements.endingBadgeTag) elements.endingBadgeTag.innerText = "CHAPTER 1 CLEAR";
-  if (elements.endingTitle) elements.endingTitle.innerText = "第一章完結：不良たちの日本語講座！";
-  if (elements.endingEvalText) {
-    elements.endingEvalText.innerHTML = formatTextWithPlayer(
-      "【第一章測驗全部完成！】：\n" +
-      "順利通過全部 5 項聽力任務！{{playerName}}{{playerHonorific}} 成功協助蓮與透完成了文化祭企劃！\n\n" +
-      "第一章已順利完成！您可以點擊下方按鈕返回標題畫面，或查看聽力回顧。"
-    );
+  const clearedChapter = gameState.currentChapter;
+  const restartBtn = document.getElementById("btn-restart");
+
+  if (clearedChapter === 1) {
+    if (elements.endingBadgeTag) elements.endingBadgeTag.innerText = "CHAPTER 1 CLEAR";
+    if (elements.endingTitle) elements.endingTitle.innerText = "第一章完結：誰把我們的班級交給這兩個人了？";
+    if (elements.endingEvalText) {
+      elements.endingEvalText.innerHTML = formatTextWithPlayer(
+        "【第一章測驗全部完成！】：\n" +
+        "順利通過全部 5 項聽力任務！{{playerName}}{{playerHonorific}} 成功和蓮、透、美咲一起確定文化祭企劃！\n\n" +
+        "下一章將進入文化祭準備階段。"
+      );
+    }
+    if (restartBtn) restartBtn.innerText = "進入第二章";
+  } else if (clearedChapter === 2) {
+    if (elements.endingBadgeTag) elements.endingBadgeTag.innerText = "CHAPTER 2 CLEAR";
+    if (elements.endingTitle) elements.endingTitle.innerText = "第二章完結：每個人說的都不是同一件事";
+    if (elements.endingEvalText) {
+      elements.endingEvalText.innerHTML = formatTextWithPlayer(
+        "【第二章測驗全部完成！】：\n" +
+        "順利通過全部 5 項聽力任務。文化祭準備卻因為場地問題與一句脫口而出的話，留下了新的裂痕。\n\n" +
+        "――文化祭まで、あと三週間。"
+      );
+    }
+    if (restartBtn) restartBtn.innerText = "返回標題畫面";
   }
 
   showScreen('ending');
@@ -6099,10 +6370,19 @@ document.addEventListener('click', (event) => {
 
   bindClick('btn-back-to-title', () => showScreen('title'));
   bindClick('btn-restart', () => {
-    saveGameData();
     stopAllTypewriters();
     stopActiveAudio("restartButton", "restart");
     removeReplayAudioButton("restartButton");
+
+    if (gameState.currentChapter === 1 && gameState.isCleared === true) {
+      playChapterTransition(2, () => {
+        playMainSe(MAIN_AUDIO.seSchoolBell);
+        renderDialogueStep(CHAPTER_DATA[2].steps[0]);
+      });
+      return;
+    }
+
+    saveGameData();
     showScreen('title');
     updateTitleScreenButtons();
   });
@@ -6137,8 +6417,8 @@ document.addEventListener('click', (event) => {
     const quiz = QUIZZES[gameState.currentQuizId];
     const qNum = quiz ? quiz.quizNumber : 1;
 
-    // 若為 Q1，立即鎖定轉場並關閉 UI
-    if (qNum === 1) {
+    // 第一章 Q1 保留原本的鐘聲黑畫面轉場。
+    if (gameState.currentChapter === 1 && qNum === 1) {
       isMainStoryTransitioning = true;
     }
 
@@ -6146,7 +6426,11 @@ document.addEventListener('click', (event) => {
     if (elements.quizOverlay) elements.quizOverlay.classList.add('hidden');
     if (elements.choiceOverlay) elements.choiceOverlay.classList.add('hidden');
 
-    if (qNum === 1) {
+    if (gameState.currentChapter === 2) {
+      setMainBgmDucked(false);
+    }
+
+    if (gameState.currentChapter === 1 && qNum === 1) {
       setMainBgmDucked(false);
       stopMorningAmbient(700);
       stopMainBgm(700);
@@ -6154,7 +6438,9 @@ document.addEventListener('click', (event) => {
       setMainBgmDucked(false);
     } else if (qNum === 4) {
       setMainBgmDucked(false);
-      stopMainBgm(700);
+      if (gameState.currentChapter === 1) {
+        stopMainBgm(700);
+      }
     }
 
     stopAllTypewriters();
@@ -6164,15 +6450,24 @@ document.addEventListener('click', (event) => {
     const chapterData = CHAPTER_DATA[gameState.currentChapter];
     let nextStepIdx = -1;
 
-    if (qNum === 1) {
-      nextStepIdx = chapterData.steps.findIndex(s => s.id === "ch1_s02_015_sato");
-    } else if (qNum === 2) {
-  nextStepIdx = chapterData.steps.findIndex(s => s.id === "ch1_s02_028_ren");
-} else if (qNum === 3) {
-      nextStepIdx = chapterData.steps.findIndex(s => s.id === "ch1_s03_033_sato");
-    } else if (qNum === 4) {
-      nextStepIdx = chapterData.steps.findIndex(s => s.id === "ch1_s03_055_ren");
-    } else if (qNum === 5) {
+    if (gameState.currentChapter === 1) {
+      if (qNum === 1) {
+        nextStepIdx = chapterData.steps.findIndex(s => s.id === "ch1_s02_015_sato");
+      } else if (qNum === 2) {
+        nextStepIdx = chapterData.steps.findIndex(s => s.id === "ch1_s02_028_ren");
+      } else if (qNum === 3) {
+        nextStepIdx = chapterData.steps.findIndex(s => s.id === "ch1_s03_033_sato");
+      } else if (qNum === 4) {
+        nextStepIdx = chapterData.steps.findIndex(s => s.id === "ch1_s03_055_ren");
+      }
+    } else {
+      const currentQuizIndex = chapterData.steps.findIndex(
+        s => s.type === "quiz" && s.id === gameState.currentQuizId
+      );
+      nextStepIdx = currentQuizIndex >= 0 ? currentQuizIndex + 1 : -1;
+    }
+
+    if (qNum === 5) {
       isMainStoryTransitioning = false;
       renderEnding();
       return;
@@ -6208,7 +6503,7 @@ document.addEventListener('click', (event) => {
       isMainStoryTransitioning = false;
     };
 
-    if (qNum === 1) {
+    if (gameState.currentChapter === 1 && qNum === 1) {
   const dialogueBoxEl = document.getElementById('vn-dialogue-box');
 
   const gameplayLayers = [
