@@ -4833,15 +4833,35 @@ function stopActiveAudio(reason = "manual_stop", dialogueId = "unknown") {
    iOS Audio Unlock & Playback Utility
    ========================================================================== */
 
+/*
+ * iOS user-gesture unlock channel.
+ *
+ * IMPORTANT: this must be ONE reusable HTMLAudioElement.
+ * The old implementation created a brand-new data-URI Audio on every
+ * dialogue / UI click. On iOS/iPadOS that can accumulate media-player
+ * resources even after pause(), causing progressive whole-page slowdown.
+ */
+let iosSilentUnlockAudio = null;
+
 function unlockAudioContextIOS() {
   try {
-    const silentAudio = new Audio();
-    silentAudio.src = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=";
-    const promise = silentAudio.play();
+    if (!iosSilentUnlockAudio) {
+      iosSilentUnlockAudio = new Audio();
+      iosSilentUnlockAudio.preload = "auto";
+      iosSilentUnlockAudio.src = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=";
+    }
+
+    try {
+      iosSilentUnlockAudio.currentTime = 0;
+    } catch (e) {}
+
+    const promise = iosSilentUnlockAudio.play();
     if (promise && typeof promise.then === "function") {
       promise.then(() => {
-        silentAudio.pause();
-        silentAudio.currentTime = 0;
+        try {
+          iosSilentUnlockAudio.pause();
+          iosSilentUnlockAudio.currentTime = 0;
+        } catch (e) {}
       }).catch(() => {});
     }
   } catch (e) {}
