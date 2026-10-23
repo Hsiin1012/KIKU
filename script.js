@@ -5639,9 +5639,9 @@ function renderDialogueStep(stepData) {
 
   // 海報單獨展示期間隱藏整個對話 UI。
   const dialogueBox = document.querySelector(".vn-dialogue-box");
-  if (dialogueBox) {
-    dialogueBox.style.display = "none";
-  }
+if (dialogueBox) {
+  dialogueBox.style.opacity = "0";
+}
 
   // CG 展示期間不顯示人物立繪，也暫時鎖住點擊避免跳過演出。
   [elements.spriteLeft, elements.spriteCenter, elements.spriteRight]
@@ -6538,9 +6538,9 @@ function handleDialogueBoxClick(e) {
   isChapter2PosterAwaitingReveal = false;
 
   const dialogueBox = document.querySelector(".vn-dialogue-box");
-  if (dialogueBox) {
-    dialogueBox.style.display = "";
-  }
+if (dialogueBox) {
+  dialogueBox.style.opacity = "";
+}
 
   typeWriterText(
     elements.dialogueJp,
@@ -7190,6 +7190,23 @@ document.addEventListener('click', (event) => {
   if (dialogueBoxEl) {
     dialogueBoxEl.onclick = handleDialogueBoxClick;
   }
+
+  // Chapter 2 Scene 03 海報 CG：震動結束後，整個遊戲畫面都可以點擊進入 046。
+  // 對話框本身已有 onclick；它會 stopPropagation()，所以這裡只補接對話框以外的點擊。
+  document.addEventListener('click', (event) => {
+    if (!isChapter2PosterAwaitingReveal) return;
+    if (isMainStoryTransitioning) return;
+
+    const chapterData = CHAPTER_DATA[gameState.currentChapter];
+    const currentStep = chapterData?.steps?.[gameState.currentStepIndex];
+
+    if (!currentStep || currentStep.id !== "ch2_s03_046_misaki") return;
+
+    // HUD／設定等操作元件維持自己的功能，不拿來觸發海報繼續。
+    if (event.target.closest('button, input, select, textarea, a')) return;
+
+    handleDialogueBoxClick(event);
+  });
 
   if (elements.cfgBgmSlider) {
   elements.cfgBgmSlider.oninput = (e) => {
