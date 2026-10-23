@@ -104,6 +104,7 @@
                     <button id="btn-extra-collection" class="vn-btn secondary"><span class="btn-zh">收藏</span><span class="btn-en">(Collection)</span></button>
                     <button id="btn-title-config" class="vn-btn secondary"><span class="btn-zh">設定</span> <span class="btn-en">(Config)</span></button>
                     <button id="btn-review" class="vn-btn secondary hidden"><span class="btn-zh">聽力回顧</span> <span class="btn-en">(Review)</span></button>
+                    <button id="btn-debug-jump" class="vn-btn secondary" type="button" style="border-style:dashed;"><span class="btn-zh">DEBUG 快速測試</span> <span class="btn-en">(Test Jump)</span></button>
                 </div>
             </div>
         </div>
@@ -831,7 +832,26 @@
 
     </div>
 
+
+    <!-- TEMP DEBUG PANEL: remove after mobile performance diagnosis -->
+    <div id="debug-jump-panel" class="vn-overlay-backdrop hidden" style="z-index:99999;">
+      <div class="confirm-modal-card" style="background:#1e293b;padding:22px;border-radius:12px;width:min(92vw,520px);max-height:82vh;overflow-y:auto;color:#f8fafc;">
+        <h3 style="margin:0 0 8px;">DEBUG 快速測試</h3>
+        <p style="margin:0 0 14px;color:#cbd5e1;font-size:.9rem;line-height:1.6;">不會覆寫正式存檔。請直接跳到容易卡頓的位置測 Voice / BGM / SE。</p>
+        <div id="debug-status" style="margin-bottom:14px;padding:10px;background:rgba(255,255,255,.07);border-radius:8px;font-size:.82rem;line-height:1.55;"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <button class="vn-btn secondary" data-debug-chapter="1" data-debug-section="5">Ch1 Section 5</button>
+          <button class="vn-btn secondary" data-debug-chapter="2" data-debug-section="1">Ch2 Section 1</button>
+          <button class="vn-btn secondary" data-debug-chapter="2" data-debug-section="2">Ch2 Section 2</button>
+          <button class="vn-btn secondary" data-debug-chapter="2" data-debug-section="3">Ch2 Section 3</button>
+          <button class="vn-btn secondary" data-debug-chapter="2" data-debug-section="4">Ch2 Section 4</button>
+          <button class="vn-btn secondary" data-debug-chapter="2" data-debug-section="5">Ch2 Section 5</button>
+        </div>
+        <button id="btn-debug-close" class="vn-btn primary" type="button" style="width:100%;margin-top:14px;">關閉</button>
+      </div>
+    </div>
+
     <!-- 遊戲主邏輯腳本 -->
-    <script src="script.js?v=20261024-fix17"></script>
+    <script src="script.js?v=20261024-debug18"></script>
 </body>
 </html>

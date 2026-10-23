@@ -4916,6 +4916,10 @@ function removeReplayAudioButton(reason = "cleanup") {
 }
 
 function saveGameData() {
+  if (window.__KIKU_DEBUG_SESSION__ === true) {
+    return;
+  }
+
   const saveData = {
     hasValidSave: gameState.hasValidSave,
     currentChapter: gameState.currentChapter,
@@ -8276,3 +8280,114 @@ document.addEventListener("DOMContentLoaded", () => {
   showScreen('title');
 });
 
+
+
+/* ==========================================================================
+   TEMP DEBUG QUICK JUMP - mobile performance diagnosis only
+   ========================================================================== */
+function getDebugSectionStartIndex(chapterNumber, sectionNumber) {
+  const chapterData = CHAPTER_DATA[chapterNumber];
+  if (!chapterData || !Array.isArray(chapterData.steps)) return -1;
+
+  return chapterData.steps.findIndex(step =>
+    step &&
+    step.type === "dialogue" &&
+    Number(step.listeningSection) === Number(sectionNumber)
+  );
+}
+
+function updateDebugStatusPanel() {
+  const box = document.getElementById("debug-status");
+  if (!box) return;
+
+  let mobileAudioPreloadOff = false;
+  try {
+    mobileAudioPreloadOff = shouldSkipBackgroundAudioPreload();
+  } catch (e) {}
+
+  const voiceState =
+    voiceAudioContext ? voiceAudioContext.state : "none";
+  const mainState =
+    mainBgmAudioContext ? mainBgmAudioContext.state : "none";
+
+  box.innerHTML =
+    `Mobile audio preload: <strong>${mobileAudioPreloadOff ? "OFF" : "ON"}</strong><br>` +
+    `Voice AudioContext: <strong>${voiceState}</strong><br>` +
+    `Main AudioContext: <strong>${mainState}</strong><br>` +
+    `Staged sections: <strong>${stagedPreloadState.sections.size}</strong>`;
+}
+
+function debugJumpToStorySection(chapterNumber, sectionNumber) {
+  const chapter = Number(chapterNumber);
+  const section = Number(sectionNumber);
+  const startIndex = getDebugSectionStartIndex(chapter, section);
+
+  if (startIndex < 0) {
+    console.warn("[DEBUG JUMP] section not found", chapter, section);
+    return;
+  }
+
+  window.__KIKU_DEBUG_SESSION__ = true;
+
+  stopAllTypewriters();
+  stopActiveAudio("debugJumpToStorySection", `${chapter}:${section}`);
+  stopParallelVoices();
+  stopMorningAmbient();
+  stopExtraBgm(0);
+  stopMainBgm(0);
+  removeReplayAudioButton("debugJumpToStorySection");
+
+  gameState.hasValidSave = true;
+  gameState.currentChapter = chapter;
+  gameState.currentStepIndex = startIndex;
+  gameState.totalQuizzes = CHAPTER_DATA[chapter]?.totalQuizzes || 5;
+  gameState.isCleared = false;
+  gameState.currentQuizId = null;
+  gameState.currentListeningSection = section;
+  gameState.listeningState = "BLIND_LISTENING";
+
+  const panel = document.getElementById("debug-jump-panel");
+  if (panel) panel.classList.add("hidden");
+
+  showScreen("gameplay");
+  updateHUD();
+  renderDialogueStep(CHAPTER_DATA[chapter].steps[startIndex]);
+
+  console.info("[DEBUG JUMP]", { chapter, section, startIndex });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const openBtn = document.getElementById("btn-debug-jump");
+  const panel = document.getElementById("debug-jump-panel");
+  const closeBtn = document.getElementById("btn-debug-close");
+
+  if (openBtn && panel) {
+    openBtn.addEventListener("click", event => {
+      event.preventDefault();
+      event.stopPropagation();
+      unlockAudioContextIOS();
+      updateDebugStatusPanel();
+      panel.classList.remove("hidden");
+    });
+  }
+
+  if (closeBtn && panel) {
+    closeBtn.addEventListener("click", event => {
+      event.preventDefault();
+      event.stopPropagation();
+      panel.classList.add("hidden");
+    });
+  }
+
+  document.querySelectorAll("[data-debug-chapter][data-debug-section]").forEach(button => {
+    button.addEventListener("click", event => {
+      event.preventDefault();
+      event.stopPropagation();
+      unlockAudioContextIOS();
+      debugJumpToStorySection(
+        button.dataset.debugChapter,
+        button.dataset.debugSection
+      );
+    });
+  });
+});
