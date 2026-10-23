@@ -15,6 +15,7 @@ const CHARACTERS = {
   "sato": { name: "佐藤先生", title: "班導師", color: "#9c88ff", image: null },
   "misaki": { name: "小林 美咲", title: "班級情報通", color: "#fbc531", image: null },
   "teacher_other": { name: "其他老師", title: "校內教師", color: "#718093", image: null },
+  "narrator": { name: "旁白", title: "", color: "#718093", image: null },
   "player": {
     get name() { return gameState.playerName || "転校生"; },
     title: "轉學生",
@@ -1303,6 +1304,7 @@ const CHAPTER_DATA = {
       { id: "ch2_s02_027_sato", type: "dialogue", bg: "職員室", speaker: "sato", expression: "normal", position: "center", jp: "あ、鬼塚くん。急ぎなら、伝言を――", zh: "啊，鬼塚同學。如果很急的話，我可以幫你傳話——", audio: "/assets/voice/chapter2/voice_ch2_s02_027_sato.m4a", listeningSection: 2 },
       { id: "ch2_s02_028_ren", type: "dialogue", bg: "職員室", speaker: "ren", expression: "smile", position: "left", jp: "大丈夫です！　また来ます！", zh: "沒關係！我等等再來！", audio: "/assets/voice/chapter2/voice_ch2_s02_028_ren.m4a", listeningSection: 2 },
       { id: "ch2_s02_029_sato", type: "dialogue", bg: "職員室", speaker: "sato", expression: "sigh", position: "center", jp: "……最後まで聞いてください。", zh: "……請聽人家說完。", audio: "/assets/voice/chapter2/voice_ch2_s02_029_sato.m4a", listeningSection: 2 },
+      { id: "ch2_s02_time_001", type: "narrative", bg: "職員室", speaker: "narrator", expression: "normal", position: null, jp: "――少しして。", zh: "――過了一會兒。", audio: null, listeningSection: 2 },
       { id: "ch2_player_002", type: "dialogue", bg: "職員室", speaker: "player", expression: "溫和微笑", position: "center", jp: "失礼します。佐藤先生、この資料を持ってきました。", zh: "打擾了。佐藤老師，我把這份資料拿來了。", audio: null, listeningSection: 2 },
       { id: "ch2_s02_030_sato", type: "dialogue", bg: "職員室", speaker: "sato", expression: "smile", position: "center", jp: "ああ、ありがとうございます。", zh: "啊，謝謝你。", audio: "/assets/voice/chapter2/voice_ch2_s02_030_sato.m4a", listeningSection: 2 },
       { id: "ch2_s02_031_sato", type: "dialogue", bg: "職員室", speaker: "sato", expression: "normal", position: "center", jp: "そういえば、鬼塚くんは教室にいますか？", zh: "對了，鬼塚同學在教室嗎？", audio: "/assets/voice/chapter2/voice_ch2_s02_031_sato.m4a", listeningSection: 2 },
@@ -5284,13 +5286,25 @@ function renderDialogueStep(stepData) {
   if (elements.vnNameplate) elements.vnNameplate.style.backgroundColor = speaker.color;
 
   const isPlayer = (stepData.speaker === "player");
+  const isNarrative = (stepData.type === "narrative" || stepData.speaker === "narrator");
   const subtitlesEnabled = ((gameSettings.chineseSubtitle || "on") === 'on');
 
   if (elements.dialogueJp) {
     elements.dialogueJp.style.display = "block";
   }
 
-  if (isPlayer) {
+  if (isNarrative) {
+    typeWriterText(elements.dialogueJp, stepData.jp);
+    if (elements.dialogueJp) elements.dialogueJp.style.display = "block";
+
+    if (subtitlesEnabled && stepData.zh) {
+      typeWriterText(elements.dialogueZh, stepData.zh);
+      if (elements.dialogueZh) elements.dialogueZh.style.display = "block";
+    } else if (elements.dialogueZh) {
+      elements.dialogueZh.innerHTML = "";
+      elements.dialogueZh.style.display = "none";
+    }
+  } else if (isPlayer) {
     typeWriterText(elements.dialogueJp, stepData.jp);
     if (elements.dialogueJp) elements.dialogueJp.style.display = "block";
 
@@ -5327,9 +5341,7 @@ function renderDialogueStep(stepData) {
             playVoiceAudio(
               stepData.audio,
               stepData.id,
-              stepData.id === "ch2_s06_109_toru"
-                ? () => playMainSe(MAIN_AUDIO.seDoorClose)
-                : undefined
+              undefined
             );
           }
 
@@ -5339,9 +5351,7 @@ function renderDialogueStep(stepData) {
         playVoiceAudio(
           stepData.audio,
           stepData.id,
-          stepData.id === "ch2_s06_109_toru"
-            ? () => playMainSe(MAIN_AUDIO.seDoorClose)
-            : undefined
+          undefined
         );
       }
     }
@@ -5597,70 +5607,33 @@ function playChapterTransition(nextChapter, callback) {
   }
 }
 
-function playChapter2ShortTimeTransition(callback) {
-  const oldOverlay = document.getElementById("ch2-short-time-transition");
-  if (oldOverlay) oldOverlay.remove();
-
-  const overlay = document.createElement("div");
-  overlay.id = "ch2-short-time-transition";
-  overlay.style.cssText = [
-    "position:fixed",
-    "inset:0",
-    "z-index:9998",
-    "display:flex",
-    "align-items:center",
-    "justify-content:center",
-    "background:#000",
-    "color:#f8f4ee",
-    "font-size:clamp(1rem,2.2vw,1.35rem)",
-    "letter-spacing:.12em",
-    "opacity:0",
-    "transition:opacity 500ms ease",
-    "pointer-events:auto"
-  ].join(";");
-  overlay.textContent = "――少しして。";
-
-  document.body.appendChild(overlay);
-
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      overlay.style.opacity = "1";
-    });
-  });
-
-  setTimeout(() => {
-    overlay.style.opacity = "0";
-
-    setTimeout(() => {
-      overlay.remove();
-      if (typeof callback === "function") callback();
-    }, 500);
-  }, 1500);
-}
-
 function nextStep() {
   const chapterData = CHAPTER_DATA[gameState.currentChapter];
   const currentStep = chapterData.steps[gameState.currentStepIndex];
 
-  // Chapter 2 Scene 02：佐藤先生の「最後まで聞いてください。」後は
-  // 少し時間が経過してからプレイヤーが職員室へ入る。
-  if (
-    currentStep &&
-    currentStep.id === "ch2_s02_029_sato"
-  ) {
-    gameState.currentStepIndex++;
+  // Chapter 2 Scene 06：透最後一句之後，先退場並播放關門聲，
+  // 等 SE 播放完再接美咲，避免台詞直接蓋過關門演出。
+  if (currentStep && currentStep.id === "ch2_s06_109_toru") {
+    if (isMainStoryTransitioning) return;
+    isMainStoryTransitioning = true;
 
-    if (gameState.currentStepIndex >= chapterData.steps.length) {
-      renderEnding();
-      return;
+    stopAllTypewriters();
+    stopActiveAudio("ch2DoorExit", currentStep.id);
+
+    if (elements.spriteRight) {
+      elements.spriteRight.classList.add("hidden");
     }
 
-    const nextStepData = chapterData.steps[gameState.currentStepIndex];
-    updateHUD();
-    saveGameData();
+    playMainSe(MAIN_AUDIO.seDoorClose, () => {
+      gameState.currentStepIndex++;
+      const nextStepData = chapterData.steps[gameState.currentStepIndex];
+      updateHUD();
+      saveGameData();
+      isMainStoryTransitioning = false;
 
-    playChapter2ShortTimeTransition(() => {
-      renderDialogueStep(nextStepData);
+      if (nextStepData) {
+        renderDialogueStep(nextStepData);
+      }
     });
     return;
   }
