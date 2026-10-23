@@ -3779,15 +3779,28 @@ function ensureMainSeWebAudio(audio) {
     }
 
     /*
-     * 建立共用 SE Master Gain
+     * 建立共用 SE Master Gain。
+     *
+     * foreground restore 可能只重建 Main BGM AudioContext。
+     * 此時舊的 mainSeGainNode 仍屬於舊 Context；若直接把
+     * 新 Context 的 MediaElementSource 接上去，就會觸發
+     * "cannot connect to an AudioNode belonging to a different audio context"。
+     *
+     * 因此只要 Context ownership 不一致，就丟棄舊 SE graph，
+     * 在目前的 Main AudioContext 上重建 SE GainNode。
      */
-    if (!mainSeGainNode) {
+    if (
+      !mainSeGainNode ||
+      mainSeGainNode.context !== mainBgmAudioContext
+    ) {
       mainSeGainNode =
         mainBgmAudioContext.createGain();
 
       mainSeGainNode.connect(
         mainBgmAudioContext.destination
       );
+
+      mainSeAudioNodes = new WeakMap();
     }
 
     /*
@@ -5584,9 +5597,73 @@ function playChapterTransition(nextChapter, callback) {
   }
 }
 
+function playChapter2ShortTimeTransition(callback) {
+  const oldOverlay = document.getElementById("ch2-short-time-transition");
+  if (oldOverlay) oldOverlay.remove();
+
+  const overlay = document.createElement("div");
+  overlay.id = "ch2-short-time-transition";
+  overlay.style.cssText = [
+    "position:fixed",
+    "inset:0",
+    "z-index:9998",
+    "display:flex",
+    "align-items:center",
+    "justify-content:center",
+    "background:#000",
+    "color:#f8f4ee",
+    "font-size:clamp(1rem,2.2vw,1.35rem)",
+    "letter-spacing:.12em",
+    "opacity:0",
+    "transition:opacity 500ms ease",
+    "pointer-events:auto"
+  ].join(";");
+  overlay.textContent = "――少しして。";
+
+  document.body.appendChild(overlay);
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      overlay.style.opacity = "1";
+    });
+  });
+
+  setTimeout(() => {
+    overlay.style.opacity = "0";
+
+    setTimeout(() => {
+      overlay.remove();
+      if (typeof callback === "function") callback();
+    }, 500);
+  }, 1500);
+}
+
 function nextStep() {
   const chapterData = CHAPTER_DATA[gameState.currentChapter];
   const currentStep = chapterData.steps[gameState.currentStepIndex];
+
+  // Chapter 2 Scene 02：佐藤先生の「最後まで聞いてください。」後は
+  // 少し時間が経過してからプレイヤーが職員室へ入る。
+  if (
+    currentStep &&
+    currentStep.id === "ch2_s02_029_sato"
+  ) {
+    gameState.currentStepIndex++;
+
+    if (gameState.currentStepIndex >= chapterData.steps.length) {
+      renderEnding();
+      return;
+    }
+
+    const nextStepData = chapterData.steps[gameState.currentStepIndex];
+    updateHUD();
+    saveGameData();
+
+    playChapter2ShortTimeTransition(() => {
+      renderDialogueStep(nextStepData);
+    });
+    return;
+  }
 
   if (currentStep && currentStep.type === "quiz") {
     if (!gameState.completedSections.includes(currentStep.listeningSection)) {
@@ -6410,7 +6487,6 @@ document.addEventListener('click', (event) => {
 
     if (gameState.currentChapter === 1 && gameState.isCleared === true) {
       playChapterTransition(2, () => {
-        playMainSe(MAIN_AUDIO.seSchoolBell);
         renderDialogueStep(CHAPTER_DATA[2].steps[0]);
       });
       return;
