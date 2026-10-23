@@ -5635,10 +5635,16 @@ function renderDialogueStep(stepData) {
    * 下一步玩家台詞會照一般 renderDialogueStep() 自動恢復教室背景。
    */
   if (isChapter2MisakiPosterCg) {
-    const posterSrc = "assets/cg/chapter2/ch2_misaki_poster.webp";
+  const posterSrc = "assets/cg/chapter2/ch2_misaki_poster.webp";
 
-    // CG 展示期間不顯示人物立繪，也暫時鎖住點擊避免跳過演出。
-    [elements.spriteLeft, elements.spriteCenter, elements.spriteRight]
+  // 海報單獨展示期間隱藏整個對話 UI。
+  const dialogueBox = document.querySelector(".vn-dialogue-box");
+  if (dialogueBox) {
+    dialogueBox.style.display = "none";
+  }
+
+  // CG 展示期間不顯示人物立繪，也暫時鎖住點擊避免跳過演出。
+  [elements.spriteLeft, elements.spriteCenter, elements.spriteRight]
       .forEach((sprite) => {
         if (sprite) sprite.classList.add("hidden");
       });
@@ -6525,26 +6531,31 @@ function handleDialogueBoxClick(e) {
   // Chapter 2 Scene 03 海報：震動結束後的第一次點擊只負責進入 046。
   // 同一次點擊不推進下一個 step；顯示與 Voice 都從這次點擊才開始。
   if (
-    isChapter2PosterAwaitingReveal &&
-    currentStep &&
-    currentStep.id === "ch2_s03_046_misaki"
-  ) {
-    isChapter2PosterAwaitingReveal = false;
+  isChapter2PosterAwaitingReveal &&
+  currentStep &&
+  currentStep.id === "ch2_s03_046_misaki"
+) {
+  isChapter2PosterAwaitingReveal = false;
 
-    typeWriterText(
-      elements.dialogueJp,
-      "🎧 [盲聽中... 請仔細聆聽角色語音與情境]"
-    );
-
-    if (currentStep.audio) {
-      playVoiceAudio(
-        currentStep.audio,
-        currentStep.id,
-        undefined
-      );
-    }
-    return;
+  const dialogueBox = document.querySelector(".vn-dialogue-box");
+  if (dialogueBox) {
+    dialogueBox.style.display = "";
   }
+
+  typeWriterText(
+    elements.dialogueJp,
+    "🎧 [盲聽中... 請仔細聆聽角色語音與情境]"
+  );
+
+  if (currentStep.audio) {
+    playVoiceAudio(
+      currentStep.audio,
+      currentStep.id,
+      undefined
+    );
+  }
+  return;
+}
 
   if (currentStep && currentStep.type === "quiz") {
     if (gameState.completedSections.includes(currentStep.listeningSection)) {
