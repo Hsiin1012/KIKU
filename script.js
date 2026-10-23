@@ -4373,6 +4373,37 @@ function getAvailableMainSeChannel() {
   return audio;
 }
 
+function releaseMainSeAudioElement(audio, reason = "cleanup") {
+  if (!audio) return;
+
+  audio.onended = null;
+  audio.onerror = null;
+
+  try {
+    audio.pause();
+  } catch (e) {}
+
+  const source = mainSeAudioNodes.get(audio);
+  if (source) {
+    try {
+      source.disconnect();
+    } catch (e) {}
+  }
+
+  mainSeAudioNodes.delete(audio);
+
+  const poolIndex = mainSePool.indexOf(audio);
+  if (poolIndex !== -1) {
+    mainSePool.splice(poolIndex, 1);
+  }
+
+  try {
+    audio.removeAttribute("src");
+    audio.load();
+  } catch (e) {}
+}
+
+
 function playMainSe(path, onEnded = null) {
   if (
     typeof extraEventState !== "undefined" &&
@@ -4424,13 +4455,10 @@ ensureMainSeWebAudio(audio);
       if (finished) return;
       finished = true;
 
-      audio.onended = null;
-      audio.onerror = null;
-
-      const poolIndex = mainSePool.indexOf(audio);
-      if (poolIndex !== -1) {
-        mainSePool.splice(poolIndex, 1);
-      }
+      releaseMainSeAudioElement(
+        audio,
+        "finish"
+      );
 
       if (typeof onEnded === "function") {
         onEnded();
