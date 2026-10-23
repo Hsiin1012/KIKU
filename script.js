@@ -4789,6 +4789,32 @@ function typeWriterText(element, text) {
   typingTimers.set(element, timer);
 }
 
+function releaseVoiceAudioElement(audio, reason = "voice_release") {
+  if (!audio) return;
+
+  /*
+   * iOS / WebKit: a connected MediaElementAudioSourceNode can keep its
+   * one-shot HTMLAudioElement reachable after the line has finished.
+   * Disconnect that per-line source and detach the media resource so Voice
+   * playback does not accumulate across a long story session.
+   */
+  try {
+    const nodes = voiceAudioNodes.get(audio);
+    if (nodes && nodes.source) {
+      try { nodes.source.disconnect(); } catch (e) {}
+    }
+    voiceAudioNodes.delete(audio);
+  } catch (e) {}
+
+  try { audio.pause(); } catch (e) {}
+  try { audio.onended = null; } catch (e) {}
+  try { audio.onerror = null; } catch (e) {}
+  try {
+    audio.removeAttribute("src");
+    audio.load();
+  } catch (e) {}
+}
+
 function stopActiveAudio(reason = "manual_stop", dialogueId = "unknown") {
   currentPlaybackToken++;
 
@@ -4797,11 +4823,9 @@ function stopActiveAudio(reason = "manual_stop", dialogueId = "unknown") {
   }
 
   if (activeAudioInstance) {
-    activeAudioInstance.pause();
-    activeAudioInstance.currentTime = 0;
-    activeAudioInstance.onended = null;
-    activeAudioInstance.onerror = null;
+    const audioToRelease = activeAudioInstance;
     activeAudioInstance = null;
+    releaseVoiceAudioElement(audioToRelease, reason);
   }
 }
 
@@ -4883,6 +4907,10 @@ function playVoiceAudio(audioPath, dialogueId = "unknown", onEndedCallback) {
       console.warn("[iOS Audio Autoplay Blocked / NotAllowedError]", err);
       if (currentPlaybackToken === thisToken) {
         activeVoiceReplayPath = "";
+        if (activeAudioInstance === audio) {
+          activeAudioInstance = null;
+        }
+        releaseVoiceAudioElement(audio, "play_rejected");
       }
       if (currentPlaybackToken === thisToken && onEndedCallback) {
         onEndedCallback();
@@ -4890,11 +4918,15 @@ function playVoiceAudio(audioPath, dialogueId = "unknown", onEndedCallback) {
     });
 
     audio.onended = () => {
-      if (currentPlaybackToken !== thisToken) return;
+      if (currentPlaybackToken !== thisToken) {
+        releaseVoiceAudioElement(audio, "stale_ended");
+        return;
+      }
       activeVoiceReplayPath = "";
       if (activeAudioInstance === audio) {
         activeAudioInstance = null;
       }
+      releaseVoiceAudioElement(audio, "natural_ended");
       if (onEndedCallback) onEndedCallback();
     };
   } catch (e) {
