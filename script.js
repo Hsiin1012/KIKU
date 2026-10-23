@@ -4131,36 +4131,24 @@ function getAvailableMainSeChannel() {
   unlockMainStoryAudio();
 
   /*
-   * Main BGM foreground restore 會重建共用 AudioContext。
-   * 若某個舊 SE channel 的 MediaElementSource 還屬於舊 Context，
-   * 不能再把它接到新的 GainNode，否則會出現：
+   * Main SE 不再重用舊 HTMLAudioElement。
+   *
+   * createMediaElementSource() 會永久把某個 HTMLAudioElement
+   * 綁定到建立它的 AudioContext。背景恢復時 Main AudioContext
+   * 可能重建，因此重用舊 SE channel 仍有機會觸發：
    * "cannot connect to an AudioNode belonging to a different audio context"。
    *
-   * 這裡直接淘汰舊 Context 的 SE channel，改建新的 HTMLAudio。
-   * 不改動 BGM / Voice 的既有恢復流程。
+   * SE 都是短暫的一次性音效，所以每次播放建立全新的 Audio，
+   * 並只接到「當下」的 Main AudioContext，是最安全的做法。
+   * 播放結束後會從 mainSePool 移除，不會持續累積。
    */
-  const isUsableChannel = (item) => {
-    if (!(item.paused || item.ended || !item.src)) return false;
+  const audio = new Audio();
+  audio.preload = "auto";
+  audio.volume = 1;
 
-    const cachedSource = mainSeAudioNodes.get(item);
-    if (cachedSource && cachedSource.context !== mainBgmAudioContext) {
-      return false;
-    }
-
-    return true;
-  };
-
-  let audio = mainSePool.find(isUsableChannel);
-
-  if (!audio) {
-    audio = new Audio();
-    audio.preload = "auto";
-    mainSePool.push(audio);
-  }
-
+  mainSePool.push(audio);
   return audio;
 }
-
 
 function playMainSe(path, onEnded = null) {
   if (
@@ -4215,6 +4203,11 @@ ensureMainSeWebAudio(audio);
 
       audio.onended = null;
       audio.onerror = null;
+
+      const poolIndex = mainSePool.indexOf(audio);
+      if (poolIndex !== -1) {
+        mainSePool.splice(poolIndex, 1);
+      }
 
       if (typeof onEnded === "function") {
         onEnded();
