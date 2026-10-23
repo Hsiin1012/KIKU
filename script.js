@@ -1496,7 +1496,7 @@ function collectListeningSectionResources(
   ) {
     resources.push({
       type: "image",
-      path: "assets/cg/ch2_misaki_poster.webp"
+      path: "assets/cg/chapter2/ch2_misaki_poster.webp"
     });
   }
 
@@ -5582,7 +5582,12 @@ function renderDialogueStep(stepData) {
       elements.dialogueZh.style.display = "none";
     }
   } else {
-    typeWriterText(elements.dialogueJp, "🎧 [盲聽中... 請仔細聆聽角色語音與情境]");
+    if (isChapter2MisakiPosterCg) {
+      // 海報先作為獨立演出出現；震動結束後才進入 046 的盲聽 Voice。
+      if (elements.dialogueJp) elements.dialogueJp.innerHTML = "";
+    } else {
+      typeWriterText(elements.dialogueJp, "🎧 [盲聽中... 請仔細聆聽角色語音與情境]");
+    }
     if (elements.dialogueZh) {
       elements.dialogueZh.innerHTML = "";
       elements.dialogueZh.style.display = "none";
@@ -5625,28 +5630,25 @@ function renderDialogueStep(stepData) {
 
   /*
    * Chapter 2 Scene 03：美咲展示海報。
-   * 045「昨日、二時間もかけたんだから。」之後進入 046 時，
-   * 把教室暫時換成海報 CG；046「じゃーん！」直接顯示在 CG 上。
+   * 045 結束後進入 046 時，先只展示海報 CG 並震動。
+   * 震動完全結束後，才顯示盲聽提示並播放 046「じゃーん！」Voice。
    * 下一步玩家台詞會照一般 renderDialogueStep() 自動恢復教室背景。
    */
   if (isChapter2MisakiPosterCg) {
-    const posterSrc = "assets/cg/ch2_misaki_poster.webp";
+    const posterSrc = "assets/cg/chapter2/ch2_misaki_poster.webp";
 
-    // CG 展示期間不顯示人物立繪。
+    // CG 展示期間不顯示人物立繪，也暫時鎖住點擊避免跳過演出。
     [elements.spriteLeft, elements.spriteCenter, elements.spriteRight]
       .forEach((sprite) => {
         if (sprite) sprite.classList.add("hidden");
       });
 
-    /*
-     * 先確認海報 CG 真正可顯示，再播放 046 Voice。
-     * 這樣不會發生「Voice 已經開始，但 CG 還沒出現」的情況。
-     * Section 2 已經會提前 preload Section 3，所以正常情況下這裡會直接命中快取。
-     */
+    isMainStoryTransitioning = true;
+
     const posterImage = new Image();
     let posterHandled = false;
 
-    const showPosterAndPlayVoice = () => {
+    const showPosterThenPlayVoice = () => {
       if (posterHandled) return;
       posterHandled = true;
 
@@ -5659,30 +5661,70 @@ function renderDialogueStep(stepData) {
 
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          if (
-            stepData.audio &&
-            gameState.currentChapter === 2 &&
-            CHAPTER_DATA[2]?.steps?.[gameState.currentStepIndex]?.id === stepData.id
-          ) {
-            playVoiceAudio(
-              stepData.audio,
-              stepData.id,
-              undefined
+          let shakeAnimation = null;
+
+          if (elements.bgLayer && typeof elements.bgLayer.animate === "function") {
+            shakeAnimation = elements.bgLayer.animate(
+              [
+                { transform: "translateX(0)" },
+                { transform: "translateX(-12px)" },
+                { transform: "translateX(10px)" },
+                { transform: "translateX(-8px)" },
+                { transform: "translateX(6px)" },
+                { transform: "translateX(-3px)" },
+                { transform: "translateX(0)" }
+              ],
+              {
+                duration: 420,
+                easing: "ease-out",
+                iterations: 1
+              }
             );
+          }
+
+          const beginMisaki046 = () => {
+            const currentStep = CHAPTER_DATA[2]?.steps?.[gameState.currentStepIndex];
+            if (!currentStep || currentStep.id !== stepData.id) {
+              isMainStoryTransitioning = false;
+              return;
+            }
+
+            typeWriterText(
+              elements.dialogueJp,
+              "🎧 [盲聽中... 請仔細聆聽角色語音與情境]"
+            );
+
+            isMainStoryTransitioning = false;
+
+            if (stepData.audio) {
+              playVoiceAudio(
+                stepData.audio,
+                stepData.id,
+                undefined
+              );
+            }
+          };
+
+          if (shakeAnimation && shakeAnimation.finished) {
+            shakeAnimation.finished
+              .then(beginMisaki046)
+              .catch(() => setTimeout(beginMisaki046, 420));
+          } else {
+            setTimeout(beginMisaki046, 420);
           }
         });
       });
     };
 
-    posterImage.onload = showPosterAndPlayVoice;
+    posterImage.onload = showPosterThenPlayVoice;
     posterImage.onerror = () => {
       console.warn("[CH2 POSTER CG] failed to load:", posterSrc);
-      showPosterAndPlayVoice();
+      isMainStoryTransitioning = false;
     };
     posterImage.src = posterSrc;
 
     if (posterImage.complete && posterImage.naturalWidth > 0) {
-      showPosterAndPlayVoice();
+      showPosterThenPlayVoice();
     }
   }
 
@@ -5690,29 +5732,6 @@ function renderDialogueStep(stepData) {
   if (elements.choiceOverlay) elements.choiceOverlay.classList.add('hidden');
   showScreen('gameplay');
 
-  if (isChapter2MisakiPosterCg && elements.bgLayer) {
-    // 只在 CG 剛出現時震一下；約 0.4 秒後完全停止。
-    requestAnimationFrame(() => {
-      if (!elements.bgLayer || typeof elements.bgLayer.animate !== "function") return;
-
-      elements.bgLayer.animate(
-        [
-          { transform: "translateX(0)" },
-          { transform: "translateX(-12px)" },
-          { transform: "translateX(10px)" },
-          { transform: "translateX(-8px)" },
-          { transform: "translateX(6px)" },
-          { transform: "translateX(-3px)" },
-          { transform: "translateX(0)" }
-        ],
-        {
-          duration: 420,
-          easing: "ease-out",
-          iterations: 1
-        }
-      );
-    });
-  }
 
   saveGameData();
 }
