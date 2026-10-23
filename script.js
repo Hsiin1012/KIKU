@@ -2899,7 +2899,53 @@ function preloadImage(path) {
 
 /* ---------- audio ---------- */
 
+/*
+ * Mobile / tablet stability policy (fix17)
+ * ---------------------------------------------------------
+ * iOS / iPadOS Safari has a limited media pipeline. Creating many
+ * temporary HTMLAudio elements for staged preload can eventually
+ * compete with the real Voice player. The symptom is progressive
+ * stutter near late Chapter 1 and Voice play() failures in Chapter 2.
+ *
+ * Images are still staged normally. Audio on touch/mobile-class
+ * devices is loaded only by the real BGM / SE / Voice playback path.
+ * Desktop keeps the existing audio preload behavior.
+ */
+function shouldSkipBackgroundAudioPreload() {
+  try {
+    const ua = navigator.userAgent || "";
+    const platform = navigator.platform || "";
+    const maxTouchPoints = Number(navigator.maxTouchPoints || 0);
+
+    const isIOS = /iPhone|iPad|iPod/i.test(ua);
+    const isIPadDesktopMode =
+      platform === "MacIntel" && maxTouchPoints > 1;
+    const isAndroid = /Android/i.test(ua);
+    const isTouchTabletOrPhone =
+      maxTouchPoints > 1 &&
+      window.matchMedia &&
+      window.matchMedia("(pointer: coarse)").matches;
+
+    return (
+      isIOS ||
+      isIPadDesktopMode ||
+      isAndroid ||
+      isTouchTabletOrPhone
+    );
+  } catch (e) {
+    return false;
+  }
+}
+
 function preloadAudio(path) {
+  /*
+   * Critical: do not create preload-only HTMLAudio instances on
+   * phones/tablets. Real playback still works normally via
+   * playVoiceAudio / playMainSe / playMainBgm.
+   */
+  if (shouldSkipBackgroundAudioPreload()) {
+    return Promise.resolve();
+  }
   const src = normalizePreloadPath(path);
 
   if (!src) {
