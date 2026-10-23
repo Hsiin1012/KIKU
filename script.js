@@ -5583,7 +5583,7 @@ function renderDialogueStep(stepData) {
     }
   } else {
     if (isChapter2MisakiPosterCg) {
-      // 海報先作為獨立演出出現；震動結束後才進入 046 的盲聽 Voice。
+      // 海報先作為獨立演出出現；震動結束後等待玩家點擊才進入 046。
       if (elements.dialogueJp) elements.dialogueJp.innerHTML = "";
     } else {
       typeWriterText(elements.dialogueJp, "🎧 [盲聽中... 請仔細聆聽角色語音與情境]");
@@ -5631,7 +5631,7 @@ function renderDialogueStep(stepData) {
   /*
    * Chapter 2 Scene 03：美咲展示海報。
    * 045 結束後進入 046 時，先只展示海報 CG 並震動。
-   * 震動完全結束後，才顯示盲聽提示並播放 046「じゃーん！」Voice。
+   * 震動完全結束後停住，等待玩家點擊；點擊後才顯示盲聽提示並播放 046「じゃーん！」Voice。
    * 下一步玩家台詞會照一般 renderDialogueStep() 自動恢復教室背景。
    */
   if (isChapter2MisakiPosterCg) {
@@ -5682,35 +5682,26 @@ function renderDialogueStep(stepData) {
             );
           }
 
-          const beginMisaki046 = () => {
+          const waitForPosterClick = () => {
             const currentStep = CHAPTER_DATA[2]?.steps?.[gameState.currentStepIndex];
             if (!currentStep || currentStep.id !== stepData.id) {
+              isChapter2PosterAwaitingReveal = false;
               isMainStoryTransitioning = false;
               return;
             }
 
-            typeWriterText(
-              elements.dialogueJp,
-              "🎧 [盲聽中... 請仔細聆聽角色語音與情境]"
-            );
-
+            // 海報震動結束後停在 CG 畫面，等待玩家主動點擊。
+            // 這個階段不顯示 046 的盲聽提示，也不播放 046 Voice。
+            isChapter2PosterAwaitingReveal = true;
             isMainStoryTransitioning = false;
-
-            if (stepData.audio) {
-              playVoiceAudio(
-                stepData.audio,
-                stepData.id,
-                undefined
-              );
-            }
           };
 
           if (shakeAnimation && shakeAnimation.finished) {
             shakeAnimation.finished
-              .then(beginMisaki046)
-              .catch(() => setTimeout(beginMisaki046, 420));
+              .then(waitForPosterClick)
+              .catch(() => setTimeout(waitForPosterClick, 420));
           } else {
-            setTimeout(beginMisaki046, 420);
+            setTimeout(waitForPosterClick, 420);
           }
         });
       });
@@ -6481,6 +6472,7 @@ function continueGame() {
 }
 
 let isMainStoryTransitioning = false;
+let isChapter2PosterAwaitingReveal = false;
 
 function handleDialogueBoxClick(e) {
   e.stopPropagation();
@@ -6529,6 +6521,31 @@ function handleDialogueBoxClick(e) {
 
   const chapterData = CHAPTER_DATA[gameState.currentChapter];
   const currentStep = chapterData.steps[gameState.currentStepIndex];
+
+  // Chapter 2 Scene 03 海報：震動結束後的第一次點擊只負責進入 046。
+  // 同一次點擊不推進下一個 step；顯示與 Voice 都從這次點擊才開始。
+  if (
+    isChapter2PosterAwaitingReveal &&
+    currentStep &&
+    currentStep.id === "ch2_s03_046_misaki"
+  ) {
+    isChapter2PosterAwaitingReveal = false;
+
+    typeWriterText(
+      elements.dialogueJp,
+      "🎧 [盲聽中... 請仔細聆聽角色語音與情境]"
+    );
+
+    if (currentStep.audio) {
+      playVoiceAudio(
+        currentStep.audio,
+        currentStep.id,
+        undefined
+      );
+    }
+    return;
+  }
+
   if (currentStep && currentStep.type === "quiz") {
     if (gameState.completedSections.includes(currentStep.listeningSection)) {
       nextStep();
