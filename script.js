@@ -2453,6 +2453,76 @@ let activeAudioInstance = null;
 let currentPlaybackToken = 0;
 
 /*
+ * Voice Ahead Preload
+ * 不在 Initial Loading 預載整章音訊。
+ * 遊戲進行中只提前抓「接下來 2 句有語音的台詞」，並存成 Blob URL。
+ * 正式播放仍走原本 playVoiceAudio / Voice GainNode 路徑。
+ */
+const voiceAheadCache = new Map();
+
+function normalizeVoicePath(audioPath) {
+  let cleanPath = audioPath
+    ? (audioPath.startsWith("/") ? audioPath.slice(1) : audioPath)
+    : "";
+
+  if (cleanPath && !cleanPath.startsWith("assets/")) {
+    cleanPath = "assets/" + cleanPath;
+  }
+
+  return cleanPath;
+}
+
+function preloadVoicePath(audioPath) {
+  const cleanPath = normalizeVoicePath(audioPath);
+  if (!cleanPath || voiceAheadCache.has(cleanPath)) return;
+
+  const entry = { status: "loading", objectUrl: "" };
+  voiceAheadCache.set(cleanPath, entry);
+
+  fetch(cleanPath, { cache: "force-cache" })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`Voice preload HTTP ${response.status}`);
+      }
+      return response.blob();
+    })
+    .then((blob) => {
+      entry.objectUrl = URL.createObjectURL(blob);
+      entry.status = "ready";
+    })
+    .catch((err) => {
+      voiceAheadCache.delete(cleanPath);
+      console.warn("[VOICE PRELOAD] failed:", cleanPath, err);
+    });
+}
+
+function getVoicePlaybackSource(cleanPath) {
+  const entry = voiceAheadCache.get(cleanPath);
+  if (entry && entry.status === "ready" && entry.objectUrl) {
+    return entry.objectUrl;
+  }
+  return cleanPath;
+}
+
+function preloadNextMainStoryVoices(count = 2) {
+  const chapterData = CHAPTER_DATA[gameState.currentChapter];
+  if (!chapterData || !Array.isArray(chapterData.steps)) return;
+
+  let found = 0;
+  for (
+    let i = gameState.currentStepIndex + 1;
+    i < chapterData.steps.length && found < count;
+    i++
+  ) {
+    const futureStep = chapterData.steps[i];
+    if (!futureStep || !futureStep.audio) continue;
+
+    preloadVoicePath(futureStep.audio);
+    found++;
+  }
+}
+
+/*
  * Voice Web Audio
  * iPhone / iPad 上不依賴 HTMLAudio.volume 做實際音量縮放。
  * Voice Slider 改由獨立 GainNode 控制。
@@ -4634,10 +4704,7 @@ function playVoiceAudio(audioPath, dialogueId = "unknown", onEndedCallback) {
   const thisToken = currentPlaybackToken;
   const currentVol = (gameSettings.voiceVolume ?? 50) / 100;
 
-  let cleanPath = audioPath ? (audioPath.startsWith("/") ? audioPath.slice(1) : audioPath) : "";
-  if (cleanPath && !cleanPath.startsWith("assets/")) {
-    cleanPath = "assets/" + cleanPath;
-  }
+  const cleanPath = normalizeVoicePath(audioPath);
 
   if (!audioPath || currentVol <= 0) {
     activeVoiceReplayPath = "";
@@ -4650,7 +4717,8 @@ function playVoiceAudio(audioPath, dialogueId = "unknown", onEndedCallback) {
   activeVoiceReplayPath = cleanPath;
 
   try {
-  const audio = new Audio(cleanPath);
+  const playbackSource = getVoicePlaybackSource(cleanPath);
+  const audio = new Audio(playbackSource);
 
   audio.muted = currentVol <= 0;
 
@@ -5219,6 +5287,10 @@ function renderDialogueStep(stepData) {
   removeReplayAudioButton("renderDialogueStep");
   stopAllTypewriters();
   stopActiveAudio("renderDialogueStep", stepData.id);
+
+  // 只在實際遊玩時維持很小的 Voice buffer：提前準備後面 2 句。
+  // 這不是 Initial Loading，也不建立額外 Audio 元素。
+  preloadNextMainStoryVoices(2);
 
 
   if (gameState.currentChapter === 2) {
