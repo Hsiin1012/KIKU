@@ -1638,7 +1638,11 @@ async function preloadInitialGameResources(
 
   await preloadResourceBatch(
     resources,
-    onProgress
+    onProgress,
+    {
+      maxConcurrent: 1,
+      yieldMs: 80
+    }
   );
 }
 
@@ -2504,69 +2508,22 @@ function getVoicePlaybackSource(cleanPath) {
   return cleanPath;
 }
 
-let voiceAheadScheduleTimer = null;
-let voiceAheadQueueRunning = false;
+function preloadNextMainStoryVoices(count = 2) {
+  const chapterData = CHAPTER_DATA[gameState.currentChapter];
+  if (!chapterData || !Array.isArray(chapterData.steps)) return;
 
-async function preloadVoicePathAndWait(audioPath) {
-  const cleanPath = normalizeVoicePath(audioPath);
-  if (!cleanPath) return;
+  let found = 0;
+  for (
+    let i = gameState.currentStepIndex + 1;
+    i < chapterData.steps.length && found < count;
+    i++
+  ) {
+    const futureStep = chapterData.steps[i];
+    if (!futureStep || !futureStep.audio) continue;
 
-  const existing = voiceAheadCache.get(cleanPath);
-  if (existing) {
-    if (existing.promise) {
-      try { await existing.promise; } catch (e) {}
-    }
-    return;
+    preloadVoicePath(futureStep.audio);
+    found++;
   }
-
-  const entry = { status: "loading", objectUrl: "", promise: null };
-  entry.promise = fetch(cleanPath, { cache: "force-cache" })
-    .then((response) => {
-      if (!response.ok) throw new Error(`Voice preload HTTP ${response.status}`);
-      return response.blob();
-    })
-    .then((blob) => {
-      entry.objectUrl = URL.createObjectURL(blob);
-      entry.status = "ready";
-    })
-    .catch((err) => {
-      voiceAheadCache.delete(cleanPath);
-      console.warn("[VOICE PRELOAD] failed:", cleanPath, err);
-    });
-
-  voiceAheadCache.set(cleanPath, entry);
-  await entry.promise;
-}
-
-async function runVoiceAheadQueue(paths) {
-  if (voiceAheadQueueRunning) return;
-  voiceAheadQueueRunning = true;
-  try {
-    for (const path of paths) {
-      await preloadVoicePathAndWait(path);
-    }
-  } finally {
-    voiceAheadQueueRunning = false;
-  }
-}
-
-function scheduleNextMainStoryVoices(count = 2) {
-  if (voiceAheadScheduleTimer) window.clearTimeout(voiceAheadScheduleTimer);
-
-  voiceAheadScheduleTimer = window.setTimeout(() => {
-    voiceAheadScheduleTimer = null;
-    const chapterData = CHAPTER_DATA[gameState.currentChapter];
-    if (!chapterData || !Array.isArray(chapterData.steps)) return;
-
-    const paths = [];
-    for (let i = gameState.currentStepIndex + 1;
-         i < chapterData.steps.length && paths.length < count;
-         i++) {
-      const futureStep = chapterData.steps[i];
-      if (futureStep && futureStep.audio) paths.push(futureStep.audio);
-    }
-    runVoiceAheadQueue(paths);
-  }, 650);
 }
 
 /*
@@ -2996,7 +2953,8 @@ function preloadAudio(path) {
 
 async function preloadResourceBatch(
   resources,
-  onProgress = null
+  onProgress = null,
+  options = {}
 ) {
   const uniqueResources = [
     ...new Map(
@@ -3050,7 +3008,18 @@ async function preloadResourceBatch(
      一次最多 4 個。
      ========================================================= */
 
-  const MAX_CONCURRENT = 4;
+  const MAX_CONCURRENT =
+    Math.max(
+      1,
+      Number(options.maxConcurrent) || 4
+    );
+
+  const YIELD_MS =
+    Math.max(
+      0,
+      Number(options.yieldMs) || 0
+    );
+
   let nextIndex = 0;
 
   async function worker() {
@@ -3086,6 +3055,12 @@ async function preloadResourceBatch(
         );
       } finally {
         reportProgress();
+      }
+
+      if (YIELD_MS > 0) {
+        await new Promise(resolve => {
+          window.setTimeout(resolve, YIELD_MS);
+        });
       }
     }
   }
@@ -5081,27 +5056,63 @@ if (
 startTitleBgm();
 }
 
-function waitForMainBgmBufferBeforeInitialImages(timeoutMs = 2500) {
-  const audio = mainBgmAudio;
-  if (!audio || audio.readyState >= 3) return Promise.resolve();
+async function waitForInitialBgmBuffer(
+  minBufferedSeconds = 3,
+  timeoutMs = 3000
+) {
+  if (
+    !mainBgmAudio ||
+    mainBgmAudio.paused
+  ) {
+    return;
+  }
 
-  return new Promise((resolve) => {
-    let settled = false;
-    let timer = null;
-    const finish = () => {
-      if (settled) return;
-      settled = true;
-      audio.removeEventListener("canplay", finish);
-      audio.removeEventListener("playing", finish);
-      audio.removeEventListener("error", finish);
-      if (timer) window.clearTimeout(timer);
-      resolve();
-    };
-    timer = window.setTimeout(finish, timeoutMs);
-    audio.addEventListener("canplay", finish, { once: true });
-    audio.addEventListener("playing", finish, { once: true });
-    audio.addEventListener("error", finish, { once: true });
-  });
+  const startedAt = performance.now();
+
+  while (
+    performance.now() - startedAt < timeoutMs
+  ) {
+    try {
+      const currentTime =
+        Number(mainBgmAudio.currentTime) || 0;
+
+      let bufferedAhead = 0;
+
+      for (
+        let i = 0;
+        i < mainBgmAudio.buffered.length;
+        i++
+      ) {
+        const start =
+          mainBgmAudio.buffered.start(i);
+        const end =
+          mainBgmAudio.buffered.end(i);
+
+        if (
+          currentTime >= start &&
+          currentTime <= end
+        ) {
+          bufferedAhead =
+            Math.max(
+              0,
+              end - currentTime
+            );
+          break;
+        }
+      }
+
+      if (
+        bufferedAhead >=
+        minBufferedSeconds
+      ) {
+        return;
+      }
+    } catch (err) {}
+
+    await new Promise(resolve => {
+      window.setTimeout(resolve, 100);
+    });
+  }
 }
 
 function initStartGate() {
@@ -5194,11 +5205,14 @@ function initStartGate() {
     });
 
     /*
-      Initial Loading 仍沿用第一章的穩定原則：只預載圖片。
-      先讓正式 Title BGM 本身取得可播放緩衝，再開始圖片預載；
-      不建立任何額外 Audio preload instance。
+      Initial Loading 先讓正式 Title BGM
+      累積至少約 3 秒 buffer，再開始圖片下載。
+      不建立額外 Audio，也不預載任何 Audio。
     */
-    await waitForMainBgmBufferBeforeInitialImages(2500);
+    await waitForInitialBgmBuffer(
+      3,
+      3000
+    );
 
     try {
       await preloadInitialGameResources(
@@ -5365,6 +5379,11 @@ function renderDialogueStep(stepData) {
   stopAllTypewriters();
   stopActiveAudio("renderDialogueStep", stepData.id);
 
+  // 只在實際遊玩時維持很小的 Voice buffer：提前準備後面 2 句。
+  // 這不是 Initial Loading，也不建立額外 Audio 元素。
+  preloadNextMainStoryVoices(2);
+
+
   if (gameState.currentChapter === 2) {
     stopMorningAmbient();
 
@@ -5407,9 +5426,6 @@ function renderDialogueStep(stepData) {
       playMainBgm(MAIN_AUDIO.bgmNewIdea);
     }
   }
-
-  // BGM 先取得播放優先權，再延後、依序預讀後面 2 句 Voice。
-  scheduleNextMainStoryVoices(2);
 
   if (elements.bgNameTag) elements.bgNameTag.innerText = `【背景：${stepData.bg}】`;
   
