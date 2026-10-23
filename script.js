@@ -1488,6 +1488,18 @@ function collectListeningSectionResources(
     }
   });
 
+
+  // Chapter 2 Section 3 special poster CG.
+  if (
+    chapterNumber === 2 &&
+    sectionNumber === 3
+  ) {
+    resources.push({
+      type: "image",
+      path: "assets/cg/ch2_misaki_poster.webp"
+    });
+  }
+
   return resources;
 }
 
@@ -1535,6 +1547,10 @@ function getInitialGameResources() {
     },
     {
       type: "audio",
+      path: MAIN_AUDIO.bgmNewIdea
+    },
+    {
+      type: "audio",
       path: MAIN_AUDIO.ambSchoolMorning
     },
 
@@ -1543,6 +1559,10 @@ function getInitialGameResources() {
     {
       type: "audio",
       path: MAIN_AUDIO.seSchoolBell
+    },
+    {
+      type: "audio",
+      path: MAIN_AUDIO.seDoorClose
     },
 
     {
@@ -1631,18 +1651,16 @@ async function preloadInitialGameResources(
    * will continue to load normally when they are actually needed, and
    * the existing staged background preload remains unchanged.
    */
-  const resources =
-    getInitialGameResources().filter(
-      resource => resource.type === "image"
-    );
+  /*
+   * Chapter 1 uses the original full preload plan again:
+   * Section 1–2 + main BGM / ambient / quiz SE / school bell.
+   * This makes the first quiz and its bell available before play starts.
+   */
+  const resources = getInitialGameResources();
 
   await preloadResourceBatch(
     resources,
-    onProgress,
-    {
-      maxConcurrent: 1,
-      yieldMs: 80
-    }
+    onProgress
   );
 }
 
@@ -1726,6 +1744,63 @@ function preloadNextListeningSection(
     chapterNumber,
     nextSection
   );
+}
+
+
+/* =========================================================
+   STORY SECTION PRELOAD SCHEDULE
+   ========================================================= */
+
+const storySectionPreloadTriggers = new Set();
+
+function scheduleStorySectionPreload(
+  chapterNumber,
+  sectionNumber
+) {
+  if (!chapterNumber || !sectionNumber) {
+    return;
+  }
+
+  const triggerKey =
+    `${chapterNumber}:${sectionNumber}`;
+
+  if (
+    storySectionPreloadTriggers.has(
+      triggerKey
+    )
+  ) {
+    return;
+  }
+
+  storySectionPreloadTriggers.add(
+    triggerKey
+  );
+
+  // Chapter 1 Section 1–5 is already handled by
+  // Initial Loading + Title background preload.
+  // Section 5 additionally prepares Chapter 2 Section 1.
+  if (
+    chapterNumber === 1 &&
+    sectionNumber === 5
+  ) {
+    preloadListeningSectionInBackground(
+      2,
+      1
+    );
+    return;
+  }
+
+  // Chapter 2 always stays one Listening Section ahead.
+  if (chapterNumber === 2) {
+    const nextSection = sectionNumber + 1;
+
+    if (nextSection <= 5) {
+      preloadListeningSectionInBackground(
+        2,
+        nextSection
+      );
+    }
+  }
 }
 
 /* ==========================================================================
@@ -5204,16 +5279,6 @@ function initStartGate() {
       });
     });
 
-    /*
-      Initial Loading 先讓正式 Title BGM
-      累積至少約 3 秒 buffer，再開始圖片下載。
-      不建立額外 Audio，也不預載任何 Audio。
-    */
-    await waitForInitialBgmBuffer(
-      3,
-      3000
-    );
-
     try {
       await preloadInitialGameResources(
         (
@@ -5268,10 +5333,15 @@ function initStartGate() {
 
 /*
  * Initial Loading 已完成。
- * Section 3～5 與 Extra Event
- * 從現在開始在背景預載，
- * 不阻塞 Title / 正篇操作。
+ * Chapter 1 Section 3～5 與 Extra Event
+ * 從 Title 畫面開始背景預載，不阻塞操作。
  */
+    window.setTimeout(() => {
+      preloadListeningSectionInBackground(1, 3);
+      preloadListeningSectionInBackground(1, 4);
+      preloadListeningSectionInBackground(1, 5);
+      preloadExtraEventInBackground();
+    }, 250);
 
 
 window.setTimeout(() => {
@@ -5379,9 +5449,16 @@ function renderDialogueStep(stepData) {
   stopAllTypewriters();
   stopActiveAudio("renderDialogueStep", stepData.id);
 
-  // 只在實際遊玩時維持很小的 Voice buffer：提前準備後面 2 句。
-  // 這不是 Initial Loading，也不建立額外 Audio 元素。
-  preloadNextMainStoryVoices(2);
+  /*
+   * Section-based preload:
+   * - Chapter 1 keeps its original preload plan.
+   * - While Chapter 1 Section 5 is playing, prepare Chapter 2 Section 1.
+   * - In Chapter 2, always prepare the next Listening Section one section early.
+   */
+  scheduleStorySectionPreload(
+    gameState.currentChapter || 1,
+    stepData.listeningSection
+  );
 
 
   if (gameState.currentChapter === 2) {
