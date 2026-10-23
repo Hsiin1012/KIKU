@@ -5520,6 +5520,17 @@ function renderDialogueStep(stepData) {
     }
   }
 
+  const isChapter2MisakiPosterCg =
+    gameState.currentChapter === 2 &&
+    stepData.id === "ch2_s03_046_misaki";
+
+  const isChapter2SilentRenSubtitle =
+    gameState.currentChapter === 2 &&
+    (
+      stepData.id === "ch2_s06_114_ren" ||
+      stepData.id === "ch2_s06_116_ren"
+    );
+
   const speaker = CHARACTERS[stepData.speaker] || CHARACTERS["hero"];
   if (elements.speakerName) elements.speakerName.innerText = speaker.name;
   if (elements.speakerTitle) elements.speakerTitle.innerText = speaker.title;
@@ -5557,6 +5568,19 @@ function renderDialogueStep(stepData) {
         elements.dialogueZh.style.display = "none";
       }
     }
+  } else if (isChapter2SilentRenSubtitle) {
+    // 這兩句蓮沒有 Voice；像玩家台詞一樣直接顯示文字，
+    // 避免玩家誤以為音檔沒有成功播放。
+    typeWriterText(elements.dialogueJp, stepData.jp);
+    if (elements.dialogueJp) elements.dialogueJp.style.display = "block";
+
+    if (subtitlesEnabled && stepData.zh) {
+      typeWriterText(elements.dialogueZh, stepData.zh);
+      if (elements.dialogueZh) elements.dialogueZh.style.display = "block";
+    } else if (elements.dialogueZh) {
+      elements.dialogueZh.innerHTML = "";
+      elements.dialogueZh.style.display = "none";
+    }
   } else {
     typeWriterText(elements.dialogueJp, "🎧 [盲聽中... 請仔細聆聽角色語音與情境]");
     if (elements.dialogueZh) {
@@ -5564,7 +5588,7 @@ function renderDialogueStep(stepData) {
       elements.dialogueZh.style.display = "none";
     }
 
-    if (stepData.audio) {
+    if (stepData.audio && !isChapter2MisakiPosterCg) {
       const voiceDelayMs = Number(stepData.delayVoiceMs || 0);
 
       if (voiceDelayMs > 0) {
@@ -5605,24 +5629,61 @@ function renderDialogueStep(stepData) {
    * 把教室暫時換成海報 CG；046「じゃーん！」直接顯示在 CG 上。
    * 下一步玩家台詞會照一般 renderDialogueStep() 自動恢復教室背景。
    */
-  const isChapter2MisakiPosterCg =
-    gameState.currentChapter === 2 &&
-    stepData.id === "ch2_s03_046_misaki";
-
   if (isChapter2MisakiPosterCg) {
-    if (elements.bgLayer) {
-      elements.bgLayer.style.backgroundImage =
-        "url('assets/cg/ch2_misaki_poster.webp')";
-      elements.bgLayer.style.backgroundSize = "contain";
-      elements.bgLayer.style.backgroundRepeat = "no-repeat";
-      elements.bgLayer.style.backgroundPosition = "center";
-    }
+    const posterSrc = "assets/cg/ch2_misaki_poster.webp";
 
     // CG 展示期間不顯示人物立繪。
     [elements.spriteLeft, elements.spriteCenter, elements.spriteRight]
       .forEach((sprite) => {
         if (sprite) sprite.classList.add("hidden");
       });
+
+    /*
+     * 先確認海報 CG 真正可顯示，再播放 046 Voice。
+     * 這樣不會發生「Voice 已經開始，但 CG 還沒出現」的情況。
+     * Section 2 已經會提前 preload Section 3，所以正常情況下這裡會直接命中快取。
+     */
+    const posterImage = new Image();
+    let posterHandled = false;
+
+    const showPosterAndPlayVoice = () => {
+      if (posterHandled) return;
+      posterHandled = true;
+
+      if (elements.bgLayer) {
+        elements.bgLayer.style.backgroundImage = `url('${posterSrc}')`;
+        elements.bgLayer.style.backgroundSize = "contain";
+        elements.bgLayer.style.backgroundRepeat = "no-repeat";
+        elements.bgLayer.style.backgroundPosition = "center";
+      }
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          if (
+            stepData.audio &&
+            gameState.currentChapter === 2 &&
+            CHAPTER_DATA[2]?.steps?.[gameState.currentStepIndex]?.id === stepData.id
+          ) {
+            playVoiceAudio(
+              stepData.audio,
+              stepData.id,
+              undefined
+            );
+          }
+        });
+      });
+    };
+
+    posterImage.onload = showPosterAndPlayVoice;
+    posterImage.onerror = () => {
+      console.warn("[CH2 POSTER CG] failed to load:", posterSrc);
+      showPosterAndPlayVoice();
+    };
+    posterImage.src = posterSrc;
+
+    if (posterImage.complete && posterImage.naturalWidth > 0) {
+      showPosterAndPlayVoice();
+    }
   }
 
   if (elements.quizOverlay) elements.quizOverlay.classList.add('hidden');
