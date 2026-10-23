@@ -1417,13 +1417,29 @@ const CHAPTER_DATA = {
 
 function getChapter2MisakiPosterSource() {
   /*
-   * Use the browser's orientation media query instead of comparing viewport
-   * dimensions. iPad Safari can report layout viewport sizes that do not
-   * reliably reflect the physical orientation while browser chrome changes.
+   * iPad Safari can expose a desktop-like layout viewport even while the
+   * physical device is portrait. Prefer the physical screen/orientation
+   * signals, then fall back to the CSS media query / viewport dimensions.
    */
-  const isPortrait = window.matchMedia
-    ? window.matchMedia("(orientation: portrait)").matches
-    : window.innerHeight >= window.innerWidth;
+  let isPortrait = false;
+
+  try {
+    const orientationType = screen.orientation?.type || "";
+
+    if (orientationType) {
+      isPortrait = orientationType.startsWith("portrait");
+    } else if (typeof window.orientation === "number") {
+      isPortrait = Math.abs(window.orientation) !== 90;
+    } else if (screen.width && screen.height) {
+      isPortrait = screen.height >= screen.width;
+    } else if (window.matchMedia) {
+      isPortrait = window.matchMedia("(orientation: portrait)").matches;
+    } else {
+      isPortrait = window.innerHeight >= window.innerWidth;
+    }
+  } catch (e) {
+    isPortrait = window.innerHeight >= window.innerWidth;
+  }
 
   return isPortrait
     ? "assets/cg/chapter2/ch2_misaki_poster_portrait.webp"
@@ -1791,18 +1807,24 @@ function scheduleStorySectionPreload(
     triggerKey
   );
 
-  // Chapter 1 Section 1–5 is already handled by
-  // Initial Loading + Title background preload.
-  // Section 5 additionally prepares Chapter 2 Section 1.
-  if (
-    chapterNumber === 1 &&
-    sectionNumber === 5
-  ) {
-    preloadListeningSectionInBackground(
-      2,
-      1
-    );
-    return;
+  // Chapter 1 Section 1–2 is covered by Initial Loading.
+  // Title prepares Section 3 only. From Section 3 onward, stay one section
+  // ahead so mobile Safari never has to decode several future sections at once.
+  if (chapterNumber === 1) {
+    if (sectionNumber === 3) {
+      preloadListeningSectionInBackground(1, 4);
+      return;
+    }
+
+    if (sectionNumber === 4) {
+      preloadListeningSectionInBackground(1, 5);
+      return;
+    }
+
+    if (sectionNumber === 5) {
+      preloadListeningSectionInBackground(2, 1);
+      return;
+    }
   }
 
   // Chapter 2 always stays one Listening Section ahead.
@@ -2928,20 +2950,6 @@ function preloadAudio(path) {
 
       resourcePreloader.loaded.add(src);
       resourcePreloader.loading.delete(src);
-
-      /*
-       * Mobile Safari stability:
-       * the preload Audio element is only a temporary cache warmer. Keeping
-       * dozens of detached media elements attached to their src can gradually
-       * pressure iPhone/iPad media resources during later sections.
-       * Release the element after the browser has accepted the preload; the
-       * real Voice/SE player will create its own playback element when needed.
-       */
-      try {
-        audio.pause();
-        audio.removeAttribute("src");
-        audio.load();
-      } catch (e) {}
 
       resolve();
 };
@@ -5320,14 +5328,13 @@ function initStartGate() {
 
 /*
  * Initial Loading 已完成。
- * Chapter 1 Section 3～5 與 Extra Event
- * 從 Title 畫面開始背景預載，不阻塞操作。
+ * Mobile / iPad stability:
+ * Title 畫面只準備 Chapter 1 Section 3。
+ * Section 4、5 改成遊戲進行時逐段預載，避免大量 Voice Audio
+ * 與 Extra Event 31 段語音同時在背景佔用 Safari media pipeline。
  */
     window.setTimeout(() => {
       preloadListeningSectionInBackground(1, 3);
-      preloadListeningSectionInBackground(1, 4);
-      preloadListeningSectionInBackground(1, 5);
-      preloadExtraEventInBackground();
     }, 250);
 
 
