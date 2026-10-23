@@ -1416,7 +1416,15 @@ const CHAPTER_DATA = {
    ========================================================= */
 
 function getChapter2MisakiPosterSource() {
-  const isPortrait = window.innerHeight > window.innerWidth;
+  /*
+   * Use the browser's orientation media query instead of comparing viewport
+   * dimensions. iPad Safari can report layout viewport sizes that do not
+   * reliably reflect the physical orientation while browser chrome changes.
+   */
+  const isPortrait = window.matchMedia
+    ? window.matchMedia("(orientation: portrait)").matches
+    : window.innerHeight >= window.innerWidth;
+
   return isPortrait
     ? "assets/cg/chapter2/ch2_misaki_poster_portrait.webp"
     : "assets/cg/chapter2/ch2_misaki_poster.webp";
@@ -2920,6 +2928,20 @@ function preloadAudio(path) {
 
       resourcePreloader.loaded.add(src);
       resourcePreloader.loading.delete(src);
+
+      /*
+       * Mobile Safari stability:
+       * the preload Audio element is only a temporary cache warmer. Keeping
+       * dozens of detached media elements attached to their src can gradually
+       * pressure iPhone/iPad media resources during later sections.
+       * Release the element after the browser has accepted the preload; the
+       * real Voice/SE player will create its own playback element when needed.
+       */
+      try {
+        audio.pause();
+        audio.removeAttribute("src");
+        audio.load();
+      } catch (e) {}
 
       resolve();
 };

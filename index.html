@@ -5,6 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>KIKU!</title>
     <link rel="stylesheet" href="style.css?v=20261020-001">
+    <style>
+        /* Chapter 02 Story Collection uses the exact Chapter 01 page surface.
+           Kept here so the existing style.css does not need to be replaced. */
+        #screen-story-chapter2 {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior-y: contain;
+            touch-action: pan-y;
+            background: linear-gradient(180deg, #f7f5f1 0%, #eef1f3 100%);
+            color: #263746;
+        }
+    </style>
 </head>
 <body>
 
