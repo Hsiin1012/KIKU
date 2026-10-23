@@ -1415,6 +1415,13 @@ const CHAPTER_DATA = {
    CHAPTER RESOURCE COLLECTOR
    ========================================================= */
 
+function getChapter2MisakiPosterSource() {
+  const isPortrait = window.innerHeight > window.innerWidth;
+  return isPortrait
+    ? "assets/cg/chapter2/ch2_misaki_poster_portrait.webp"
+    : "assets/cg/chapter2/ch2_misaki_poster.webp";
+}
+
 function collectListeningSectionResources(
   chapterNumber,
   sectionNumber
@@ -1496,7 +1503,7 @@ function collectListeningSectionResources(
   ) {
     resources.push({
       type: "image",
-      path: "assets/cg/chapter2/ch2_misaki_poster.webp"
+      path: getChapter2MisakiPosterSource()
     });
   }
 
@@ -2008,153 +2015,100 @@ const STORY_ARCHIVE_STORAGE_KEY =
   "furyo_vn_story_archive";
 
 const storyArchiveState = {
-  chapter1: {
-    unlockedSections: [false, false, false, false, false]
-  }
+  chapter1: { unlockedSections: [false, false, false, false, false] },
+  chapter2: { unlockedSections: [false, false, false, false, false] }
 };
 
 function loadStoryArchiveData() {
   const raw = localStorage.getItem(STORY_ARCHIVE_STORAGE_KEY);
   if (!raw) return;
-
   try {
     const data = JSON.parse(raw);
-    const saved = data?.chapter1?.unlockedSections;
-
-    if (Array.isArray(saved)) {
-      storyArchiveState.chapter1.unlockedSections =
-        storyArchiveState.chapter1.unlockedSections.map(
+    [1, 2].forEach(chapterNumber => {
+      const key = `chapter${chapterNumber}`;
+      const saved = data?.[key]?.unlockedSections;
+      if (Array.isArray(saved)) {
+        storyArchiveState[key].unlockedSections = storyArchiveState[key].unlockedSections.map(
           (_, index) => saved[index] === true
         );
-    }
-  } catch (err) {
-    console.warn("[STORY ARCHIVE] load failed:", err);
-  }
+      }
+    });
+  } catch (err) { console.warn("[STORY ARCHIVE] load failed:", err); }
 }
 
 function saveStoryArchiveData() {
-  try {
-    localStorage.setItem(
-      STORY_ARCHIVE_STORAGE_KEY,
-      JSON.stringify(storyArchiveState)
-    );
-  } catch (err) {
-    console.warn("[STORY ARCHIVE] save failed:", err);
-  }
+  try { localStorage.setItem(STORY_ARCHIVE_STORAGE_KEY, JSON.stringify(storyArchiveState)); }
+  catch (err) { console.warn("[STORY ARCHIVE] save failed:", err); }
 }
 
 function unlockStorySection(chapterNumber, sectionNumber) {
-  if (chapterNumber !== 1) return;
-
+  const chapterArchive = storyArchiveState[`chapter${Number(chapterNumber)}`];
+  if (!chapterArchive) return;
   const index = Number(sectionNumber) - 1;
-  const list = storyArchiveState.chapter1.unlockedSections;
-
-  if (index < 0 || index >= list.length || list[index] === true) {
-    return;
-  }
-
+  const list = chapterArchive.unlockedSections;
+  if (index < 0 || index >= list.length || list[index] === true) return;
   list[index] = true;
   saveStoryArchiveData();
-
-  console.log(
-    "[STORY ARCHIVE] unlocked:",
-    `chapter ${chapterNumber} / section ${sectionNumber}`
-  );
+  console.log("[STORY ARCHIVE] unlocked:", `chapter ${chapterNumber} / section ${sectionNumber}`);
 }
 
 function migrateStoryArchiveFromMainSave() {
   try {
     const raw = localStorage.getItem("furyo_vn_save");
     if (!raw) return;
-
     const data = JSON.parse(raw);
-    if (!data || Number(data.currentChapter || 1) !== 1) return;
-
-    const completed = Array.isArray(data.completedSections)
-      ? data.completedSections
-      : [];
-
-    completed.forEach(sectionNumber => {
-      unlockStorySection(1, Number(sectionNumber));
-    });
-
+    if (!data) return;
+    const chapterNumber = Number(data.currentChapter || 1);
+    if (!storyArchiveState[`chapter${chapterNumber}`]) return;
+    const completed = Array.isArray(data.completedSections) ? data.completedSections : [];
+    completed.forEach(sectionNumber => unlockStorySection(chapterNumber, Number(sectionNumber)));
     if (data.isCleared === true) {
-      for (let section = 1; section <= 5; section++) {
-        unlockStorySection(1, section);
-      }
+      for (let section = 1; section <= 5; section++) unlockStorySection(chapterNumber, section);
     }
-  } catch (err) {
-    console.warn("[STORY ARCHIVE] migration failed:", err);
-  }
+  } catch (err) { console.warn("[STORY ARCHIVE] migration failed:", err); }
 }
 
 function isStorySectionUnlocked(chapterNumber, sectionNumber) {
-  if (chapterNumber !== 1) return false;
-
-  const index = Number(sectionNumber) - 1;
-  return storyArchiveState.chapter1.unlockedSections[index] === true;
+  const chapterArchive = storyArchiveState[`chapter${Number(chapterNumber)}`];
+  if (!chapterArchive) return false;
+  return chapterArchive.unlockedSections[Number(sectionNumber) - 1] === true;
 }
 
-function renderStoryChapter1Collection() {
+function renderStoryChapterCollection(chapterNumber) {
   migrateStoryArchiveFromMainSave();
-
   const cards = document.querySelectorAll(
-    "#screen-story-chapter1 .story-timeline-card[data-story-section]"
+    `#screen-story-chapter${chapterNumber} .story-timeline-card[data-story-section]`
   );
-
   let unlockedCount = 0;
-
   cards.forEach(card => {
     const sectionNumber = Number(card.dataset.storySection);
-    const unlocked = isStorySectionUnlocked(1, sectionNumber);
+    const unlocked = isStorySectionUnlocked(chapterNumber, sectionNumber);
     const image = card.querySelector(".story-timeline-image");
     const lockLabel = card.querySelector(".story-timeline-lock-label");
     const thumb = card.querySelector(".story-timeline-thumb");
     const status = card.querySelector(".story-section-status");
-
     if (unlocked) {
-      unlockedCount++;
-      card.disabled = false;
-      card.setAttribute("aria-disabled", "false");
-      card.classList.remove("is-locked");
-      card.classList.add("is-unlocked");
-
-      if (image) {
-        const src = image.dataset.src;
-        if (src && !image.getAttribute("src")) {
-          image.src = src;
-        }
-        image.classList.remove("hidden");
-      }
-
+      unlockedCount++; card.disabled = false; card.setAttribute("aria-disabled", "false");
+      card.classList.remove("is-locked"); card.classList.add("is-unlocked");
+      if (image) { const src = image.dataset.src; if (src && !image.getAttribute("src")) image.src = src; image.classList.remove("hidden"); }
       if (lockLabel) lockLabel.classList.add("hidden");
       if (thumb) thumb.classList.remove("is-placeholder");
       if (status) status.textContent = "REPLAY";
     } else {
-      card.disabled = true;
-      card.setAttribute("aria-disabled", "true");
-      card.classList.add("is-locked");
-      card.classList.remove("is-unlocked");
-
-      if (image) {
-        image.removeAttribute("src");
-        image.classList.add("hidden");
-      }
-
+      card.disabled = true; card.setAttribute("aria-disabled", "true");
+      card.classList.add("is-locked"); card.classList.remove("is-unlocked");
+      if (image) { image.removeAttribute("src"); image.classList.add("hidden"); }
       if (lockLabel) lockLabel.classList.remove("hidden");
       if (thumb) thumb.classList.add("is-placeholder");
       if (status) status.textContent = "LOCKED";
     }
   });
-
-  const chapterStatus = document.querySelector(
-    "#btn-story-chapter1 .story-chapter-status"
-  );
-
-  if (chapterStatus) {
-    chapterStatus.textContent = `${unlockedCount} / 5 SECTIONS`;
-  }
+  const chapterStatus = document.querySelector(`#btn-story-chapter${chapterNumber} .story-chapter-status`);
+  if (chapterStatus) chapterStatus.textContent = `${unlockedCount} / 5 SECTIONS`;
 }
+
+function renderStoryChapter1Collection() { renderStoryChapterCollection(1); }
+function renderStoryChapter2Collection() { renderStoryChapterCollection(2); }
 
 /* =========================================================
    STORY COLLECTION REPLAY MODE
@@ -2163,7 +2117,9 @@ function renderStoryChapter1Collection() {
 
 let storyCollectionReplayMode = false;
 let storyCollectionReplaySection = null;
+let storyCollectionReplayChapter = null;
 let storyCollectionPreviousListeningState = null;
+let storyCollectionPreviousChapter = null;
 
 function playStoryCollectionSectionBgm(sectionNumber) {
   stopMorningAmbient(0);
@@ -2178,12 +2134,13 @@ function playStoryCollectionSectionBgm(sectionNumber) {
   }
 }
 
-function startStorySectionFromCollection(sectionNumber) {
+function startStorySectionFromCollection(sectionNumber, chapterNumber = 1) {
   const section = Number(sectionNumber);
+  const chapter = Number(chapterNumber);
 
-  if (!isStorySectionUnlocked(1, section)) return;
+  if (!isStorySectionUnlocked(chapter, section)) return;
 
-  const chapterData = CHAPTER_DATA[1];
+  const chapterData = CHAPTER_DATA[chapter];
   const queue = chapterData.steps.filter(
     step =>
       step.listeningSection === section &&
@@ -2199,7 +2156,10 @@ function startStorySectionFromCollection(sectionNumber) {
 
   storyCollectionReplayMode = true;
   storyCollectionReplaySection = section;
+  storyCollectionReplayChapter = chapter;
   storyCollectionPreviousListeningState = gameState.listeningState;
+  storyCollectionPreviousChapter = gameState.currentChapter;
+  gameState.currentChapter = chapter;
 
   sectionReplayQueue = queue;
   sectionReplayIndex = 0;
@@ -2223,15 +2183,20 @@ function finishStoryCollectionReplay() {
   gameState.listeningState =
     storyCollectionPreviousListeningState || "BLIND_LISTENING";
 
+  const finishedChapter = storyCollectionReplayChapter || 1;
+  if (storyCollectionPreviousChapter !== null) gameState.currentChapter = storyCollectionPreviousChapter;
+
   storyCollectionReplayMode = false;
   storyCollectionReplaySection = null;
+  storyCollectionReplayChapter = null;
   storyCollectionPreviousListeningState = null;
+  storyCollectionPreviousChapter = null;
   sectionReplayQueue = [];
   sectionReplayIndex = 0;
   sectionReplayQuizIdToReturn = null;
 
-  showScreen("storyChapter1");
-  renderStoryChapter1Collection();
+  showScreen(`storyChapter${finishedChapter}`);
+  renderStoryChapterCollection(finishedChapter);
 
   window.setTimeout(() => {
     playMainBgm(MAIN_AUDIO.bgmSchoolDay, 500);
@@ -5635,7 +5600,7 @@ function renderDialogueStep(stepData) {
    * 下一步玩家台詞會照一般 renderDialogueStep() 自動恢復教室背景。
    */
   if (isChapter2MisakiPosterCg) {
-  const posterSrc = "assets/cg/chapter2/ch2_misaki_poster.webp";
+  const posterSrc = getChapter2MisakiPosterSource();
 
   // 海報單獨展示期間隱藏整個對話 UI。
   const dialogueBox = document.querySelector(".vn-dialogue-box");
@@ -6626,6 +6591,9 @@ function initEventListeners() {
   screens.storyChapter1 =
     document.getElementById('screen-story-chapter1');
 
+  screens.storyChapter2 =
+    document.getElementById('screen-story-chapter2');
+
   screens.extraCollection =
     document.getElementById(
     'screen-extra-collection'
@@ -6771,14 +6739,29 @@ bindClick(
   () => showScreen('storyCollection')
 );
 
-  document.querySelectorAll(
-    "#screen-story-chapter1 .story-timeline-card[data-story-section]"
-  ).forEach(card => {
-    card.onclick = (e) => {
-      e.stopPropagation();
-      unlockAudioContextIOS();
-      startStorySectionFromCollection(card.dataset.storySection);
-    };
+bindClick(
+  'btn-story-chapter2',
+  () => {
+    renderStoryChapter2Collection();
+    showScreen('storyChapter2');
+  }
+);
+
+bindClick(
+  'btn-story-chapter2-back',
+  () => showScreen('storyCollection')
+);
+
+  [1, 2].forEach(chapterNumber => {
+    document.querySelectorAll(
+      `#screen-story-chapter${chapterNumber} .story-timeline-card[data-story-section]`
+    ).forEach(card => {
+      card.onclick = (e) => {
+        e.stopPropagation();
+        unlockAudioContextIOS();
+        startStorySectionFromCollection(card.dataset.storySection, chapterNumber);
+      };
+    });
   });
 
 bindClick(
