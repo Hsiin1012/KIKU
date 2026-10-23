@@ -5359,9 +5359,60 @@ function renderDialogueStep(stepData) {
 
   renderSprite(stepData.position, stepData.speaker, stepData.expression);
 
+  /*
+   * Chapter 2 Scene 03：美咲展示海報。
+   * 045「昨日、二時間もかけたんだから。」之後進入 046 時，
+   * 把教室暫時換成海報 CG；046「じゃーん！」直接顯示在 CG 上。
+   * 下一步玩家台詞會照一般 renderDialogueStep() 自動恢復教室背景。
+   */
+  const isChapter2MisakiPosterCg =
+    gameState.currentChapter === 2 &&
+    stepData.id === "ch2_s03_046_misaki";
+
+  if (isChapter2MisakiPosterCg) {
+    if (elements.bgLayer) {
+      elements.bgLayer.style.backgroundImage =
+        "url('assets/cg/ch2_misaki_poster.webp')";
+      elements.bgLayer.style.backgroundSize = "contain";
+      elements.bgLayer.style.backgroundRepeat = "no-repeat";
+      elements.bgLayer.style.backgroundPosition = "center";
+    }
+
+    // CG 展示期間不顯示人物立繪。
+    [elements.spriteLeft, elements.spriteCenter, elements.spriteRight]
+      .forEach((sprite) => {
+        if (sprite) sprite.classList.add("hidden");
+      });
+  }
+
   if (elements.quizOverlay) elements.quizOverlay.classList.add('hidden');
   if (elements.choiceOverlay) elements.choiceOverlay.classList.add('hidden');
   showScreen('gameplay');
+
+  if (isChapter2MisakiPosterCg && elements.bgLayer) {
+    // 只在 CG 剛出現時震一下；約 0.4 秒後完全停止。
+    requestAnimationFrame(() => {
+      if (!elements.bgLayer || typeof elements.bgLayer.animate !== "function") return;
+
+      elements.bgLayer.animate(
+        [
+          { transform: "translateX(0)" },
+          { transform: "translateX(-12px)" },
+          { transform: "translateX(10px)" },
+          { transform: "translateX(-8px)" },
+          { transform: "translateX(6px)" },
+          { transform: "translateX(-3px)" },
+          { transform: "translateX(0)" }
+        ],
+        {
+          duration: 420,
+          easing: "ease-out",
+          iterations: 1
+        }
+      );
+    });
+  }
+
   saveGameData();
 }
 
