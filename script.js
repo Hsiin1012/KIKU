@@ -934,9 +934,6 @@ function renderExtraEventStep() {
         "#000000";
     }
 
-    if (elements.bgNameTag) {
-      elements.bgNameTag.innerText = "";
-    }
 
     if (elements.speakerName) {
       elements.speakerName.innerText = "";
@@ -974,8 +971,6 @@ function renderExtraEventStep() {
 
   if (step.type === "title_card") {
   playExtraSe(EXTRA_AUDIO.seTitle);
-
-    if (elements.bgNameTag) elements.bgNameTag.innerText = "【EXTRA EVENT】";
     if (elements.speakerName) elements.speakerName.innerText = step.title;
     if (elements.speakerTitle) elements.speakerTitle.innerText = "特別劇本";
     if (elements.vnNameplate) elements.vnNameplate.style.backgroundColor = "#e84118";
@@ -993,8 +988,6 @@ function renderExtraEventStep() {
   }
 
   if (step.type === "narrative") {
-
-    if (elements.bgNameTag) elements.bgNameTag.innerText = "【場景】";
     if (elements.speakerName) elements.speakerName.innerText = "旁白";
     if (elements.speakerTitle) elements.speakerTitle.innerText = "";
     if (elements.vnNameplate) elements.vnNameplate.style.backgroundColor = "#718093";
@@ -1012,7 +1005,6 @@ function renderExtraEventStep() {
   }
 
   if (step.type === "time_passage") {
-    if (elements.bgNameTag) elements.bgNameTag.innerText = "【時間経過】";
     if (elements.speakerName) elements.speakerName.innerText = "旁白";
     if (elements.speakerTitle) elements.speakerTitle.innerText = "";
     if (elements.vnNameplate) elements.vnNameplate.style.backgroundColor = "#718093";
@@ -1030,7 +1022,6 @@ function renderExtraEventStep() {
   }
 
   if (step.type === "if_end_title") {
-    if (elements.bgNameTag) elements.bgNameTag.innerText = "【IF END】";
     if (elements.speakerName) elements.speakerName.innerText = step.title;
     if (elements.speakerTitle) elements.speakerTitle.innerText = "特別結局";
     if (elements.vnNameplate) elements.vnNameplate.style.backgroundColor = "#e84118";
@@ -1048,7 +1039,6 @@ function renderExtraEventStep() {
   }
 
   if (step.type === "if_end_text") {
-    if (elements.bgNameTag) elements.bgNameTag.innerText = "【IF END】";
     if (elements.speakerName) elements.speakerName.innerText = "特別結局";
     if (elements.speakerTitle) elements.speakerTitle.innerText = "「幻の焼きそばラリー」";
     if (elements.vnNameplate) elements.vnNameplate.style.backgroundColor = "#e84118";
@@ -1153,7 +1143,6 @@ function finishExtraEvent() {
     elements.bgLayer.style.backgroundSize = "";
     elements.bgLayer.style.backgroundPosition = "";
   }
-  if (elements.bgNameTag) elements.bgNameTag.innerText = "";
   if (elements.speakerName) elements.speakerName.innerText = "";
   if (elements.speakerTitle) elements.speakerTitle.innerText = "";
   if (elements.dialogueJp) {
@@ -5233,10 +5222,6 @@ function removeReplayAudioButton(reason = "cleanup") {
 }
 
 function saveGameData() {
-  if (window.__KIKU_DEBUG_SESSION__ === true) {
-    return;
-  }
-
   const saveData = {
     hasValidSave: gameState.hasValidSave,
     currentChapter: gameState.currentChapter,
@@ -5864,8 +5849,6 @@ function renderDialogueStep(stepData) {
       playMainBgm(MAIN_AUDIO.bgmNewIdea);
     }
   }
-
-  if (elements.bgNameTag) elements.bgNameTag.innerText = `【背景：${stepData.bg}】`;
   
   const bgUrl = BACKGROUND_MAP[stepData.bg] || "assets/backgrounds/bg_classroom_day.webp";
   if (elements.bgLayer) {
@@ -6483,8 +6466,6 @@ function renderReplayStepManual(index) {
 
   const stepData = sectionReplayQueue[index];
   stopActiveAudio("renderReplayStepManual", stepData.id);
-  
-  if (elements.bgNameTag) elements.bgNameTag.innerText = `【背景：${stepData.bg}】`;
   const bgUrl = BACKGROUND_MAP[stepData.bg] || "assets/backgrounds/bg_classroom_day.webp";
   if (elements.bgLayer) {
     elements.bgLayer.style.backgroundImage = `url('${bgUrl}')`;
@@ -7093,7 +7074,6 @@ function initEventListeners() {
     trustSato: document.getElementById('trust-sato'),
     hudChapterTitle: document.getElementById('hud-chapter-title'),
     bgLayer: document.getElementById('vn-background'),
-    bgNameTag: document.getElementById('bg-name-tag'),
     spriteLeft: document.getElementById('sprite-left'),
     spriteCenter: document.getElementById('sprite-center'),
     spriteRight: document.getElementById('sprite-right'),
@@ -8695,116 +8675,4 @@ document.addEventListener("DOMContentLoaded", () => {
   updateTitleScreenButtons();
   initStartGate();
   showScreen('title');
-});
-
-
-
-/* ==========================================================================
-   TEMP DEBUG QUICK JUMP - mobile performance diagnosis only
-   ========================================================================== */
-function getDebugSectionStartIndex(chapterNumber, sectionNumber) {
-  const chapterData = CHAPTER_DATA[chapterNumber];
-  if (!chapterData || !Array.isArray(chapterData.steps)) return -1;
-
-  return chapterData.steps.findIndex(step =>
-    step &&
-    step.type === "dialogue" &&
-    Number(step.listeningSection) === Number(sectionNumber)
-  );
-}
-
-function updateDebugStatusPanel() {
-  const box = document.getElementById("debug-status");
-  if (!box) return;
-
-  let mobileAudioPreloadOff = false;
-  try {
-    mobileAudioPreloadOff = shouldSkipBackgroundAudioPreload();
-  } catch (e) {}
-
-  const voiceState =
-    voiceAudioContext ? voiceAudioContext.state : "none";
-  const mainState =
-    mainBgmAudioContext ? mainBgmAudioContext.state : "none";
-
-  box.innerHTML =
-    `Mobile audio preload: <strong>${mobileAudioPreloadOff ? "OFF" : "ON"}</strong><br>` +
-    `Voice AudioContext: <strong>${voiceState}</strong><br>` +
-    `Main AudioContext: <strong>${mainState}</strong><br>` +
-    `Staged sections: <strong>${stagedPreloadState.sections.size}</strong>`;
-}
-
-function debugJumpToStorySection(chapterNumber, sectionNumber) {
-  const chapter = Number(chapterNumber);
-  const section = Number(sectionNumber);
-  const startIndex = getDebugSectionStartIndex(chapter, section);
-
-  if (startIndex < 0) {
-    console.warn("[DEBUG JUMP] section not found", chapter, section);
-    return;
-  }
-
-  window.__KIKU_DEBUG_SESSION__ = true;
-
-  stopAllTypewriters();
-  stopActiveAudio("debugJumpToStorySection", `${chapter}:${section}`);
-  stopParallelVoices();
-  stopMorningAmbient();
-  stopExtraBgm(0);
-  stopMainBgm(0);
-  removeReplayAudioButton("debugJumpToStorySection");
-
-  gameState.hasValidSave = true;
-  gameState.currentChapter = chapter;
-  gameState.currentStepIndex = startIndex;
-  gameState.totalQuizzes = CHAPTER_DATA[chapter]?.totalQuizzes || 5;
-  gameState.isCleared = false;
-  gameState.currentQuizId = null;
-  gameState.currentListeningSection = section;
-  gameState.listeningState = "BLIND_LISTENING";
-
-  const panel = document.getElementById("debug-jump-panel");
-  if (panel) panel.classList.add("hidden");
-
-  showScreen("gameplay");
-  updateHUD();
-  renderDialogueStep(CHAPTER_DATA[chapter].steps[startIndex]);
-
-  console.info("[DEBUG JUMP]", { chapter, section, startIndex });
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  const openBtn = document.getElementById("btn-debug-jump");
-  const panel = document.getElementById("debug-jump-panel");
-  const closeBtn = document.getElementById("btn-debug-close");
-
-  if (openBtn && panel) {
-    openBtn.addEventListener("click", event => {
-      event.preventDefault();
-      event.stopPropagation();
-      unlockAudioContextIOS();
-      updateDebugStatusPanel();
-      panel.classList.remove("hidden");
-    });
-  }
-
-  if (closeBtn && panel) {
-    closeBtn.addEventListener("click", event => {
-      event.preventDefault();
-      event.stopPropagation();
-      panel.classList.add("hidden");
-    });
-  }
-
-  document.querySelectorAll("[data-debug-chapter][data-debug-section]").forEach(button => {
-    button.addEventListener("click", event => {
-      event.preventDefault();
-      event.stopPropagation();
-      unlockAudioContextIOS();
-      debugJumpToStorySection(
-        button.dataset.debugChapter,
-        button.dataset.debugSection
-      );
-    });
-  });
 });

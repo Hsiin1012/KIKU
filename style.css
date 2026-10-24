@@ -298,18 +298,6 @@ html, body {
   filter: sepia(0.4) brightness(0.8);
 }
 
-.bg-debug-tag {
-  position: absolute;
-  top: 15px;
-  left: 15px;
-  background: rgba(0,0,0,0.6);
-  color: #cbd5e1;
-  padding: 4px 10px;
-  font-size: 0.75rem;
-  border-radius: 4px;
-  z-index: 5;
-  pointer-events: none;
-}
 
 /* 角色立繪區 */
 .vn-sprite-container {
@@ -2431,10 +2419,7 @@ and (orientation: portrait) {
   }
 
   /* 場景名稱避開第一列 HUD */
-  .bg-debug-tag {
-    top: 62px;
-    left: 10px;
-  }
+  
 }
 
 /* ==========================================================================
@@ -2646,10 +2631,7 @@ and (orientation: portrait) {
   }
 
   /* 場景名稱避開 HUD */
-  .bg-debug-tag {
-    top: 62px;
-    left: 10px;
-  }
+  
 }
 
 /* ==========================================================================
@@ -3975,4 +3957,14 @@ button.extra-collection-card:not(.is-locked):hover {
     width: 100%;
     min-width: 0;
   }
+}
+
+/* ========================================================================== 
+   AFFECTION UI HIDDEN FOR CURRENT RELEASE
+   Keep the underlying trust-point logic/save data intact for future expansion.
+   ========================================================================== */
+.hud-trust-badges,
+#trust-summary-text,
+#trust-summary-text + .score-lbl {
+  display: none !important;
 }
