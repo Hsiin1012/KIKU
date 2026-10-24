@@ -3751,3 +3751,22 @@ button.extra-collection-card:not(.is-locked):hover {
     );
 }
 
+
+
+/* ==========================================================================
+   FINAL PERFORMANCE BUILD — iOS / Tablet gameplay compositing reduction
+   Keeps the approved translucent UI, but removes live backdrop blur from
+   frequently repainted gameplay elements on screens up to 1024px.
+   ========================================================================== */
+@media screen and (max-width: 1024px) {
+  #screen-gameplay .vn-dialogue-box,
+  #screen-gameplay .vn-hud-bar,
+  #screen-gameplay .hud-chap-badge,
+  #screen-gameplay .trust-pill,
+  #screen-gameplay #hud-config-btn,
+  #screen-gameplay #btn-game-exit,
+  #screen-gameplay #btn-audio-play {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+}

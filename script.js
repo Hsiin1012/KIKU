@@ -4678,6 +4678,73 @@ ensureMainSeWebAudio(audio);
 
 /* ---------- morning ambience ---------- */
 
+/* ---------- Final Performance: Morning Ambient cleanup ---------- */
+function releaseMorningAmbientAudio(audio) {
+  if (!audio) return;
+
+  const nodes = morningAmbientAudioNodes.get(audio);
+
+  if (nodes) {
+    if (nodes.source) {
+      try { nodes.source.disconnect(); } catch (e) {}
+    }
+
+    if (nodes.fadeGain) {
+      try { nodes.fadeGain.disconnect(); } catch (e) {}
+    }
+  }
+
+  morningAmbientAudioNodes.delete(audio);
+
+  try {
+    audio.pause();
+    audio.removeAttribute("src");
+    audio.load();
+  } catch (e) {}
+}
+
+function fadeDetachedMorningAmbientOut(audio, duration = 500) {
+  if (!audio) return;
+
+  const nodes = morningAmbientAudioNodes.get(audio);
+  const fadeGain = nodes && nodes.fadeGain;
+
+  if (!fadeGain) {
+    fadeDetachedMainAudioOut(audio, duration);
+    window.setTimeout(() => {
+      releaseMorningAmbientAudio(audio);
+    }, Math.max(0, duration) + 80);
+    return;
+  }
+
+  const startGain = Number.isFinite(fadeGain.gain.value)
+    ? fadeGain.gain.value
+    : 0;
+
+  if (duration <= 0 || startGain <= 0) {
+    try { fadeGain.gain.value = 0; } catch (e) {}
+    releaseMorningAmbientAudio(audio);
+    return;
+  }
+
+  const startTime = performance.now();
+  const timer = setInterval(() => {
+    const progress = Math.min(
+      1,
+      (performance.now() - startTime) / Math.max(1, duration)
+    );
+
+    try {
+      fadeGain.gain.value = Math.max(0, startGain * (1 - progress));
+    } catch (e) {}
+
+    if (progress >= 1) {
+      clearInterval(timer);
+      releaseMorningAmbientAudio(audio);
+    }
+  }, 40);
+}
+
 function startMorningAmbient(
   fadeMs = 700
 ) {
@@ -4752,7 +4819,7 @@ function startMorningAmbient(
       morningAmbientFadeTimer = null;
     }
 
-    fadeDetachedMainAudioOut(
+    fadeDetachedMorningAmbientOut(
       oldAudio,
       Math.min(fadeMs, 500)
     );
@@ -4852,7 +4919,7 @@ function stopMorningAmbient(
     morningAmbientFadeTimer = null;
   }
 
-  fadeDetachedMainAudioOut(
+  fadeDetachedMorningAmbientOut(
     audio,
     fadeMs
   );
@@ -4888,12 +4955,9 @@ function stopMainStoryAudioImmediately() {
 }
 
   if (morningAmbientAudio) {
-    try {
-      morningAmbientAudio.pause();
-      morningAmbientAudio.currentTime = 0;
-    } catch (e) {}
-
+    const ambientToRelease = morningAmbientAudio;
     morningAmbientAudio = null;
+    releaseMorningAmbientAudio(ambientToRelease);
   }
 
   mainSePool.forEach(audio => {
@@ -4962,12 +5026,15 @@ function typeWriterText(element, text) {
   element.setAttribute('data-full-text', formattedText);
   
   if (gameSettings.textSpeed === "instant") {
-    element.innerHTML = formattedText;
+    element.textContent = formattedText;
     element.removeAttribute('data-full-text');
     return;
   }
 
-  element.innerHTML = "";
+  element.textContent = "";
+  const textNode = document.createTextNode("");
+  element.appendChild(textNode);
+
   let i = 0;
   let speedDelay = 35;
   if (gameSettings.textSpeed === "slow") speedDelay = 70;
@@ -4975,8 +5042,8 @@ function typeWriterText(element, text) {
 
   const timer = setInterval(() => {
     if (i < formattedText.length) {
-      element.innerHTML += formattedText.charAt(i);
       i++;
+      textNode.nodeValue = formattedText.slice(0, i);
     } else {
       clearInterval(timer);
       typingTimers.delete(element);
@@ -6795,7 +6862,7 @@ function handleDialogueBoxClick(e) {
         clearInterval(timer);
         typingTimers.delete(elements.dialogueJp);
       }
-      elements.dialogueJp.innerHTML = fullTextAttr;
+      elements.dialogueJp.textContent = fullTextAttr;
       elements.dialogueJp.removeAttribute('data-full-text');
       return;
     }
