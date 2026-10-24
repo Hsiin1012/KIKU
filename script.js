@@ -3672,6 +3672,166 @@ function fadeDetachedMainAudioOut(
 }
 
 
+/* ---------- Debug22: detached Main BGM cleanup ---------- */
+
+function releaseMainBgmAudioElement(audio, reason = "cleanup") {
+  if (!audio) return;
+
+  try {
+    const nodes = mainBgmAudioNodes.get(audio);
+
+    if (nodes) {
+      try {
+        if (nodes.source) nodes.source.disconnect();
+      } catch (e) {}
+
+      try {
+        if (nodes.fadeGain) nodes.fadeGain.disconnect();
+      } catch (e) {}
+
+      mainBgmAudioNodes.delete(audio);
+    }
+  } catch (e) {}
+
+  try {
+    audio.pause();
+  } catch (e) {}
+
+  try {
+    audio.removeAttribute("src");
+    audio.load();
+  } catch (e) {}
+
+  console.log(
+    "[MAIN BGM] released:",
+    reason
+  );
+}
+
+function fadeDetachedMainBgmOut(
+  audio,
+  duration = 500
+) {
+  if (!audio) return;
+
+  const nodes =
+    mainBgmAudioNodes.get(audio);
+
+  const fadeGain =
+    nodes && nodes.fadeGain;
+
+  /*
+   * Web Audio path:
+   * detached BGM fades with its own fadeGain.
+   * When the fade is complete, fully detach only
+   * this old BGM element from the graph.
+   */
+  if (fadeGain) {
+    const startGain =
+      Number.isFinite(fadeGain.gain.value)
+        ? fadeGain.gain.value
+        : 0;
+
+    if (
+      duration <= 0 ||
+      startGain <= 0
+    ) {
+      try {
+        fadeGain.gain.value = 0;
+      } catch (e) {}
+
+      releaseMainBgmAudioElement(
+        audio,
+        "detached-immediate"
+      );
+      return;
+    }
+
+    const startTime = performance.now();
+
+    const timer = setInterval(() => {
+      const progress = Math.min(
+        1,
+        (performance.now() - startTime) /
+          Math.max(1, duration)
+      );
+
+      try {
+        fadeGain.gain.value =
+          Math.max(
+            0,
+            startGain * (1 - progress)
+          );
+      } catch (e) {}
+
+      if (progress >= 1) {
+        clearInterval(timer);
+
+        try {
+          fadeGain.gain.value = 0;
+        } catch (e) {}
+
+        releaseMainBgmAudioElement(
+          audio,
+          "detached-fade-complete"
+        );
+      }
+    }, 40);
+
+    return;
+  }
+
+  /*
+   * HTMLAudio fallback when Web Audio is unavailable.
+   */
+  const startVolume =
+    Number.isFinite(audio.volume)
+      ? audio.volume
+      : 0;
+
+  if (
+    duration <= 0 ||
+    startVolume <= 0
+  ) {
+    try {
+      audio.volume = 0;
+    } catch (e) {}
+
+    releaseMainBgmAudioElement(
+      audio,
+      "detached-fallback-immediate"
+    );
+    return;
+  }
+
+  const startTime = performance.now();
+
+  const timer = setInterval(() => {
+    const progress = Math.min(
+      1,
+      (performance.now() - startTime) /
+        Math.max(1, duration)
+    );
+
+    try {
+      audio.volume = Math.max(
+        0,
+        startVolume * (1 - progress)
+      );
+    } catch (e) {}
+
+    if (progress >= 1) {
+      clearInterval(timer);
+
+      releaseMainBgmAudioElement(
+        audio,
+        "detached-fallback-fade-complete"
+      );
+    }
+  }, 40);
+}
+
+
 function resetMainBgmContextForForeground() {
 
   /*
@@ -4190,7 +4350,7 @@ const oldAudio =
  * 舊 Audio 獨立淡出。
  */
 if (oldAudio) {
-  fadeDetachedMainAudioOut(
+  fadeDetachedMainBgmOut(
     oldAudio,
     Math.min(fadeMs, 500)
   );
@@ -4321,7 +4481,7 @@ mainBgmPath = "";
     mainBgmFadeTimer = null;
   }
 
-  fadeDetachedMainAudioOut(
+  fadeDetachedMainBgmOut(
     audio,
     fadeMs
   );
