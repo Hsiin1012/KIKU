@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>KIKU!</title>
-    <link rel="stylesheet" href="style.css?v=20261020-001">
+    <link rel="stylesheet" href="style.css?v=20261024-final">
     <style>
         /* Chapter 02 Story Collection uses the exact Chapter 01 page surface.
            Kept here so the existing style.css does not need to be replaced. */
@@ -443,19 +443,19 @@
 
 
             <!-- Future Extra Event 02 -->
-            <div class="extra-collection-card is-locked">
+            <div class="extra-collection-card is-coming-soon" aria-disabled="true">
 
                 <div class="extra-card-visual">
-                    <div class="extra-card-lock">？</div>
+                    <div class="extra-card-coming-soon-mark">EXTRA EVENT</div>
                 </div>
 
                 <div class="extra-card-info">
                     <div class="extra-card-title">
-                        ??????
+                        EXTRA EVENT
                     </div>
 
                     <div class="extra-card-status">
-                        LOCKED
+                        COMING SOON
                     </div>
                 </div>
 
@@ -463,19 +463,19 @@
 
 
             <!-- Future Extra Event 03 -->
-            <div class="extra-collection-card is-locked">
+            <div class="extra-collection-card is-coming-soon" aria-disabled="true">
 
                 <div class="extra-card-visual">
-                    <div class="extra-card-lock">？</div>
+                    <div class="extra-card-coming-soon-mark">EXTRA EVENT</div>
                 </div>
 
                 <div class="extra-card-info">
                     <div class="extra-card-title">
-                        ??????
+                        EXTRA EVENT
                     </div>
 
                     <div class="extra-card-status">
-                        LOCKED
+                        COMING SOON
                     </div>
                 </div>
 
@@ -498,6 +498,20 @@
                     <p><strong>3. 好感度與選擇：</strong> 答對測驗題目可提升對應角色的好感度，並累積通關分數。</p>
                     <p><strong>4. 字幕與設定：</strong> 可隨時於「設定」中開關中文字幕、調整語音音量、切換文字速度或全螢幕模式。</p>
                 </div>
+
+                <details class="play-tips">
+                    <summary>
+                        <span>遊玩提示</span>
+                        <span class="play-tips-toggle" aria-hidden="true"></span>
+                    </summary>
+                    <div class="play-tips-content">
+                        <p>💻 建議使用平板或電腦遊玩，以獲得較佳體驗。</p>
+                        <p>🎧 本作包含日語語音，建議開啟聲音或配戴耳機。</p>
+                        <p>🌐 建議使用 Google Chrome；Safari 可能出現部分相容性問題。</p>
+                        <p>🔄 若遇到畫面、音訊或操作異常，可嘗試重新整理網頁。</p>
+                    </div>
+                </details>
+
                 <div style="display: flex; justify-content: flex-end; margin-top: 20px;">
                     <button id="btn-back-to-title" class="vn-btn primary">了解，返回標題</button>
                 </div>
@@ -771,6 +785,24 @@
             </div>
         </div>
 
+        <!-- Final ending sequence: Chapter 02 only -->
+        <div id="final-ending-sequence" class="final-ending-sequence" aria-hidden="true">
+            <div id="final-ending-line1" class="final-ending-message">――文化祭まで、あと三週間。</div>
+
+            <div id="final-ending-title-card" class="final-ending-title-card">
+                <div class="final-ending-game-title">ちゃんと聞いてる？</div>
+                <div class="final-ending-end-mark">―― END ――</div>
+            </div>
+
+            <div id="final-ending-complete" class="final-ending-complete">
+                <p>プレイしていただき、ありがとうございました！</p>
+                <div class="final-ending-actions">
+                    <button id="btn-final-title" class="vn-btn primary" type="button">タイトルへ戻る</button>
+                    <button id="btn-final-collection" class="vn-btn secondary" type="button">コレクションを見る</button>
+                </div>
+            </div>
+        </div>
+
         <!-- ==========================================================================
            8. CHAPTER TRANSITION BANNER (章節轉場橫幅)
            ========================================================================== -->
@@ -852,6 +884,6 @@
     </div>
 
     <!-- 遊戲主邏輯腳本 -->
-    <script src="script.js?v=20261024-debug19"></script>
+    <script src="script.js?v=20261024-final"></script>
 </body>
 </html>

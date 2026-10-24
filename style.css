@@ -3770,3 +3770,209 @@ button.extra-collection-card:not(.is-locked):hover {
     -webkit-backdrop-filter: none !important;
   }
 }
+
+
+/* ========================================================================== 
+   FINAL POLISH — Play Tips / Coming Soon / Chapter 02 Final Ending
+   Scoped additions only; existing gameplay systems remain unchanged.
+   ========================================================================== */
+
+/* How to Play: compact native details/summary tips */
+.play-tips {
+  margin-top: 18px;
+  border: 1px solid rgba(111, 143, 168, 0.28);
+  border-radius: 10px;
+  background: rgba(248, 250, 252, 0.72);
+  overflow: hidden;
+  color: #334155;
+}
+
+.play-tips summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 14px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #526f86;
+}
+
+.play-tips summary::-webkit-details-marker {
+  display: none;
+}
+
+.play-tips-toggle::before {
+  content: "+";
+  display: inline-block;
+  min-width: 1.2em;
+  text-align: center;
+  font-size: 1.15rem;
+  line-height: 1;
+  color: #6f8fa8;
+}
+
+.play-tips[open] .play-tips-toggle::before {
+  content: "−";
+}
+
+.play-tips-content {
+  display: grid;
+  gap: 10px;
+  padding: 0 14px 14px;
+  border-top: 1px solid rgba(111, 143, 168, 0.16);
+  padding-top: 12px;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.play-tips-content p {
+  margin: 0;
+}
+
+/* Extra Event: visible but intentionally unavailable future cards */
+.extra-collection-card.is-coming-soon {
+  cursor: default;
+  opacity: 0.68;
+  pointer-events: none;
+  background: rgba(235, 237, 238, 0.76);
+  border-color: rgba(38, 55, 70, 0.12);
+  box-shadow: 0 6px 18px rgba(38, 55, 70, 0.05);
+}
+
+.extra-card-coming-soon-mark {
+  color: rgba(82, 111, 134, 0.58);
+  font-size: clamp(0.78rem, 1.4vw, 0.95rem);
+  font-weight: 800;
+  letter-spacing: 0.18em;
+}
+
+.extra-collection-card.is-coming-soon .extra-card-status {
+  color: #6f8fa8;
+}
+
+/* Chapter 02: cinematic final ending overlay */
+.final-ending-sequence {
+  position: absolute;
+  inset: 0;
+  z-index: 500;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(20px, 5vw, 48px);
+  background: rgba(0, 0, 0, 0);
+  color: #f8fafc;
+  text-align: center;
+  transition: background-color 1.2s ease;
+}
+
+.final-ending-sequence.is-active {
+  display: flex;
+}
+
+.final-ending-sequence.is-black {
+  background: rgba(0, 0, 0, 1);
+}
+
+.final-ending-message,
+.final-ending-title-card,
+.final-ending-complete {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(88%, 720px);
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.55s ease;
+}
+
+.final-ending-message.is-visible,
+.final-ending-title-card.is-visible,
+.final-ending-complete.is-visible {
+  opacity: 1;
+}
+
+.final-ending-message {
+  font-size: clamp(1.05rem, 2.4vw, 1.45rem);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  line-height: 1.7;
+}
+
+.final-ending-game-title {
+  font-size: clamp(1.7rem, 4.6vw, 2.7rem);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.final-ending-end-mark {
+  margin-top: 18px;
+  font-size: clamp(0.95rem, 2vw, 1.2rem);
+  letter-spacing: 0.22em;
+  color: rgba(248, 250, 252, 0.78);
+}
+
+.final-ending-complete {
+  width: min(90%, 620px);
+}
+
+.final-ending-complete.is-visible {
+  pointer-events: auto;
+}
+
+.final-ending-complete p {
+  margin: 0 0 28px;
+  font-size: clamp(1.05rem, 2.6vw, 1.4rem);
+  font-weight: 600;
+  line-height: 1.7;
+}
+
+.final-ending-actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.final-ending-actions .vn-btn {
+  min-width: 180px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #f8fafc;
+  border: 1px solid rgba(255, 255, 255, 0.34);
+  box-shadow: none;
+}
+
+.final-ending-actions .vn-btn:hover {
+  background: rgba(255, 255, 255, 0.20);
+}
+
+@media screen and (max-width: 600px) {
+  .play-tips {
+    margin-top: 14px;
+  }
+
+  .play-tips summary {
+    padding: 10px 12px;
+  }
+
+  .play-tips-content {
+    gap: 9px;
+    padding: 10px 12px 12px;
+    font-size: 0.86rem;
+    line-height: 1.55;
+  }
+
+  .final-ending-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .final-ending-actions .vn-btn {
+    width: 100%;
+    min-width: 0;
+  }
+}

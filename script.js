@@ -6614,7 +6614,98 @@ function renderWrongReviewScreen() {
   showScreen('review');
 }
 
+function resetFinalEndingSequence() {
+  const overlay = document.getElementById('final-ending-sequence');
+  const line1 = document.getElementById('final-ending-line1');
+  const titleCard = document.getElementById('final-ending-title-card');
+  const complete = document.getElementById('final-ending-complete');
+
+  if (!overlay) return;
+
+  overlay.classList.remove('is-active', 'is-black');
+  overlay.setAttribute('aria-hidden', 'true');
+
+  if (line1) line1.classList.remove('is-visible');
+  if (titleCard) titleCard.classList.remove('is-visible');
+  if (complete) complete.classList.remove('is-visible');
+}
+
+function renderFinalEnding() {
+  removeReplayAudioButton("renderFinalEnding");
+  stopAllTypewriters();
+  setMainBgmDucked(false);
+  stopMorningAmbient(500);
+  stopMainBgm(900);
+  stopActiveAudio("renderFinalEnding", "finalEnding");
+
+  gameState.isCleared = true;
+  gameState.listeningState = "COMPLETE";
+
+  if (elements.quizOverlay) {
+    elements.quizOverlay.classList.add('hidden');
+  }
+  if (elements.feedbackModal) {
+    elements.feedbackModal.classList.add('hidden');
+  }
+
+  const hudConfigBtn = document.getElementById('hud-config-btn');
+  const hudGameExitBtn = document.getElementById('btn-game-exit');
+  if (hudConfigBtn) hudConfigBtn.style.display = 'none';
+  if (hudGameExitBtn) hudGameExitBtn.style.display = 'none';
+
+  if (elements.btnReview) {
+    elements.btnReview.classList.remove('hidden');
+    elements.btnReview.innerText = "聽力回顧";
+  }
+
+  saveGameData();
+
+  const overlay = document.getElementById('final-ending-sequence');
+  const line1 = document.getElementById('final-ending-line1');
+  const titleCard = document.getElementById('final-ending-title-card');
+  const complete = document.getElementById('final-ending-complete');
+
+  if (!overlay || !line1 || !titleCard || !complete) {
+    showScreen('ending');
+    return;
+  }
+
+  resetFinalEndingSequence();
+  overlay.classList.add('is-active');
+  overlay.setAttribute('aria-hidden', 'false');
+
+  // Q5 後先保留短暫安靜，再讓目前遊戲畫面慢慢淡至黑色。
+  window.setTimeout(() => {
+    overlay.classList.add('is-black');
+  }, 1500);
+
+  window.setTimeout(() => {
+    line1.classList.add('is-visible');
+  }, 2850);
+
+  window.setTimeout(() => {
+    line1.classList.remove('is-visible');
+  }, 4850);
+
+  window.setTimeout(() => {
+    titleCard.classList.add('is-visible');
+  }, 5500);
+
+  window.setTimeout(() => {
+    titleCard.classList.remove('is-visible');
+  }, 8100);
+
+  window.setTimeout(() => {
+    complete.classList.add('is-visible');
+  }, 8750);
+}
+
 function renderEnding() {
+  if (gameState.currentChapter === 2) {
+    renderFinalEnding();
+    return;
+  }
+
   removeReplayAudioButton("renderEnding");
   stopAllTypewriters();
   setMainBgmDucked(false);
@@ -7231,6 +7322,15 @@ document.addEventListener('click', (event) => {
 });
 
   bindClick('btn-back-to-title', () => showScreen('title'));
+  bindClick('btn-final-title', () => {
+    resetFinalEndingSequence();
+    showScreen('title');
+    updateTitleScreenButtons();
+  });
+  bindClick('btn-final-collection', () => {
+    resetFinalEndingSequence();
+    showScreen('collection');
+  });
   bindClick('btn-restart', () => {
     stopAllTypewriters();
     stopActiveAudio("restartButton", "restart");
