@@ -3280,6 +3280,7 @@ button.extra-collection-card:not(.is-locked):hover {
 }
 .story-collection-card.is-available { opacity: 1; }
 .story-collection-card.is-locked { opacity: 0.62; box-shadow: none; }
+.story-collection-card.is-coming-soon { opacity: 0.68; box-shadow: none; pointer-events: none; }
 .story-chapter-number { color: #6f8fa8; font-size: 0.75rem; font-weight: 800; letter-spacing: 0.18em; }
 .story-chapter-title { margin-top: 14px; font-size: 1.08rem; font-weight: 700; line-height: 1.5; }
 .story-chapter-status { margin-top: 18px; color: #6f8fa8; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.14em; }
