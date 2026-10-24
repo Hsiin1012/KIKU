@@ -2644,7 +2644,17 @@ function ensureVoiceAudioContext() {
   }
 }
 
+/*
+ * DEBUG23 A/B TEST ONLY
+ * Temporarily bypass Voice MediaElementAudioSourceNode routing so we can test
+ * whether per-line Voice Web Audio routing is related to cumulative iOS lag.
+ * Voice still plays through HTMLAudio fallback; on iOS the Voice volume slider
+ * may not behave normally while this diagnostic switch is enabled.
+ */
+const DEBUG23_DISABLE_VOICE_WEBAUDIO = true;
+
 function ensureVoiceWebAudio(audio) {
+  if (DEBUG23_DISABLE_VOICE_WEBAUDIO) return null;
   if (!audio) return null;
 
   const context = ensureVoiceAudioContext();
